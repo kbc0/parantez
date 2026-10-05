@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>(parantez) — gündem, kısaca</title>
+  <meta name="description" content="Her sabah 5 dakikada gündem. Uzun lafın kısası, parantez içinde.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <div class="ticker" aria-hidden="true">
+    <div class="ticker__track">
+      <span>SAYI 214</span><span>5 HABER</span><span>4 DK 30 SN OKUMA</span><span>0 REKLAM BANNERI</span><span>48.120 OKUR</span><span>KAHVE BİTMEDEN BİTER</span>
+      <span>SAYI 214</span><span>5 HABER</span><span>4 DK 30 SN OKUMA</span><span>0 REKLAM BANNERI</span><span>48.120 OKUR</span><span>KAHVE BİTMEDEN BİTER</span>
+    </div>
+  </div>
+
+  <header class="top">
+    <nav class="nav">
+      <a href="#bugun">Bugün</a>
+      <a href="#sozluk">Sözlük</a>
+      <a href="#formatlar">Formatlar</a>
+      <a href="#kurallar">Kurallar</a>
+      <a href="#abone" class="nav__cta">Abone ol →</a>
+    </nav>
+    <h1 class="wordmark" aria-label="parantez">
+      <span class="br">(</span>parantez<span class="br">)</span>
+    </h1>
+    <div class="top__meta">
+      <span id="today">Pazartesi, 5 Ekim</span>
+      <span>Gündem uzun. Biz kısaltıyoruz.</span>
+      <span>İstanbul / internet</span>
+    </div>
+  </header>
+
+  <main>
+
+    <section class="hero">
+      <p class="hero__lede">
+        Her sabah 07:30'da e-postana <mark>beş haber</mark>, bir rakam ve bir kelime düşer.
+        Ne olduğunu, neden önemli olduğunu ve seni nasıl etkilediğini anlatırız.
+        Gerisi <span class="mono">(parantez içinde)</span>.
+      </p>
+      <form class="signup" data-signup>
+        <label for="email" class="sr">E-posta adresin</label>
+        <input id="email" type="email" required placeholder="sen@ornek.com" autocomplete="email">
+        <button type="submit">Bana yolla</button>
+        <p class="signup__note mono">Ücretsiz. Spam yok. Tek tıkla çık.</p>
+      </form>
+    </section>
+
+    <section id="bugun" class="issue">
+      <div class="issue__head">
+        <h2 class="section-title">Bugünün sayısı</h2>
+        <div class="progress mono" aria-live="polite">
+          <span data-count>0</span>/5 okundu
+          <div class="progress__bar"><i data-bar></i></div>
+        </div>
+      </div>
+
+      <ol class="stories">
+        <li class="story">
+          <span class="story__no">01</span>
+          <div class="story__body">
+            <span class="tag tag--eko">Ekonomi</span>
+            <h3>Faiz yine sabit. Peki senin cüzdanında ne değişti?</h3>
+            <p>Merkez Bankası bu ay da faize dokunmadı. Kısaca: kredi kartı ve ihtiyaç kredisi faizleri bir süre daha yüksek kalacak, mevduat cazip olmaya devam edecek.</p>
+            <details>
+              <summary>Neden önemli?</summary>
+              <p>Ev, araba ya da telefon için kredi düşünüyorsan acele etmenin mantığı yok. Birikimin varsa vadeli hesap hâlâ enflasyona karşı en zahmetsiz kalkan.</p>
+            </details>
+          </div>
+          <button class="story__check" aria-pressed="false" aria-label="Okundu olarak işaretle">✓</button>
+        </li>
+
+        <li class="story">
+          <span class="story__no">02</span>
+          <div class="story__body">
+            <span class="tag tag--sehir">Şehir</span>
+            <h3>Kira tavanı kalktı, ev arkadaşı ilanları patladı.</h3>
+            <p>Büyükşehirlerde "oda kiralık" ilanları bir yılda neredeyse ikiye katlandı. Öğrenciler ve yeni mezunlar için yeni normal: üç kişi, bir banyo, ortak bir buzdolabı rafı.</p>
+            <details>
+              <summary>Neden önemli?</summary>
+              <p>Sözleşmeyi kimin adına yaptığın, depozitoyu kimin aldığı ve aidatı kimin ödediği sonradan kavga sebebi olmasın. Yazılı anlaşma, arkadaşlıktan daha uzun yaşar.</p>
+            </details>
+          </div>
+          <button class="story__check" aria-pressed="false" aria-label="Okundu olarak işaretle">✓</button>
+        </li>
+
+        <li class="story">
+          <span class="story__no">03</span>
+          <div class="story__body">
+            <span class="tag tag--tek">Teknoloji</span>
+            <h3>Stajyerin işini yapay zekâ mı alıyor?</h3>
+            <p>Şirketler giriş seviyesi ilanlarını azaltıyor ama "yapay zekâ araçlarını kullanabilen" aday arayan ilan sayısı artıyor. Kapı kapanmıyor; şekil değiştiriyor.</p>
+            <details>
+              <summary>Neden önemli?</summary>
+              <p>CV'ne "ChatGPT kullanırım" yazmak yetmiyor. Bir aracı kullanarak gerçekten ne ürettiğini gösteren tek bir proje, on sertifikadan daha çok iş görüyor.</p>
+            </details>
+          </div>
+          <button class="story__check" aria-pressed="false" aria-label="Okundu olarak işaretle">✓</button>
+        </li>
+
+        <li class="story">
+          <span class="story__no">04</span>
+          <div class="story__body">
+            <span class="tag tag--dunya">Dünya</span>
+            <h3>Schengen randevusu: yine bir lotarya.</h3>
+            <p>Yaz bitti ama vize randevu sıkıntısı bitmedi. Aracı firmalar randevuları toplu kapatıyor, şikâyetler büyüyor, AB tarafı "inceliyoruz" diyor.</p>
+            <details>
+              <summary>Neden önemli?</summary>
+              <p>Erasmus ya da kış tatili planın varsa başvuruyu şimdiden aç. Randevu sitesini sabah saatlerinde yokla; iptaller genelde o saatlerde düşüyor.</p>
+            </details>
+          </div>
+          <button class="story__check" aria-pressed="false" aria-label="Okundu olarak işaretle">✓</button>
+        </li>
+
+        <li class="story">
+          <span class="story__no">05</span>
+          <div class="story__body">
+            <span class="tag tag--kultur">Kültür</span>
+            <h3>Herkes aynı diziyi izliyor, kimse bitiremiyor.</h3>
+            <p>Platformlar sezonları bölerek yayınlıyor; "final" artık üç parçalı bir kavram. İzleme süresi artıyor, izleyicinin sabrı azalıyor.</p>
+            <details>
+              <summary>Neden önemli?</summary>
+              <p>Değil aslında. Ama bugün dört haberi okudun, bunu da hak ettin.</p>
+            </details>
+          </div>
+          <button class="story__check" aria-pressed="false" aria-label="Okundu olarak işaretle">✓</button>
+        </li>
+      </ol>
+
+      <div class="done mono" data-done hidden>
+        Bitti. Gündemi 4 dakikada hallettin. Yarın 07:30'da görüşürüz.
+      </div>
+    </section>
+
+    <section class="number">
+      <div class="number__label mono">Günün rakamı</div>
+      <div class="number__value">%62</div>
+      <p class="number__text">
+        18–29 yaş arasındakilerin haberi ilk kez sosyal medyada gördüğünü söyleyen oranı.
+        Biz de oradayız; ama kaynağını yazarak.
+      </p>
+    </section>
+
+    <section id="sozluk" class="glossary">
+      <h2 class="section-title">Sözlük<span class="mono">/ bugünün kelimesi</span></h2>
+      <div class="glossary__card">
+        <div class="glossary__word">Enflasyon<br>muhasebesi</div>
+        <div class="glossary__def">
+          <p class="mono">isim · ekonomi · sık duyulur, az anlaşılır</p>
+          <p>Şirketlerin bilançolarını enflasyonun etkisinden arındırarak yeniden hesaplaması. Kâğıt üstünde kâr eden bir şirketin aslında para kaybettiğini ortaya çıkarabilir.</p>
+          <p class="glossary__use"><strong>Cümle içinde:</strong> "Şirket rekor kâr açıkladı ama enflasyon muhasebesiyle zarar etmiş." — bir LinkedIn yorumu</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="formatlar" class="formats">
+      <h2 class="section-title">Formatlar</h2>
+      <ul class="formats__list">
+        <li>
+          <span class="formats__time mono">Hafta içi · 07:30</span>
+          <span class="formats__name">Sabah Bülteni</span>
+          <span class="formats__desc">5 haber, 1 rakam, 1 kelime. Kahve bitmeden biter.</span>
+        </li>
+        <li>
+          <span class="formats__time mono">Cuma · 12:00</span>
+          <span class="formats__name">Parantez Arası</span>
+          <span class="formats__desc">Haftanın en çok konuşulanları, 12 dakikalık podcast.</span>
+        </li>
+        <li>
+          <span class="formats__time mono">Pazar · 10:00</span>
+          <span class="formats__name">Uzun Okuma</span>
+          <span class="formats__desc">Tek bir konu, baştan sona. Sakin bir pazar için.</span>
+        </li>
+        <li>
+          <span class="formats__time mono">Ayda bir</span>
+          <span class="formats__name">Sen Sor</span>
+          <span class="formats__desc">Okurların sorduğu en saçma soruya en ciddi cevap.</span>
+        </li>
+      </ul>
+    </section>
+
+    <section id="kurallar" class="rules">
+      <h2 class="section-title">Üç kuralımız</h2>
+      <div class="rules__grid">
+        <article>
+          <span class="rules__no">I</span>
+          <h3>Kısa yaz.</h3>
+          <p>Okuman beş dakikayı geçiyorsa biz işimizi yapmamışız demektir.</p>
+        </article>
+        <article>
+          <span class="rules__no">II</span>
+          <h3>Kaynağı göster.</h3>
+          <p>Her haberin altında nereden aldığımızı yazarız. Tık tuzağı başlık yok.</p>
+        </article>
+        <article>
+          <span class="rules__no">III</span>
+          <h3>Taraf tutma, net ol.</h3>
+          <p>Kimseye ne düşüneceğini söylemeyiz. Ama neyin ne olduğunu açık açık anlatırız.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="abone" class="cta">
+      <p class="cta__big">Yarın sabah<br>gelen kutunda<br><span class="br">(</span>olalım mı?<span class="br">)</span></p>
+      <form class="signup signup--inv" data-signup>
+        <label for="email2" class="sr">E-posta adresin</label>
+        <input id="email2" type="email" required placeholder="sen@ornek.com" autocomplete="email">
+        <button type="submit">Olalım</button>
+      </form>
+    </section>
+
+  </main>
+
+  <footer class="foot">
+    <span class="mono">(parantez) © 2026 — bir konsept çalışması</span>
+    <span class="foot__links mono">
+      <a href="#">Instagram</a>
+      <a href="#">X</a>
+      <a href="#">Spotify</a>
+      <a href="#">Arşiv</a>
+    </span>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
