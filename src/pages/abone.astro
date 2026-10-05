@@ -1,0 +1,20 @@
+---
+import Base from '../layouts/Base.astro';
+import Sec from '../components/Sec.astro';
+import Subscribe from '../components/Subscribe.astro';
+---
+<Base title="Abone ol" description="Her pazartesi 07:30’da haftanın özeti ve beş yazı. Ücretsiz.">
+  <Sec harf="+" as="h1">Abone ol</Sec>
+  <div class="page page--sub">
+    <div>
+      <p class="page__big">Her pazartesi 07:30’da haftanın özeti ve beş yazı. Ücretsiz, reklamsız, tek tıkla çıkış.</p>
+      <Subscribe variant="page" kaynak="abone-sayfasi" />
+    </div>
+    <dl class="facts page__side">
+      <div><dt>Ne zaman</dt><dd>Pazartesi 07:30</dd></div>
+      <div><dt>Ne kadar</dt><dd>~10 dakika</dd></div>
+      <div><dt>Kaç para</dt><dd>Ücretsiz</dd></div>
+      <div><dt>Verilerin</dt><dd>Sadece e-posta, satılmaz</dd></div>
+    </dl>
+  </div>
+</Base>

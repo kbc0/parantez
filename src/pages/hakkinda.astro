@@ -1,0 +1,44 @@
+---
+import Base from '../layouts/Base.astro';
+import Sec from '../components/Sec.astro';
+import Subscribe from '../components/Subscribe.astro';
+import { SITE } from '../lib/site';
+---
+<Base title="Hakkında" description="(parantez) nedir, nasıl çalışır, kimler yazar?">
+  <Sec harf="H" as="h1">Hakkında</Sec>
+
+  <div class="page">
+    <div class="page__lead">
+      <p class="page__big">(parantez), 18–30 yaş için haftalık bir bülten. Her pazartesi sabahı haftanın özetini ve beş yazıyı gelen kutuna bırakır.</p>
+      <p>Gündemi takip etmek yorucu. Her şey aynı anda, her yerden ve bağıra bağıra geliyor. Biz bir haftayı bekleyip, gürültü dinince oturup yazıyoruz: ne oldu, neden önemli, senin hayatına nereden dokunuyor.</p>
+      <p>Haber sitesi değiliz; son dakikaya yetişmeye çalışmıyoruz. Okuyup bitirebileceğin bir şey yapmaya çalışıyoruz.</p>
+    </div>
+    <dl class="facts page__side">
+      <div><dt>Yayın</dt><dd>Her pazartesi 07:30</dd></div>
+      <div><dt>Her sayıda</dt><dd>Özet + 5 yazı</dd></div>
+      <div><dt>Okuma</dt><dd>~10 dakika</dd></div>
+      <div><dt>Ücret</dt><dd>Yok</dd></div>
+      <div><dt>İletişim</dt><dd><a href={`mailto:${SITE.eposta}`}>{SITE.eposta}</a></dd></div>
+    </dl>
+  </div>
+
+  <Sec harf="K">Kurallarımız</Sec>
+  <div class="row rules">
+    <div><span class="rules__no">01</span><h3>Kısa yaz.</h3><p>Bir yazıyı okumak üç dakikayı geçiyorsa işimizi yapmamışız demektir.</p></div>
+    <div><span class="rules__no">02</span><h3>Kaynağı göster.</h3><p>Bir bilgiyi nereden aldığımızı yazarız. Tık tuzağı başlık atmayız.</p></div>
+    <div><span class="rules__no">03</span><h3>Net ol, taraf tutma.</h3><p>Kimseye ne düşüneceğini söylemeyiz; neyin ne olduğunu açık açık anlatırız.</p></div>
+  </div>
+
+  <Sec harf="E">Ekip</Sec>
+  <div class="row team">
+    <div><h3>Ece Arslan</h3><p>Yayın yönetmeni. Ekonomi, dünya.</p></div>
+    <div><h3>Deniz Kaya</h3><p>Editör. Şehir, kültür, spor.</p></div>
+    <div><h3>Mert Yalın</h3><p>Editör. Teknoloji, iklim.</p></div>
+  </div>
+
+  <Sec harf="+">Abone ol</Sec>
+  <div class="page page--sub">
+    <p class="page__big">Pazartesi sabahı gelen kutunda olalım.</p>
+    <Subscribe variant="page" kaynak="hakkinda" />
+  </div>
+</Base>

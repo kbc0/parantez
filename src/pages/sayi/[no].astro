@@ -1,0 +1,15 @@
+---
+import Base from '../../layouts/Base.astro';
+import IssueView from '../../components/IssueView.astro';
+import { sayilar, pad, type Sayi } from '../../lib/site';
+
+export async function getStaticPaths() {
+  const liste = await sayilar();
+  return liste.map((s, i) => ({ params: { no: String(s.data.sayi) }, props: { sayi: s, guncel: i === 0 } }));
+}
+
+const { sayi, guncel } = Astro.props as { sayi: Sayi; guncel: boolean };
+---
+<Base title={`Sayı ${pad(sayi.data.sayi)}: ${sayi.data.baslik}`} description={`Sayı ${pad(sayi.data.sayi)}: ${sayi.data.baslik}`}>
+  <IssueView sayi={sayi} arsiv={!guncel} />
+</Base>

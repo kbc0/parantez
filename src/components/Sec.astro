@@ -1,0 +1,9 @@
+---
+interface Props { harf: string; as?: 'h1' | 'h2' | 'div'; aside?: string; id?: string }
+const { harf, as: Tag = 'h2', aside, id } = Astro.props;
+---
+<Tag class="sec" id={id}>
+  <span class="badge badge--lg" aria-hidden="true">{harf}</span>
+  <span class="sec__t"><slot /></span>
+  {aside && <span class="sec__aside">{aside}</span>}
+</Tag>

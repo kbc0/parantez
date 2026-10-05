@@ -1,0 +1,10 @@
+---
+import Base from '../layouts/Base.astro';
+import IssueView from '../components/IssueView.astro';
+import { sayilar, pad } from '../lib/site';
+
+const [guncel] = await sayilar();
+---
+<Base description={`Sayı ${pad(guncel.data.sayi)}: ${guncel.data.baslik} Haftanın özeti ve beş yazı.`}>
+  <IssueView sayi={guncel} />
+</Base>

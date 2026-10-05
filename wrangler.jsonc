@@ -1,5 +1,18 @@
 {
+  "$schema": "node_modules/wrangler/config-schema.json",
   "name": "parantez",
+  "main": "worker/index.js",
   "compatibility_date": "2026-09-01",
-  "assets": { "directory": "." }
+  // `wrangler deploy` önce siteyi derler (dist/), sonra yükler.
+  // Paketler kurulu değilse (ör. Cloudflare build ortamı) önce kurar.
+  "build": { "command": "(test -d node_modules/astro || npm ci) && npm run build" },
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "404-page",
+    "html_handling": "auto-trailing-slash"
+  },
+  // Abone e-postaları. ID verilmediği için ilk deploy'da Cloudflare otomatik oluşturur.
+  "kv_namespaces": [{ "binding": "ABONELER" }],
+  "observability": { "enabled": true }
 }

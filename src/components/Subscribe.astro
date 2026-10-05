@@ -1,0 +1,55 @@
+---
+interface Props { variant?: 'box' | 'page'; kaynak?: string }
+const { variant = 'box', kaynak = 'site' } = Astro.props;
+const id = `eposta-${variant}`;
+---
+<form class:list={['sub', `sub--${variant}`]} action="/api/abone" method="post" data-sub novalidate>
+  {variant === 'box' && <p class="sub__title">Her pazartesi 07:30. Haftanın özeti ve beş yazı. Ücretsiz.</p>}
+  <input type="hidden" name="kaynak" value={kaynak}>
+  <div class="sub__hp" aria-hidden="true">
+    <label>Web siteniz <input type="text" name="web" tabindex="-1" autocomplete="off"></label>
+  </div>
+  <label for={id} class="sr">E-posta adresin</label>
+  <input id={id} type="email" name="eposta" required placeholder="E-posta adresin" autocomplete="email" inputmode="email">
+  <button type="submit">Abone ol</button>
+  <p class="sub__msg" role="status" aria-live="polite" data-msg></p>
+</form>
+
+<script>
+  document.querySelectorAll<HTMLFormElement>('[data-sub]').forEach((form) => {
+    if (form.dataset.bound) return;
+    form.dataset.bound = '1';
+    const msg = form.querySelector<HTMLElement>('[data-msg]')!;
+    const btn = form.querySelector<HTMLButtonElement>('button')!;
+    const input = form.querySelector<HTMLInputElement>('input[type=email]')!;
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      form.classList.remove('is-error');
+      if (!input.value.trim() || !input.checkValidity()) {
+        form.classList.add('is-error');
+        msg.textContent = 'Geçerli bir e-posta adresi yaz.';
+        input.focus();
+        return;
+      }
+      btn.disabled = true;
+      btn.textContent = 'Gönderiliyor…';
+      try {
+        const res = await fetch(form.action, {
+          method: 'POST',
+          headers: { Accept: 'application/json' },
+          body: new FormData(form),
+        });
+        const data = await res.json().catch(() => ({ mesaj: 'Bir şeyler ters gitti. Birazdan tekrar dene.' }));
+        if (!res.ok) throw new Error(data.mesaj);
+        form.classList.add('is-done');
+        msg.textContent = data.mesaj;
+      } catch (err) {
+        form.classList.add('is-error');
+        msg.textContent = err instanceof Error && err.message ? err.message : 'Bağlantı kurulamadı. Birazdan tekrar dene.';
+        btn.disabled = false;
+        btn.textContent = 'Abone ol';
+      }
+    });
+  });
+</script>

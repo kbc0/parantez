@@ -1,0 +1,42 @@
+---
+import Base from '../layouts/Base.astro';
+import Sec from '../components/Sec.astro';
+import { sayilar, yazilar, sayininYazilari, sayiUrl, yaziUrl, konuUrl, pad, aralik } from '../lib/site';
+import { KONULAR } from '../lib/konular';
+
+const liste = await sayilar();
+const satirlar = await Promise.all(liste.map(async (s) => ({ s, yazilar: await sayininYazilari(s.data.sayi) })));
+const tum = await yazilar();
+const konular = Object.entries(KONULAR)
+  .map(([k, ad]) => ({ k, ad, n: tum.filter((y) => y.data.konu === k).length }))
+  .filter((x) => x.n > 0);
+---
+<Base title="Arşiv" description="(parantez)’in bütün sayıları ve yazıları.">
+  <Sec harf="A" as="h1" aside={`${liste.length} sayı · ${tum.length} yazı`}>Arşiv</Sec>
+
+  <ol class="issues">
+    {satirlar.map(({ s, yazilar }, i) => (
+      <li class="issues__row">
+        <a class="issues__no" href={sayiUrl(s.data.sayi)} aria-label={`Sayı ${s.data.sayi}`}>{pad(s.data.sayi)}</a>
+        <div class="issues__head">
+          <p class="issues__date">{aralik(s.data.baslangic, s.data.bitis)}{i === 0 && <span class="tag">Güncel</span>}</p>
+          <h2><a href={sayiUrl(s.data.sayi)}>{s.data.baslik}</a></h2>
+        </div>
+        <ol class="issues__list">
+          {yazilar.map((y) => (
+            <li><span>{pad(y.data.sira)}</span><a href={yaziUrl(y)}>{y.data.baslik}</a></li>
+          ))}
+        </ol>
+      </li>
+    ))}
+  </ol>
+
+  <section class="topics" aria-labelledby="konular">
+    <Sec harf="K" id="konular">Konular</Sec>
+    <ul>
+      {konular.map((x) => (
+        <li><a href={konuUrl(x.k)}><span>{x.ad}<sup>({pad(x.n)})</sup></span><span aria-hidden="true">→</span></a></li>
+      ))}
+    </ul>
+  </section>
+</Base>

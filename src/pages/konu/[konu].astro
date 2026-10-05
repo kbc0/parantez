@@ -1,0 +1,26 @@
+---
+import Base from '../../layouts/Base.astro';
+import Sec from '../../components/Sec.astro';
+import Card from '../../components/Card.astro';
+import { yazilar, sayilar, type Yazi, type Sayi } from '../../lib/site';
+import { KONULAR } from '../../lib/konular';
+
+export async function getStaticPaths() {
+  const [ys, ss] = await Promise.all([yazilar(), sayilar()]);
+  return Object.entries(KONULAR)
+    .map(([k, ad]) => ({ params: { konu: k }, props: { ad, liste: ys.filter((y) => y.data.konu === k), sayilar: ss } }))
+    .filter((p) => p.props.liste.length > 0);
+}
+
+const { ad, liste, sayilar: ss } = Astro.props as { ad: string; liste: Yazi[]; sayilar: Sayi[] };
+const yayin = (y: Yazi) => ss.find((s) => s.data.sayi === y.data.sayi)!.data.yayin;
+const satirlar: Yazi[][] = [];
+for (let i = 0; i < liste.length; i += 3) satirlar.push(liste.slice(i, i + 3));
+---
+<Base title={ad} description={`(parantez)’te ${ad.toLocaleLowerCase('tr')} üzerine bütün yazılar.`}>
+  <Sec harf={ad.charAt(0)} as="h1" aside={`${liste.length} yazı`}>{ad}</Sec>
+  {satirlar.map((satir) => (
+    <div class="row">{satir.map((y) => <Card yazi={y} buyuk="tarih" yayin={yayin(y)} />)}</div>
+  ))}
+  <a class="more" href="/arsiv/"><span>Bütün konular</span><span>Arşiv →</span></a>
+</Base>

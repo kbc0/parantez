@@ -1,0 +1,21 @@
+---
+import { gorsel, yaziUrl, konuUrl, pad, tarihKisa, type Yazi } from '../lib/site';
+import { konuAdi } from '../lib/konular';
+
+interface Props { yazi: Yazi; buyuk?: 'sira' | 'tarih'; yayin?: Date; eager?: boolean }
+const { yazi, buyuk = 'sira', yayin, eager = false } = Astro.props;
+const d = yazi.data;
+const url = yaziUrl(yazi);
+const big = buyuk === 'tarih' && yayin ? tarihKisa(yayin) : pad(d.sira);
+---
+<article class="card">
+  <h3><a href={url}>{d.baslik}</a></h3>
+  <div class="meta">
+    <span class="badge" title={`Sayı ${pad(d.sayi)}`}>{pad(d.sayi)}</span>
+    <a class="cat" href={konuUrl(d.konu)}>{konuAdi(d.konu)}</a>
+    <span class="meta__big">{big}</span>
+  </div>
+  <a href={url} class="ph" tabindex="-1" aria-hidden="true">
+    <img src={gorsel(d.gorsel, 900, 600)} alt="" width="900" height="600" loading={eager ? 'eager' : 'lazy'} decoding="async">
+  </a>
+</article>
