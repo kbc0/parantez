@@ -47,7 +47,7 @@ async function abone(request, env) {
   }
 
   const varMi = await env.ABONELER.get(eposta);
-  if (varMi) return yanit(200, 'Zaten abonesin. Pazartesi görüşürüz.');
+  if (varMi) return yanit(200, 'Zaten abonesin. Bülten her pazartesi gelen kutunda.');
 
   await env.ABONELER.put(
     eposta,
