@@ -15,7 +15,6 @@ const sayilar = defineCollection({
     baslangic: z.coerce.date(),
     bitis: z.coerce.date(),
     imza: z.string(),
-    rakam: z.object({ deger: z.string(), aciklama: z.string() }),
     kisaKisa: z.array(z.object({ konu: z.enum(konuKeys), metin: z.string() })).min(3).max(5),
     taslak: z.boolean().default(false),
   }),

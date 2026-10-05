@@ -11,7 +11,6 @@ const big = buyuk === 'tarih' && yayin ? tarihKisa(yayin) : pad(d.sira);
 <article class="card">
   <h3><a href={url}>{d.baslik}</a></h3>
   <div class="meta">
-    <span class="badge" title={`Sayı ${pad(d.sayi)}`}>{pad(d.sayi)}</span>
     <a class="cat" href={konuUrl(d.konu)}>{konuAdi(d.konu)}</a>
     <span class="meta__big">{big}</span>
   </div>

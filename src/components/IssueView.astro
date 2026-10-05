@@ -3,7 +3,7 @@ import { render } from 'astro:content';
 import Sec from './Sec.astro';
 import Card from './Card.astro';
 import Subscribe from './Subscribe.astro';
-import { sayininYazilari, okumaSuresi, pad, aralik, konuUrl, type Sayi } from '../lib/site';
+import { sayininYazilari, okumaSuresi, pad, aralik, konuUrl, yaziUrl, type Sayi } from '../lib/site';
 import { konuAdi } from '../lib/konular';
 
 interface Props { sayi: Sayi; arsiv?: boolean }
@@ -34,11 +34,25 @@ for (let i = 0; i < hucreler.length; i += 3) satirlar.push(hucreler.slice(i, i +
     <h1 class="ozet__title" id="ozet-baslik">{s.baslik}</h1>
 
     <div class="ozet__note">
-      <div class="ozet__noteside">
+      <nav class="ozet__toc" aria-label="Bu sayıda">
+        <span class="label">Bu sayıda</span>
+        <ol>
+          {liste.map((y) => (
+            <li>
+              <a href={yaziUrl(y)}>
+                <span class="ozet__tocno">{pad(y.data.sira)}</span>
+                <span class="ozet__toct">{y.data.baslik}</span>
+                <span class="ozet__tocdk">{okumaSuresi(y)} dk</span>
+              </a>
+            </li>
+          ))}
+        </ol>
+      </nav>
+      <div class="ozet__text">
         <span class="label">Bu hafta</span>
-        <span class="ozet__sign">— {s.imza}</span>
+        <Content />
+        <p class="ozet__sign">— {s.imza}</p>
       </div>
-      <div class="ozet__text"><Content /></div>
     </div>
 
     <div class="olan">
@@ -56,13 +70,6 @@ for (let i = 0; i < hucreler.length; i += 3) satirlar.push(hucreler.slice(i, i +
       </ol>
     </div>
 
-    <div class="rakam">
-      <div class="rakam__side">
-        <span class="label">Haftanın rakamı</span>
-        <p>{s.rakam.aciklama}</p>
-      </div>
-      <span class="rakam__value">{s.rakam.deger}</span>
-    </div>
   </section>
 
   <section class="gundem" aria-labelledby="gundem-baslik">

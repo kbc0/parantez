@@ -22,7 +22,6 @@ const hero = gorsel(d.gorsel, 1600, 900);
     <a class="back" href={sayiUrl(d.sayi)}>← Sayı {pad(d.sayi)} · {sayi.data.baslik}</a>
 
     <div class="meta art__meta">
-      <span class="badge">{pad(d.sayi)}</span>
       <a class="cat" href={konuUrl(d.konu)}>{konuAdi(d.konu)}</a>
       <time class="meta__big" datetime={sayi.data.yayin.toISOString().slice(0, 10)}>{tarihKisa(sayi.data.yayin)}</time>
     </div>

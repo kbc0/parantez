@@ -8,7 +8,7 @@ Astro ile üretilen statik bir site; Cloudflare Workers üzerinde yayınlanır. 
 
 | Adres | Ne var |
 | --- | --- |
-| `/` | Güncel sayı: haftanın özeti, kısa kısa, haftanın rakamı ve 5 yazı |
+| `/` | Güncel sayı: haftanın özeti (editör notu, bu sayıda, ne oldu?) ve 5 yazı |
 | `/sayi/<no>/` | Geçmiş bir sayı (aynı düzen, soluk görseller) |
 | `/yazi/<slug>/` | Yazı sayfası: yalnızca yazının kendisi |
 | `/arsiv/` | Bütün sayılar ve konular |
@@ -20,7 +20,6 @@ Astro ile üretilen statik bir site; Cloudflare Workers üzerinde yayınlanır. 
 
 1. `src/content/sayilar/` içine yeni bir dosya ekle (ör. `04.md`). Var olan bir sayıyı kopyalayıp düzenlemek en kolayı:
    - `sayi`, `baslik`, `yayin` (pazartesi), `baslangic` / `bitis` (haftanın aralığı), `imza`
-   - `rakam`: haftanın rakamı ve açıklaması
    - `kisaKisa`: 3–5 kısa haber (`konu` + `metin`), ana sayfada "Ne oldu?" şeridi
    - Dosyanın gövdesi: yayın yönetmeninin kısa notu (markdown)
 2. `src/content/yazilar/` içine 5 yazı ekle. Dosya adı adresi belirler (`faiz-sabit.md` → `/yazi/faiz-sabit/`).
