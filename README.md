@@ -1,6 +1,6 @@
 # (parantez)
 
-Genç okurlar için haftalık bülten. Her pazartesi 07:30: haftanın özeti + 5 yazı.
+Genç okurlar için haftalık bülten. Her pazartesi 07:30: haftanın özeti + 5 yazı. Gündem uzun, biz kısaltıyoruz. Bazen de uzatıyoruz.
 
 Astro ile üretilen statik bir site; Cloudflare Workers üzerinde yayınlanır. Abonelik formu bir Worker fonksiyonuna (`/api/abone`) gider ve e-postaları Cloudflare KV'de saklar.
 
@@ -21,7 +21,7 @@ Astro ile üretilen statik bir site; Cloudflare Workers üzerinde yayınlanır. 
 1. `src/content/sayilar/` içine yeni bir dosya ekle (ör. `04.md`). Var olan bir sayıyı kopyalayıp düzenlemek en kolayı:
    - `sayi`, `baslik`, `yayin` (pazartesi), `baslangic` / `bitis` (haftanın aralığı), `imza`
    - `rakam`: haftanın rakamı ve açıklaması
-   - `kisaKisa`: 3–8 kısa haber (`konu` + `metin`)
+   - `kisaKisa`: 3–5 kısa haber (`konu` + `metin`), ana sayfada "Ne oldu?" şeridi
    - Dosyanın gövdesi: yayın yönetmeninin kısa notu (markdown)
 2. `src/content/yazilar/` içine 5 yazı ekle. Dosya adı adresi belirler (`faiz-sabit.md` → `/yazi/faiz-sabit/`).
    - `sayi`: hangi sayıya ait, `sira`: 1–5

@@ -12,7 +12,7 @@ const konular = Object.entries(KONULAR)
   .filter((x) => x.n > 0);
 ---
 <Base title="Arşiv" description="(parantez)’in bütün sayıları ve yazıları.">
-  <Sec harf="A" as="h1" aside={`${liste.length} sayı · ${tum.length} yazı`}>Arşiv</Sec>
+  <Sec as="h1" aside={`${liste.length} sayı · ${tum.length} yazı`}>Arşiv</Sec>
 
   <ol class="issues">
     {satirlar.map(({ s, yazilar }, i) => (
@@ -32,7 +32,7 @@ const konular = Object.entries(KONULAR)
   </ol>
 
   <section class="topics" aria-labelledby="konular">
-    <Sec harf="K" id="konular">Konular</Sec>
+    <Sec id="konular">Konular</Sec>
     <ul>
       {konular.map((x) => (
         <li><a href={konuUrl(x.k)}><span>{x.ad}<sup>({pad(x.n)})</sup></span><span aria-hidden="true">→</span></a></li>

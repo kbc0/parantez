@@ -3,7 +3,7 @@ import { render } from 'astro:content';
 import Sec from './Sec.astro';
 import Card from './Card.astro';
 import Subscribe from './Subscribe.astro';
-import { sayininYazilari, okumaSuresi, pad, aralik, tarihUzun, konuUrl, type Sayi } from '../lib/site';
+import { sayininYazilari, okumaSuresi, pad, aralik, konuUrl, type Sayi } from '../lib/site';
 import { konuAdi } from '../lib/konular';
 
 interface Props { sayi: Sayi; arsiv?: boolean }
@@ -25,44 +25,48 @@ for (let i = 0; i < hucreler.length; i += 3) satirlar.push(hucreler.slice(i, i +
   )}
 
   <section class="ozet" aria-labelledby="ozet-baslik">
-    <Sec harf={pad(s.sayi)} as="div" aside={aralik(s.baslangic, s.bitis)}>Sayı {pad(s.sayi)}</Sec>
-
-    <div class="ozet__grid">
-      <div class="ozet__main">
-        <h1 class="ozet__title" id="ozet-baslik">{s.baslik}</h1>
-        <div class="ozet__note"><Content /></div>
-        <p class="ozet__sign">— {s.imza}</p>
-      </div>
-      <aside class="ozet__side">
-        <dl class="facts">
-          <div><dt>Yayın</dt><dd>{tarihUzun(s.yayin)}</dd></div>
-          <div><dt>Yazı</dt><dd>{liste.length}</dd></div>
-          <div><dt>Toplam okuma</dt><dd>{toplam} dk</dd></div>
-        </dl>
-        <div class="rakam">
-          <span class="rakam__label">Haftanın rakamı</span>
-          <span class:list={['rakam__value', { 'rakam__value--uzun': s.rakam.deger.length > 4 }]}>{s.rakam.deger}</span>
-          <p>{s.rakam.aciklama}</p>
-        </div>
-      </aside>
+    <div class="ozet__bar">
+      <span>Sayı {pad(s.sayi)}</span>
+      <span>{aralik(s.baslangic, s.bitis)}</span>
+      <span>{liste.length} yazı · {toplam} dk</span>
     </div>
 
-    <div class="kisa">
-      <h3 class="kisa__title">Bu hafta kısa kısa</h3>
-      <ol>
+    <h1 class="ozet__title" id="ozet-baslik">{s.baslik}</h1>
+
+    <div class="ozet__note">
+      <div class="ozet__noteside">
+        <span class="label">Bu hafta</span>
+        <span class="ozet__sign">— {s.imza}</span>
+      </div>
+      <div class="ozet__text"><Content /></div>
+    </div>
+
+    <div class="olan">
+      <span class="label olan__label">Ne oldu?</span>
+      <ol class="olan__list" style={`--n: ${s.kisaKisa.length}`}>
         {s.kisaKisa.map((k, i) => (
           <li>
-            <span class="kisa__no">{pad(i + 1)}</span>
-            <a class="kisa__konu" href={konuUrl(k.konu)}>{konuAdi(k.konu)}</a>
-            <span class="kisa__metin">{k.metin}</span>
+            <p>{k.metin}</p>
+            <div class="olan__meta">
+              <a href={konuUrl(k.konu)}>{konuAdi(k.konu)}</a>
+              <span class="olan__no">{pad(i + 1)}</span>
+            </div>
           </li>
         ))}
       </ol>
     </div>
+
+    <div class="rakam">
+      <div class="rakam__side">
+        <span class="label">Haftanın rakamı</span>
+        <p>{s.rakam.aciklama}</p>
+      </div>
+      <span class="rakam__value">{s.rakam.deger}</span>
+    </div>
   </section>
 
   <section class="gundem" aria-labelledby="gundem-baslik">
-    <Sec harf="G" aside={`${liste.length} yazı · ${toplam} dk`} id="gundem-baslik">Bu haftanın yazıları</Sec>
+    <Sec aside={`${liste.length} yazı · ${toplam} dk`} id="gundem-baslik">Bu haftanın yazıları</Sec>
     {satirlar.map((satir, r) => (
       <div class="row">
         {satir.map((h) => h.tip === 'abone'

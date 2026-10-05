@@ -5,8 +5,8 @@ export type Yazi = CollectionEntry<'yazilar'>;
 
 export const SITE = {
   ad: '(parantez)',
-  slogan: 'Gündem uzun. Biz kısaltıyoruz.',
-  aciklama: 'Her pazartesi 07:30’da gelen kutuna: haftanın özeti ve beş yazı. Gündem uzun, biz kısaltıyoruz.',
+  slogan: 'Gündem uzun. Biz kısaltıyoruz. Bazen de uzatıyoruz.',
+  aciklama: 'Her pazartesi 07:30’da gelen kutuna: haftanın özeti ve beş yazı. Gündem uzun, biz kısaltıyoruz. Bazen de uzatıyoruz.',
   eposta: 'merhaba@parantez.example',
 };
 

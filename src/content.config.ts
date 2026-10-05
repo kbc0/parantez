@@ -16,7 +16,7 @@ const sayilar = defineCollection({
     bitis: z.coerce.date(),
     imza: z.string(),
     rakam: z.object({ deger: z.string(), aciklama: z.string() }),
-    kisaKisa: z.array(z.object({ konu: z.enum(konuKeys), metin: z.string() })).min(1).max(8),
+    kisaKisa: z.array(z.object({ konu: z.enum(konuKeys), metin: z.string() })).min(3).max(5),
     taslak: z.boolean().default(false),
   }),
 });
@@ -33,7 +33,7 @@ const yazilar = defineCollection({
     spot: z.string(),
     gorsel: z.string(),
     gorselAlt: z.string().default(''),
-    gorselKaynak: z.string().default('Fotoğraf: Picsum (geçici görsel)'),
+    gorselKaynak: z.string().default('Fotoğraf: Picsum'),
     neden: z.string(),
     kisaca: z.array(z.string()).min(1).max(4),
     podcast: z.string().optional(),

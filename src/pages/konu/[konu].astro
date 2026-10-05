@@ -18,7 +18,7 @@ const satirlar: Yazi[][] = [];
 for (let i = 0; i < liste.length; i += 3) satirlar.push(liste.slice(i, i + 3));
 ---
 <Base title={ad} description={`(parantez)’te ${ad.toLocaleLowerCase('tr')} üzerine bütün yazılar.`}>
-  <Sec harf={ad.charAt(0)} as="h1" aside={`${liste.length} yazı`}>{ad}</Sec>
+  <Sec as="h1" aside={`${liste.length} yazı`}>{ad}</Sec>
   {satirlar.map((satir) => (
     <div class="row">{satir.map((y) => <Card yazi={y} buyuk="tarih" yayin={yayin(y)} />)}</div>
   ))}
