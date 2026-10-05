@@ -105,7 +105,7 @@ section + section { margin-top: 60px; }
   left: calc(var(--col) / -2);
   border-left: 1.5px solid var(--ink);
 }
-.row > .sub::before, .row > .card--blank::before { left: calc(var(--col) / -2 - 1px); }
+.row > .sub::before { left: calc(var(--col) / -2 - 1px); }
 
 .card h3 {
   flex: 1;
@@ -175,8 +175,6 @@ section + section { margin-top: 60px; }
 /* archive: faded, greyscale */
 .archive .ph img { filter: grayscale(1); opacity: .45; transition: opacity .2s, filter .2s; }
 .archive .card:hover .ph img { filter: none; opacity: 1; }
-.row--more .card h3 { min-height: 0; margin-bottom: 0; }
-.card--blank { background: var(--blank); min-height: 40px; }
 
 /* footer */
 .foot {
@@ -238,6 +236,5 @@ section + section { margin-top: 60px; }
   .card h3 { min-height: 0; font-size: 20px; }
   .meta time { font-size: 44px; }
   .row > .sub { margin: 0 0 24px; padding: 20px; border-top: 0; }
-  .card--blank { display: none; }
   .menu { padding: 32px 16px; }
 }
