@@ -1,45 +1,29 @@
-// Tarih
-(function () {
-  var el = document.getElementById("today");
-  if (!el) return;
-  try {
-    el.textContent = new Date().toLocaleDateString("tr-TR", { weekday: "long", day: "numeric", month: "long" });
-  } catch (e) {}
-})();
+// Görsel yüklenmezse gri kutu kalsın
+document.querySelectorAll(".ph img").forEach(function (img) {
+  function broken() { img.classList.add("is-broken"); }
+  if (img.complete && img.naturalWidth === 0) broken();
+  img.addEventListener("error", broken);
+});
 
-// Okundu takibi
-(function () {
-  var stories = Array.prototype.slice.call(document.querySelectorAll(".story"));
-  var count = document.querySelector("[data-count]");
-  var bar = document.querySelector("[data-bar]");
-  var done = document.querySelector("[data-done]");
+// İçindekiler menüsü
+var menu = document.querySelector("[data-menu]");
+document.querySelector("[data-open]").addEventListener("click", function () {
+  menu.hidden = false;
+});
+document.querySelectorAll("[data-close]").forEach(function (el) {
+  el.addEventListener("click", function () { menu.hidden = true; });
+});
+document.addEventListener("keydown", function (e) {
+  if (e.key === "Escape") menu.hidden = true;
+});
 
-  function update() {
-    var n = stories.filter(function (s) { return s.classList.contains("is-read"); }).length;
-    count.textContent = n;
-    bar.style.width = (n / stories.length) * 100 + "%";
-    done.hidden = n !== stories.length;
-  }
-
-  stories.forEach(function (story) {
-    var btn = story.querySelector(".story__check");
-    btn.addEventListener("click", function () {
-      var on = story.classList.toggle("is-read");
-      btn.setAttribute("aria-pressed", on);
-      update();
-    });
-  });
-})();
-
-// Abonelik (konsept: gerçek gönderim yok)
+// Abonelik (konsept: veri gönderilmez)
 document.querySelectorAll("[data-signup]").forEach(function (form) {
   form.addEventListener("submit", function (e) {
     e.preventDefault();
-    var note = form.querySelector(".signup__note");
-    if (note) note.remove();
     var ok = document.createElement("p");
-    ok.className = "signup__ok";
-    ok.textContent = "Tamamdır (yarın 07:30'da gelen kutundayız).";
+    ok.className = "sub__ok";
+    ok.textContent = "Tamamdır. Yarın 07:30'da gelen kutundayız.";
     form.classList.add("is-done");
     form.appendChild(ok);
   });
