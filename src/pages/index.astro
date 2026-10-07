@@ -1,19 +1,35 @@
 ---
+// Ana sayfa: sohbet listesi. Her sayı bir sohbet; okur buradan sayılara girer.
 import App from '../layouts/App.astro';
-import IssueChat from '../components/IssueChat.astro';
-import { sayilar, pad, SITE } from '../lib/site';
-import { sayiChips } from '../lib/chips';
+import { sayilar, yazilar, sayininYazilari, sayiUrl, pad, tarihKisa, aralik, SITE } from '../lib/site';
+import { KONULAR } from '../lib/konular';
 
-const [guncel] = await sayilar();
-const s = guncel.data;
-const disari = !!(s.oneriler && Object.keys(s.oneriler).length) || !!s.etkinlikler?.length;
+const liste = await sayilar();
+const tum = await yazilar();
+const satirlar = await Promise.all(liste.map(async (s, i) => ({ s, yazi: (await sayininYazilari(s.data.sayi)).length, guncel: i === 0 })));
+const konular = Object.entries(KONULAR).map(([k, ad]) => ({ k, ad, n: tum.filter((y) => y.data.konu === k).length })).filter((x) => x.n > 0);
 ---
-<App
-  description={`Sayı ${pad(s.sayi)}: ${s.baslik} ${SITE.aciklama}`}
-  sayfa={`sayi-${s.sayi}`}
-  aktif={`sayi-${s.sayi}`}
-  bar={{ baslik: '(parantez)', alt: `Sayı ${pad(s.sayi)} · her pazartesi 07:30` }}
-  chips={sayiChips({ disari, arsiv: false })}
->
-  <IssueChat sayi={guncel} />
+<App composer={false} yan={false}
+  bar={{ baslik: '(parantez)', alt: `her pazartesi 07:30 · ${liste.length} sayı`, kok: true }}>
+  <div class="liste">
+    <nav class="clist clist--sayfa" aria-label="Sayılar">
+      {satirlar.map(({ s, yazi, guncel }) => (
+        <a class="ci" href={sayiUrl(s.data.sayi)}>
+          <span class="av av--o" style={`--av:${guncel ? '#2a35ff' : '#111'}`} aria-hidden="true">{pad(s.data.sayi)}</span>
+          <span class="ci__t"><b>Sayı {pad(s.data.sayi)}{guncel && <em class="rozet">yeni</em>}</b><span>{s.data.baslik} · {yazi} yazı</span><small>{aralik(s.data.baslangic, s.data.bitis)}</small></span>
+          <time>{tarihKisa(s.data.yayin)}</time>
+        </a>
+      ))}
+    </nav>
+
+    <h2 class="liste__h">Konular</h2>
+    <nav class="tags tags--sayfa" aria-label="Konular">
+      {konular.map((x) => <a class="tag" href={`/konu/${x.k}/`}>#{x.ad.toLocaleLowerCase('tr')} <small>{x.n}</small></a>)}
+    </nav>
+
+    <nav class="liste__alt" aria-label="Diğer">
+      <a class="ci ci--yalin" href="/abone/"><span class="av av--o" style="--av:#ff4a24" aria-hidden="true">@</span><span class="ci__t"><b>Abone ol</b><span>Her pazartesi 07:30 gelen kutunda</span></span><span aria-hidden="true">›</span></a>
+      <a class="ci ci--yalin" href="/hakkinda/"><span class="av av--o" style="--av:#111" aria-hidden="true">(p)</span><span class="ci__t"><b>Hakkında</b><span>{SITE.slogan}</span></span><span aria-hidden="true">›</span></a>
+    </nav>
+  </div>
 </App>

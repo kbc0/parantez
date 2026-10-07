@@ -1,11 +1,12 @@
 ---
 import App from '../layouts/App.astro';
 import Grp from '../components/Grp.astro';
-import { PARANTEZ } from '../lib/site';
+import { PARANTEZ, guncelUrl } from '../lib/site';
+const buHafta = await guncelUrl();
 ---
 <App title="Abone ol" description="Her pazartesi 07:30’da haftanın özeti ve beş yazı. Ücretsiz."
   aktif="abone" bar={{ baslik: '(parantez)', alt: 'abone ol', geri: '/' }} mod="abone" kaynak="abone-sayfasi"
-  chips={[{ metin: 'Abone ol', ac: 'abone' }, { metin: 'Bu haftanın sayısı', href: '/' }, { metin: 'Hakkında', href: '/hakkinda/' }]}>
+  chips={[{ metin: 'Abone ol', ac: 'abone' }, { metin: 'Bu haftanın sayısı', href: buHafta }, { metin: 'Hakkında', href: '/hakkinda/' }]}>
   <div class="day">abone ol</div>
   <Grp k={PARANTEZ}>
     <p class="b">her pazartesi 07:30’da tek bir e-posta: haftanın özeti ve beş yazı.</p>

@@ -14,15 +14,16 @@ interface Props {
   type?: 'website' | 'article';
   sayfa?: string; // tepkilerin saklandığı sayfa anahtarı
   aktif?: string; // soldaki listede işaretli olan
-  bar: { kisi?: Kisi; baslik: string; alt?: string; geri?: string; duz?: boolean };
+  bar: { kisi?: Kisi; baslik: string; alt?: string; geri?: string; duz?: boolean; kok?: boolean };
   chips?: Chip[];
   mod?: 'mesaj' | 'abone';
   kaynak?: string;
   info?: boolean;
   composer?: boolean; // sohbet listesinde yazma alanı yok
+  yan?: boolean; // masaüstünde soldaki sohbet listesi (ana sayfada zaten liste var)
 }
 
-const { title, description = SITE.aciklama, image, type = 'website', sayfa, aktif, bar, chips, mod, kaynak, info = false, composer = true } = Astro.props;
+const { title, description = SITE.aciklama, image, type = 'website', sayfa, aktif, bar, chips, mod, kaynak, info = false, composer = true, yan = true } = Astro.props;
 const fullTitle = title ? `${title} — ${SITE.ad}` : `${SITE.ad} — ${SITE.slogan}`;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 const ogImage = new URL(image ?? '/og.png', Astro.site);
@@ -55,7 +56,7 @@ const guncel = liste[0]?.data.sayi;
 </head>
 <body data-sayfa={sayfa}>
   <a class="skip" href="#icerik">İçeriğe geç</a>
-  <div class:list={['app', { 'app--info': info }]}>
+  <div class:list={['app', { 'app--info': info, 'app--tek': !yan }]}>
 
     <aside class="side" aria-label="Sohbetler">
       <a class="brand" href="/"><Av k={PARANTEZ} /><b>(parantez)</b></a>
@@ -63,7 +64,7 @@ const guncel = liste[0]?.data.sayi;
       <h2 class="side__h">Sohbetler</h2>
       <nav class="clist">
         {liste.map((s) => (
-          <a class:list={['ci', { on: aktif === `sayi-${s.data.sayi}` }]} href={s.data.sayi === guncel ? '/' : sayiUrl(s.data.sayi)}>
+          <a class:list={['ci', { on: aktif === `sayi-${s.data.sayi}` }]} href={sayiUrl(s.data.sayi)}>
             <span class="av av--o" style={`--av:${s.data.sayi === guncel ? '#2a35ff' : '#111'}`} aria-hidden="true">{pad(s.data.sayi)}</span>
             <span class="ci__t"><b>Sayı {pad(s.data.sayi)}</b><span>{s.data.baslik}</span></span>
             <time>{tarihKisa(s.data.yayin)}</time>
@@ -75,15 +76,15 @@ const guncel = liste[0]?.data.sayi;
         {Object.entries(KONULAR).map(([k, ad]) => <a class:list={['tag', { on: aktif === `konu-${k}` }]} href={`/konu/${k}/`}>#{ad.toLocaleLowerCase('tr')}</a>)}
       </nav>
       <nav class="side__foot">
-        <a href="/hakkinda/">Hakkında</a><a href="/abone/">Abone ol</a><a href="/arsiv/">Arşiv</a><a href="/rss.xml">RSS</a>
+        <a href="/hakkinda/">Hakkında</a><a href="/abone/">Abone ol</a><a href="/">Tüm sayılar</a><a href="/rss.xml">RSS</a>
       </nav>
     </aside>
 
     <div class="main">
       <header class="bar">
-        {bar.geri
+        {bar.kok ? null : bar.geri
           ? <a class="bar__geri" href={bar.geri} aria-label="Geri">‹</a>
-          : <a class="bar__liste" href="/arsiv/" aria-label="Sohbetler">
+          : <a class="bar__liste" href="/" aria-label="Tüm sayılar">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg>
             </a>}
         <Av k={bar.kisi ?? PARANTEZ} />

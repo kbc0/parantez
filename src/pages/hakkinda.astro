@@ -1,11 +1,12 @@
 ---
 import App from '../layouts/App.astro';
 import Grp from '../components/Grp.astro';
-import { SITE, PARANTEZ } from '../lib/site';
+import { SITE, PARANTEZ, guncelUrl } from '../lib/site';
+const buHafta = await guncelUrl();
 ---
 <App title="Hakkında" description="Birkaç kişilik genç bir ekip. Bazen yazıyoruz, bazen çiziyoruz. Gündem uzun, biz kısaltıyoruz. Ara sıra da uzatıyoruz."
   sayfa="hakkinda" aktif="hakkinda" bar={{ baslik: '(parantez)', alt: 'hakkında', geri: '/' }}
-  chips={[{ metin: 'Abone ol', ac: 'abone' }, { metin: 'Bu haftanın sayısı', href: '/' }, { metin: 'Önceki sayılar', href: '/arsiv/' }]}>
+  chips={[{ metin: 'Abone ol', ac: 'abone' }, { metin: 'Bu haftanın sayısı', href: buHafta }, { metin: 'Tüm sayılar', href: '/' }]}>
   <div class="day">hakkında</div>
   <div class="me"><p class="b">siz kimsiniz?</p></div>
   <Grp k={PARANTEZ}>

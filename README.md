@@ -16,10 +16,9 @@ Sayfalar JavaScript olmadan da okunur ve abonelik formu yine çalışır.
 
 | Adres | Ne var |
 | --- | --- |
-| `/` | Güncel sayı sohbeti: editörün notu, ardından hazır cevaplarla açılan dallar (ne oldu, yazılar, parantez dışı, abone) |
-| `/sayi/<no>/` | Geçmiş bir sayının sohbeti |
+| `/` | Ana sayfa: sohbet listesi. Bütün sayılar (en yenisi üstte), konular, abone ol, hakkında |
+| `/sayi/<no>/` | Bir sayının sohbeti: editörün notu, ardından hazır cevaplarla açılan dallar (ne oldu, yazılar, parantez dışı, abone) |
 | `/yazi/<slug>/` | Yazı: her paragraf bir mesaj, `##` ara başlıklar ayraç; düz okuma modu var |
-| `/arsiv/` | Sohbet listesi: bütün sayılar ve konular |
 | `/konu/<konu>/` | Bir konudaki bütün yazılar |
 | `/hakkinda/`, `/abone/` | Sabit sayfalar |
 | `/rss.xml`, `/sitemap-index.xml` | Akış ve site haritası |
@@ -37,7 +36,7 @@ Sayfalar JavaScript olmadan da okunur ve abonelik formu yine çalışır.
    - `konu`: `ekonomi`, `sehir`, `teknoloji`, `dunya`, `iklim`, `egitim`, `kultur`, `spor` (liste: `src/lib/konular.ts`)
    - `spot`, `neden` (neden önemli?), `kisaca` (1–4 madde), `gorsel`, `gorselAlt`, `gorselKaynak`
    - Gövde: markdown, ara başlıklar `##` ile
-3. `main`'e push'la. Cloudflare siteyi kendisi derleyip yayınlar. En yüksek numaralı sayı otomatik olarak ana sayfaya geçer.
+3. `main`'e push'la. Cloudflare siteyi kendisi derleyip yayınlar. En yüksek numaralı sayı ana sayfadaki listenin en üstüne "yeni" etiketiyle çıkar.
 
 Hazır olmayan bir sayı ya da yazı için `taslak: true` yaz; sitede görünmez.
 

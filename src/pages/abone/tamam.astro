@@ -1,13 +1,14 @@
 ---
 import App from '../../layouts/App.astro';
 import Grp from '../../components/Grp.astro';
-import { PARANTEZ } from '../../lib/site';
-import { GENEL } from '../../lib/chips';
+import { PARANTEZ, guncelUrl } from '../../lib/site';
+const buHafta = await guncelUrl();
+import { genelChips } from '../../lib/chips';
 ---
-<App title="Tamamdır" bar={{ baslik: '(parantez)', alt: 'abone ol', geri: '/' }} chips={GENEL.filter((c) => c.ac !== 'abone')}>
+<App title="Tamamdır" bar={{ baslik: '(parantez)', alt: 'abone ol', geri: '/' }} chips={genelChips(buHafta).filter((c) => c.ac !== 'abone')}>
   <div class="day">abone ol</div>
   <Grp k={PARANTEZ}>
     <p class="b">tamamdır. pazartesi 07:30’da gelen kutundayız.</p>
-    <p class="b">o zamana kadar <a href="/">bu haftanın sayısına</a> göz atabilirsin.</p>
+    <p class="b">o zamana kadar <a href={buHafta}>bu haftanın sayısına</a> göz atabilirsin.</p>
   </Grp>
 </App>

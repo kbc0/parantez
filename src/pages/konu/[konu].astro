@@ -2,9 +2,9 @@
 import App from '../../layouts/App.astro';
 import Grp from '../../components/Grp.astro';
 import LinkCard from '../../components/LinkCard.astro';
-import { yazilar, sayilar, pad, okumaSuresi, PARANTEZ, type Yazi, type Sayi } from '../../lib/site';
+import { yazilar, sayilar, pad, okumaSuresi, guncelUrl, PARANTEZ, type Yazi, type Sayi } from '../../lib/site';
 import { KONULAR } from '../../lib/konular';
-import { GENEL } from '../../lib/chips';
+import { genelChips } from '../../lib/chips';
 
 export async function getStaticPaths() {
   const [ys, ss] = await Promise.all([yazilar(), sayilar()]);
@@ -15,9 +15,10 @@ export async function getStaticPaths() {
 
 const { k, ad, liste } = Astro.props as { k: string; ad: string; liste: Yazi[]; sayilar: Sayi[] };
 const etiket = ad.toLocaleLowerCase('tr');
+const buHafta = await guncelUrl();
 ---
 <App title={ad} description={`(parantez)’te ${etiket} üzerine bütün yazılar.`} aktif={`konu-${k}`}
-  bar={{ baslik: `#${etiket}`, alt: `${liste.length} yazı`, geri: '/arsiv/' }} chips={GENEL}>
+  bar={{ baslik: `#${etiket}`, alt: `${liste.length} yazı`, geri: '/' }} chips={genelChips(buHafta)}>
   <div class="day">#{etiket}</div>
   <Grp k={PARANTEZ}>
     <p class="b">{etiket} üzerine {liste.length} yazı, en yeniden eskiye:</p>

@@ -9,10 +9,10 @@ import { konuAdi } from '../../lib/konular';
 
 export async function getStaticPaths() {
   const [ys, ss] = await Promise.all([yazilar(), sayilar()]);
-  return ys.map((y) => ({ params: { slug: y.id }, props: { yazi: y, sayi: ss.find((s) => s.data.sayi === y.data.sayi)!, guncel: ss[0].data.sayi } }));
+  return ys.map((y) => ({ params: { slug: y.id }, props: { yazi: y, sayi: ss.find((s) => s.data.sayi === y.data.sayi)! } }));
 }
 
-const { yazi, sayi, guncel } = Astro.props as { yazi: Yazi; sayi: Sayi; guncel: number };
+const { yazi, sayi } = Astro.props as { yazi: Yazi; sayi: Sayi };
 const d = yazi.data;
 const { Content } = await render(yazi);
 const dk = okumaSuresi(yazi);
@@ -20,7 +20,7 @@ const yazar = kisi(d.yazar);
 const kardesler = await sayininYazilari(d.sayi);
 const i = kardesler.findIndex((y) => y.id === yazi.id);
 const sonraki = kardesler[i + 1];
-const sayiLink = d.sayi === guncel ? '/' : sayiUrl(d.sayi);
+const sayiLink = sayiUrl(d.sayi);
 const digerleri = kardesler.filter((y) => y.id !== yazi.id);
 
 const chips = [

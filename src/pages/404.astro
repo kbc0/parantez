@@ -1,10 +1,11 @@
 ---
 import App from '../layouts/App.astro';
 import Grp from '../components/Grp.astro';
-import { PARANTEZ } from '../lib/site';
-import { GENEL } from '../lib/chips';
+import { PARANTEZ, guncelUrl } from '../lib/site';
+const buHafta = await guncelUrl();
+import { genelChips } from '../lib/chips';
 ---
-<App title="Bulunamadı" bar={{ baslik: '(parantez)', alt: 'sayfa bulunamadı', geri: '/' }} chips={GENEL}>
+<App title="Bulunamadı" bar={{ baslik: '(parantez)', alt: 'sayfa bulunamadı', geri: '/' }} chips={genelChips(buHafta)}>
   <Grp k={PARANTEZ}>
     <p class="b">bu sayfa yok gibi. taşınmış ya da hiç olmamış olabilir.</p>
     <p class="b">şunlardan birine bakalım mı?</p>

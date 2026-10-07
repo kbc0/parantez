@@ -4,7 +4,7 @@
 import { render } from 'astro:content';
 import Grp from './Grp.astro';
 import LinkCard from './LinkCard.astro';
-import { sayininYazilari, okumaSuresi, pad, tarihUzun, gunAdi, kisi, PARANTEZ, type Sayi } from '../lib/site';
+import { sayininYazilari, okumaSuresi, pad, tarihUzun, gunAdi, kisi, guncelUrl, PARANTEZ, type Sayi } from '../lib/site';
 import { konuAdi } from '../lib/konular';
 
 interface Props { sayi: Sayi; arsiv?: boolean }
@@ -14,6 +14,7 @@ const { Content } = await render(sayi);
 const liste = await sayininYazilari(s.sayi);
 const toplam = liste.reduce((t, y) => t + okumaSuresi(y), 0);
 const editor = kisi(s.imza.split(',')[0].trim());
+const buHafta = await guncelUrl();
 
 const FIIL = { dinle: 'Dinle', izle: 'İzle', oku: 'Oku' } as const;
 const oneriler = (Object.keys(FIIL) as (keyof typeof FIIL)[]).map((k) => ({ k, fiil: FIIL[k], o: s.oneriler?.[k] })).filter((x) => x.o);
@@ -27,7 +28,7 @@ const gun = (d: Date) => new Date(d.getTime() + 3 * 3600e3).getUTCDate();
   <div class="day">Sayı {pad(s.sayi)} · {gunAdi(s.yayin)}, {tarihUzun(s.yayin)} · 07:30</div>
 
   {arsiv && (
-    <p class="sys">Bu bir arşiv sayısı. <a href="/">Bu haftanın sayısına git →</a></p>
+    <p class="sys">Bu bir arşiv sayısı. <a href={buHafta}>Bu haftanın sayısına git →</a></p>
   )}
 
   <Grp k={editor} adim>
