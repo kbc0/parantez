@@ -1,5 +1,6 @@
 ---
-// Alttaki mesaj kutusu. Hazır cevaplar (chip) + e-posta / mesaj alanı.
+// Alttaki mesaj kutusu. Hazır cevaplar (chip) her zaman görünür; e-posta alanı
+// yalnızca "Abone ol" seçilince açılır.
 // JavaScript yokken de çalışır: form doğrudan /api/abone'ye gider.
 import type { Chip } from '../lib/chips';
 interface Props { chips?: Chip[]; mod?: 'mesaj' | 'abone'; kaynak?: string }
@@ -14,6 +15,9 @@ const { chips = [], mod = 'mesaj', kaynak = 'site' } = Astro.props;
     </div>
   )}
   <div class="cbar">
+    <button type="button" class="kapat" data-kapat aria-label="Kapat">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
     <input type="hidden" name="kaynak" value={kaynak}>
     <input class="hp" type="text" name="web" tabindex="-1" autocomplete="off" aria-hidden="true">
     <label class="sr" for="mesaj">E-posta adresin</label>

@@ -20,9 +20,9 @@ const sayfa = document.body.dataset.sayfa ?? '';
 const msgs = $('.msgs')!;
 const sohbet = $('[data-sohbet]');
 const akis = sohbet ?? msgs;
-const form = $<HTMLFormElement>('[data-composer]')!;
-const girdi = $<HTMLInputElement>('#mesaj', form)!;
-const chipler = $('[data-chips]', form);
+const form = $<HTMLFormElement>('[data-composer]');
+const girdi = form ? $<HTMLInputElement>('#mesaj', form) : null;
+const chipler = form ? $('[data-chips]', form) : null;
 const toastEl = $('[data-toast]')!;
 const picker = $('[data-picker]')!;
 
@@ -46,7 +46,7 @@ bosluk.className = 'bosluk';
 bosluk.setAttribute('aria-hidden', 'true');
 function bosAlan() {
   const bar = $('.bar')?.offsetHeight ?? 60;
-  return Math.max(0, innerHeight - bar - form.offsetHeight - 24);
+  return Math.max(0, innerHeight - bar - (form?.offsetHeight ?? 0) - 24);
 }
 function yerAc(bas: Element) {
   akis.append(bosluk);
@@ -126,11 +126,13 @@ function benSoyle(metin: string) {
 // ---------------------------------------------------------------- abonelik
 
 function aboneModu(ac: boolean, odak = true) {
+  if (!form || !girdi) return;
   form.dataset.mod = ac ? 'abone' : 'mesaj';
   girdi.type = ac ? 'email' : 'text';
   girdi.inputMode = ac ? 'email' : 'text';
   girdi.placeholder = ac ? 'e-posta adresin' : 'e-postanı yaz, her pazartesi sana da gelsin';
   if (ac && odak) girdi.focus({ preventScroll: true });
+  if (!ac) girdi.blur();
   chipGuncelle();
 }
 
@@ -138,7 +140,7 @@ async function aboneOl(eposta: string) {
   const t = yaziyor();
   const fd = new FormData();
   fd.set('eposta', eposta);
-  fd.set('kaynak', ($<HTMLInputElement>('input[name=kaynak]', form)?.value) ?? 'site');
+  fd.set('kaynak', (form && $<HTMLInputElement>('input[name=kaynak]', form)?.value) || 'site');
   let ok = false;
   let mesaj = 'bağlantı kurulamadı. birazdan tekrar dener misin?';
   try {
@@ -160,7 +162,7 @@ async function aboneOl(eposta: string) {
   }
 }
 
-form.addEventListener('submit', async (e) => {
+if (form && girdi) form.addEventListener('submit', async (e) => {
   e.preventDefault();
   const metin = girdi.value.trim();
   if (!metin) { girdi.focus(); return; }
@@ -174,6 +176,8 @@ form.addEventListener('submit', async (e) => {
     'ama e-posta adresini yazarsan bülteni her pazartesi sana da gönderirim.',
   ]);
 });
+
+if (form) $('[data-kapat]', form)?.addEventListener('click', () => aboneModu(false));
 
 // ---------------------------------------------------------------- sohbet dalları
 
@@ -189,11 +193,11 @@ const tumDallar = () => (sohbet ? $$('[data-dal]', sohbet).map((d) => d.dataset.
 
 function chipGuncelle() {
   if (!chipler) return;
-  const abone = ls.get('p:abone') === '1' || form.dataset.mod === 'abone';
+  const abone = ls.get('p:abone') === '1' || form?.dataset.mod === 'abone';
   for (const c of $$<HTMLButtonElement>('button.chip', chipler)) {
     const ac = c.dataset.ac!;
     let gizle = false;
-    if (ac === 'abone') gizle = abone || acik('abone');
+    if (ac === 'abone') gizle = abone;
     else if (ac === 'hepsi') gizle = !sohbet || tumDallar().every(acik);
     else gizle = acik(ac);
     c.hidden = gizle;
@@ -224,7 +228,7 @@ async function dalAc(ad: string, animasyon: boolean) {
     }
     yerDaralt(ben);
   }
-  if (ad === 'abone') aboneModu(true);
+  if (ad === 'abone' && animasyon) aboneModu(true);
 }
 
 async function giris() {
@@ -261,6 +265,7 @@ async function giris() {
   for (const ad of [...durum.acik]) await dalAc(ad, false);
   if (hashDal[hedef]) {
     await dalAc(hashDal[hedef], false);
+    if (hashDal[hedef] === 'abone') aboneModu(true, false);
     const sec = dal(hashDal[hedef]);
     if (sec) requestAnimationFrame(() => goster(sec));
   }
@@ -279,7 +284,11 @@ chipler?.addEventListener('click', async (e) => {
     if (ilk) goster(ilk);
     return;
   }
-  if (dal(ac)) return dalAc(ac, true);
+  if (dal(ac)) {
+    if (!acik(ac)) return dalAc(ac, true);
+    if (ac === 'abone') aboneModu(true); // konuşma zaten açık: sadece kutuyu aç
+    return;
+  }
   if (ac === 'abone') {
     benSoyle(c.dataset.soz ?? 'abone olmak istiyorum');
     aboneModu(true);
@@ -476,7 +485,7 @@ for (const img of $$<HTMLImageElement>('.lc__img img, .b--foto img')) {
 
 // ---------------------------------------------------------------- başlat
 
-if (form.dataset.mod === 'abone') aboneModu(true, false);
+if (form?.dataset.mod === 'abone') aboneModu(true, false);
 chipGuncelle();
 tepkiYukle().then(() => { if (!sohbet) ipucu(); });
 giris();

@@ -1,31 +1,34 @@
 ---
 import App from '../layouts/App.astro';
-import Grp from '../components/Grp.astro';
-import { sayilar, yazilar, sayininYazilari, sayiUrl, pad, tarihKisa, aralik, PARANTEZ } from '../lib/site';
+import { sayilar, yazilar, sayininYazilari, sayiUrl, pad, tarihKisa, aralik, SITE } from '../lib/site';
 import { KONULAR } from '../lib/konular';
-import { GENEL } from '../lib/chips';
 
 const liste = await sayilar();
 const tum = await yazilar();
 const satirlar = await Promise.all(liste.map(async (s, i) => ({ s, yazi: (await sayininYazilari(s.data.sayi)).length, guncel: i === 0 })));
 const konular = Object.entries(KONULAR).map(([k, ad]) => ({ k, ad, n: tum.filter((y) => y.data.konu === k).length })).filter((x) => x.n > 0);
 ---
-<App title="Sohbetler" description="(parantez)’in bütün sayıları ve konuları." aktif="arsiv"
-  bar={{ baslik: 'Sohbetler', alt: `${liste.length} sayı · ${tum.length} yazı` }} chips={GENEL}>
-  <nav class="clist clist--sayfa" aria-label="Sayılar">
-    {satirlar.map(({ s, yazi, guncel }) => (
-      <a class="ci" href={guncel ? '/' : sayiUrl(s.data.sayi)}>
-        <span class="av av--o" style={`--av:${guncel ? '#2a35ff' : '#111'}`} aria-hidden="true">{pad(s.data.sayi)}</span>
-        <span class="ci__t"><b>Sayı {pad(s.data.sayi)}{guncel && <em class="rozet">yeni</em>}</b><span>{s.data.baslik} · {yazi} yazı</span><small>{aralik(s.data.baslangic, s.data.bitis)}</small></span>
-        <time>{tarihKisa(s.data.yayin)}</time>
-      </a>
-    ))}
-  </nav>
+<App title="Sohbetler" description="(parantez)’in bütün sayıları ve konuları." aktif="arsiv" composer={false}
+  bar={{ baslik: 'Sohbetler', alt: `${liste.length} sayı · ${tum.length} yazı`, geri: '/' }}>
+  <div class="liste">
+    <nav class="clist clist--sayfa" aria-label="Sayılar">
+      {satirlar.map(({ s, yazi, guncel }) => (
+        <a class="ci" href={guncel ? '/' : sayiUrl(s.data.sayi)}>
+          <span class="av av--o" style={`--av:${guncel ? '#2a35ff' : '#111'}`} aria-hidden="true">{pad(s.data.sayi)}</span>
+          <span class="ci__t"><b>Sayı {pad(s.data.sayi)}{guncel && <em class="rozet">yeni</em>}</b><span>{s.data.baslik} · {yazi} yazı</span><small>{aralik(s.data.baslangic, s.data.bitis)}</small></span>
+          <time>{tarihKisa(s.data.yayin)}</time>
+        </a>
+      ))}
+    </nav>
 
-  <Grp k={PARANTEZ}>
-    <p class="b">konulara göre de bakabilirsin:</p>
-    <div class="b b--tags">
+    <h2 class="liste__h">Konular</h2>
+    <nav class="tags tags--sayfa" aria-label="Konular">
       {konular.map((x) => <a class="tag" href={`/konu/${x.k}/`}>#{x.ad.toLocaleLowerCase('tr')} <small>{x.n}</small></a>)}
-    </div>
-  </Grp>
+    </nav>
+
+    <nav class="liste__alt" aria-label="Diğer">
+      <a class="ci ci--yalin" href="/abone/"><span class="av av--o" style="--av:#ff4a24" aria-hidden="true">@</span><span class="ci__t"><b>Abone ol</b><span>Her pazartesi 07:30 gelen kutunda</span></span><span aria-hidden="true">›</span></a>
+      <a class="ci ci--yalin" href="/hakkinda/"><span class="av av--o" style="--av:#111" aria-hidden="true">(p)</span><span class="ci__t"><b>Hakkında</b><span>{SITE.slogan}</span></span><span aria-hidden="true">›</span></a>
+    </nav>
+  </div>
 </App>
