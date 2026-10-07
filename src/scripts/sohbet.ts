@@ -128,6 +128,7 @@ function benSoyle(metin: string) {
 function aboneModu(ac: boolean, odak = true) {
   if (!form || !girdi) return;
   form.dataset.mod = ac ? 'abone' : 'mesaj';
+  document.body.classList.toggle('kutu-acik', ac);
   girdi.type = ac ? 'email' : 'text';
   girdi.inputMode = ac ? 'email' : 'text';
   girdi.placeholder = ac ? 'e-posta adresin' : 'e-postanı yaz, her pazartesi sana da gelsin';
@@ -135,6 +136,8 @@ function aboneModu(ac: boolean, odak = true) {
   if (!ac) girdi.blur();
   chipGuncelle();
 }
+
+let aboneOldu = false;
 
 async function aboneOl(eposta: string) {
   const t = yaziyor();
@@ -154,6 +157,8 @@ async function aboneOl(eposta: string) {
   t.remove();
   if (ok) {
     ls.set('p:abone', '1');
+    aboneOldu = true;
+    document.body.classList.add('abone-oldu');
     aboneModu(false);
     await botSoyle([mesaj], 0);
     if (sohbet && !acik('yazilar')) await botSoyle(['bu arada bu haftanın yazılarına göz atmak ister misin?'], 500);
@@ -179,6 +184,11 @@ if (form && girdi) form.addEventListener('submit', async (e) => {
 
 if (form) $('[data-kapat]', form)?.addEventListener('click', () => aboneModu(false));
 
+// Sohbetin içindeki "e-posta adresimi yazayım" düğmesi kutuyu yeniden açar
+document.addEventListener('click', (e) => {
+  if ((e.target as Element).closest('[data-kutu]')) aboneModu(true);
+});
+
 // ---------------------------------------------------------------- sohbet dalları
 
 type Durum = { intro: boolean; acik: string[] };
@@ -190,15 +200,17 @@ const kaydet = () => ss.set(durumKey, JSON.stringify(durum));
 const dal = (ad: string) => sohbet ? $(`[data-dal="${ad}"]`, sohbet) : null;
 const acik = (ad: string) => !!dal(ad)?.classList.contains('acik');
 const tumDallar = () => (sohbet ? $$('[data-dal]', sohbet).map((d) => d.dataset.dal!) : []);
+// "Hepsini göster" yalnızca içerik dallarını açar; abonelik bir eylem, içerik değil.
+const icerikDallari = () => tumDallar().filter((d) => d !== 'abone');
 
 function chipGuncelle() {
   if (!chipler) return;
-  const abone = ls.get('p:abone') === '1' || form?.dataset.mod === 'abone';
+  const abone = aboneOldu || form?.dataset.mod === 'abone';
   for (const c of $$<HTMLButtonElement>('button.chip', chipler)) {
     const ac = c.dataset.ac!;
     let gizle = false;
     if (ac === 'abone') gizle = abone;
-    else if (ac === 'hepsi') gizle = !sohbet || tumDallar().every(acik);
+    else if (ac === 'hepsi') gizle = !sohbet || icerikDallari().every(acik);
     else gizle = acik(ac);
     c.hidden = gizle;
   }
@@ -209,7 +221,7 @@ async function dalAc(ad: string, animasyon: boolean) {
   if (!sec || sec.classList.contains('acik')) return;
   if (bosluk.isConnected) bosluk.before(sec); else akis.append(sec); // sohbetin sonuna: seçilen sırayla akar
   sec.classList.add('acik');
-  if (!durum.acik.includes(ad)) { durum.acik.push(ad); kaydet(); }
+  if (ad !== 'abone' && !durum.acik.includes(ad)) { durum.acik.push(ad); kaydet(); }
   chipGuncelle();
   const [ben, ...gruplar] = [...sec.children] as HTMLElement[];
   if (animasyon) {
@@ -262,7 +274,7 @@ async function giris() {
     kaydet();
   }
 
-  for (const ad of [...durum.acik]) await dalAc(ad, false);
+  for (const ad of durum.acik.filter((a) => a !== 'abone')) await dalAc(ad, false);
   if (hashDal[hedef]) {
     await dalAc(hashDal[hedef], false);
     if (hashDal[hedef] === 'abone') aboneModu(true, false);
@@ -278,7 +290,7 @@ chipler?.addEventListener('click', async (e) => {
   const ac = c.dataset.ac!;
   if (ac === 'hepsi') {
     bosluk.remove();
-    const kapali = tumDallar().filter((d) => !acik(d));
+    const kapali = icerikDallari().filter((d) => !acik(d));
     for (const d of kapali) await dalAc(d, false);
     const ilk = kapali[0] && dal(kapali[0]);
     if (ilk) goster(ilk);

@@ -385,6 +385,14 @@ img.kirik { visibility: hidden; }
 }
 .kapat svg { width: 18px; height: 18px; fill: none; stroke: var(--ink); stroke-width: 2.4; stroke-linecap: round; }
 html:not(.js) .kapat { display: none; }
+.b--aksiyon {
+  border: 1.5px solid var(--me);
+  background: #fff;
+  color: var(--me);
+  font-weight: 700;
+  cursor: pointer;
+}
+html:not(.js) .b--aksiyon, .kutu-acik .b--aksiyon, .abone-oldu .b--aksiyon { display: none; }
 .js .composer:not([data-mod="abone"]) .cbar { display: none; }
 .js .composer:not([data-mod="abone"]) .chips { padding-bottom: 10px; }
 .js .composer[data-mod="abone"] .chips { display: none; }
