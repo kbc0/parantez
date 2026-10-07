@@ -1,0 +1,6 @@
+---
+import type { Kisi } from '../lib/site';
+interface Props { k: Kisi; boy?: 'k' | 'o' | 'b' }
+const { k, boy = 'o' } = Astro.props;
+---
+<span class:list={['av', `av--${boy}`]} style={`--av:${k.renk}`} aria-hidden="true">{k.kisa}</span>

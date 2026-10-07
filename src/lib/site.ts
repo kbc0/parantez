@@ -52,6 +52,21 @@ export function gorsel(src: string, w: number, h: number): string {
   return src.replace(/^(https:\/\/picsum\.photos\/seed\/[^/]+)\/\d+\/\d+$/, `$1/${w}/${h}`);
 }
 
+// Sohbette avatar olarak görünen kişiler
+export type Kisi = { ad: string; kisa: string; renk: string; rol: string };
+const KISILER: Record<string, Kisi> = {
+  'Ece Arslan': { ad: 'Ece Arslan', kisa: 'EA', renk: '#ff4a24', rol: 'yayın yönetmeni' },
+  'Deniz Kaya': { ad: 'Deniz Kaya', kisa: 'DK', renk: '#2a35ff', rol: 'editör' },
+  'Mert Yalın': { ad: 'Mert Yalın', kisa: 'MY', renk: '#111111', rol: 'editör' },
+};
+export const PARANTEZ: Kisi = { ad: '(parantez)', kisa: '(p)', renk: '#111111', rol: 'bülten' };
+export function kisi(ad: string): Kisi {
+  if (KISILER[ad]) return KISILER[ad];
+  const kisa = ad.split(/\s+/).map((p) => p[0] ?? '').join('').slice(0, 2).toLocaleUpperCase('tr');
+  return { ad, kisa, renk: '#8b8b86', rol: 'yazar' };
+}
+export const ilkAd = (ad: string) => ad.split(/\s+/)[0];
+
 export const yaziUrl = (y: Yazi) => `/yazi/${y.id}/`;
 export const sayiUrl = (no: number) => `/sayi/${no}/`;
 export const konuUrl = (k: string) => `/konu/${k}/`;

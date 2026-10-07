@@ -1,98 +1,106 @@
 ---
 import { render } from 'astro:content';
-import Base from '../../layouts/Base.astro';
-import { yazilar, sayilar, okumaSuresi, gorsel, pad, tarihUzun, tarihKisa, sayiUrl, konuUrl, type Yazi, type Sayi } from '../../lib/site';
+import App from '../../layouts/App.astro';
+import Grp from '../../components/Grp.astro';
+import Av from '../../components/Av.astro';
+import LinkCard from '../../components/LinkCard.astro';
+import { yazilar, sayilar, sayininYazilari, okumaSuresi, gorsel, pad, tarihUzun, sayiUrl, yaziUrl, kisi, ilkAd, PARANTEZ, type Yazi, type Sayi } from '../../lib/site';
 import { konuAdi } from '../../lib/konular';
 
 export async function getStaticPaths() {
   const [ys, ss] = await Promise.all([yazilar(), sayilar()]);
-  return ys.map((y) => ({ params: { slug: y.id }, props: { yazi: y, sayi: ss.find((s) => s.data.sayi === y.data.sayi)! } }));
+  return ys.map((y) => ({ params: { slug: y.id }, props: { yazi: y, sayi: ss.find((s) => s.data.sayi === y.data.sayi)!, guncel: ss[0].data.sayi } }));
 }
 
-const { yazi, sayi } = Astro.props as { yazi: Yazi; sayi: Sayi };
+const { yazi, sayi, guncel } = Astro.props as { yazi: Yazi; sayi: Sayi; guncel: number };
 const d = yazi.data;
 const { Content } = await render(yazi);
 const dk = okumaSuresi(yazi);
-const hero = gorsel(d.gorsel, 1600, 900);
+const yazar = kisi(d.yazar);
+const kardesler = await sayininYazilari(d.sayi);
+const i = kardesler.findIndex((y) => y.id === yazi.id);
+const sonraki = kardesler[i + 1];
+const sayiLink = d.sayi === guncel ? '/' : sayiUrl(d.sayi);
+const digerleri = kardesler.filter((y) => y.id !== yazi.id);
+
+const chips = [
+  ...(sonraki ? [{ metin: 'Sıradaki yazı', href: yaziUrl(sonraki) }] : []),
+  { metin: 'Sayıya dön', href: sayiLink },
+  { metin: 'Abone ol', ac: 'abone' },
+];
 ---
-<Base title={d.baslik} description={d.spot} image={gorsel(d.gorsel, 1200, 630)} type="article">
-  <div class="progress" aria-hidden="true"><i data-progress></i></div>
+<App
+  title={d.baslik}
+  description={d.spot}
+  image={gorsel(d.gorsel, 1200, 630)}
+  type="article"
+  sayfa={`yazi-${yazi.id}`}
+  aktif={`sayi-${d.sayi}`}
+  bar={{ kisi: yazar, baslik: d.baslik, alt: `${yazar.ad} · ${konuAdi(d.konu)} · ${dk} dk`, geri: sayiLink, duz: true }}
+  chips={chips}
+  kaynak={`yazi-${yazi.id}`}
+  info
+>
+  <article class="yazi">
+    <div class="day">Sayı {pad(d.sayi)} · {tarihUzun(sayi.data.yayin)}</div>
 
-  <article class="art">
-    <a class="back" href={sayiUrl(d.sayi)}>← Sayı {pad(d.sayi)} · {sayi.data.baslik}</a>
+    <details class="pin" open>
+      <summary><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17v5M9 3h6l-1 6 4 4H6l4-4z"/></svg>Sabitlendi · Kısaca</summary>
+      <ol>{d.kisaca.map((k) => <li>{k}</li>)}</ol>
+    </details>
 
-    <div class="meta art__meta">
-      <a class="cat" href={konuUrl(d.konu)}>{konuAdi(d.konu)}</a>
-      <time class="meta__big" datetime={sayi.data.yayin.toISOString().slice(0, 10)}>{tarihKisa(sayi.data.yayin)}</time>
-    </div>
+    <Grp k={yazar}>
+      <h1 class="b b--baslik" data-tepki="baslik">{d.baslik}</h1>
+      <p class="b b--spot" data-tepki="spot">{d.spot}</p>
+      <figure class="b b--foto">
+        <img src={gorsel(d.gorsel, 1200, 750)} alt={d.gorselAlt} width="1200" height="750" fetchpriority="high">
+        <figcaption>{d.gorselKaynak}</figcaption>
+      </figure>
+    </Grp>
 
-    <h1 class="art__title">{d.baslik}</h1>
+    <Grp k={yazar} isim={false} flow="p" cls="grp--devam">
+      <Content />
+    </Grp>
 
-    <div class="art__grid">
-      <aside class="art__side">
-        <div class="art__sticky">
-          <dl class="facts">
-            <div><dt>Yazan</dt><dd>{d.yazar}</dd></div>
-            <div><dt>Okuma</dt><dd>{dk} dk</dd></div>
-            <div><dt>Yayın</dt><dd>{tarihUzun(sayi.data.yayin)}</dd></div>
-            <div><dt>Sayı</dt><dd><a href={sayiUrl(d.sayi)}>{pad(d.sayi)}</a></dd></div>
-            {d.podcast && <div><dt>Dinle</dt><dd><a href={d.podcast}>Podcast →</a></dd></div>}
-          </dl>
-          <div class="points">
-            <h2>Kısaca</h2>
-            <ol>{d.kisaca.map((p) => <li>{p}</li>)}</ol>
-          </div>
-        </div>
-      </aside>
+    <Grp k={PARANTEZ}>
+      <div class="b b--neden" data-tepki="neden"><span>Neden önemli?</span>{d.neden}</div>
+    </Grp>
 
-      <div class="art__body">
-        <p class="art__lede">{d.spot}</p>
-        <figure class="art__fig">
-          <div class="ph ph--wide"><img src={hero} alt={d.gorselAlt} width="1600" height="900" fetchpriority="high"></div>
-          <figcaption>{d.gorselKaynak}</figcaption>
-        </figure>
-        <div class="prose"><Content /></div>
-        <div class="why">
-          <h2>Neden önemli?</h2>
-          <p>{d.neden}</p>
-        </div>
-        <div class="art__end">
-          <a href={sayiUrl(d.sayi)}>← Sayı {pad(d.sayi)} · tüm yazılar</a>
-          <button type="button" class="share" data-share>Bağlantıyı kopyala</button>
-        </div>
-      </div>
+    <p class="sys son" data-son>yazının sonu · {dk} dk</p>
+
+    {sonraki
+      ? <Grp k={PARANTEZ}><p class="b">sıradaki yazı:</p><LinkCard yazi={sonraki} gorselli={false} etiket={`Sıradaki · ${pad(sonraki.data.sira)} · ${okumaSuresi(sonraki)} dk`} /></Grp>
+      : <Grp k={PARANTEZ}><p class="b">bu sayının son yazısıydı. <a href={sayiLink}>sayının tamamına dön</a> ya da aşağıdan abone ol.</p></Grp>}
+
+    <div class="kunye">
+      <Av k={yazar} boy="b" />
+      <b>{yazar.ad}</b>
+      <span>{yazar.rol} · {konuAdi(d.konu)}</span>
+      <dl>
+        <div><dt>Yayın</dt><dd>{tarihUzun(sayi.data.yayin)}</dd></div>
+        <div><dt>Okuma</dt><dd>{dk} dk</dd></div>
+        <div><dt>Sayı</dt><dd><a href={sayiLink}>{pad(d.sayi)}</a></dd></div>
+      </dl>
+      <div class="kunye__btn"><button type="button" data-paylas>Paylaş</button><button type="button" data-kopyala>Bağlantıyı kopyala</button></div>
     </div>
   </article>
 
-  <script>
-    const bar = document.querySelector<HTMLElement>('[data-progress]');
-    const art = document.querySelector<HTMLElement>('.art');
-    if (bar && art) {
-      const update = () => {
-        const r = art.getBoundingClientRect();
-        const total = r.height - window.innerHeight;
-        const p = total > 0 ? Math.min(1, Math.max(0, -r.top / total)) : 1;
-        bar.style.transform = `scaleX(${p})`;
-      };
-      addEventListener('scroll', update, { passive: true });
-      addEventListener('resize', update);
-      update();
-    }
-
-    const share = document.querySelector<HTMLButtonElement>('[data-share]');
-    share?.addEventListener('click', async () => {
-      const url = location.href.split('#')[0];
-      try {
-        if (navigator.share && matchMedia('(pointer: coarse)').matches) {
-          await navigator.share({ title: document.title, url });
-          return;
-        }
-        await navigator.clipboard.writeText(url);
-        share.textContent = 'Kopyalandı ✓';
-      } catch {
-        share.textContent = url;
-      }
-      setTimeout(() => (share.textContent = 'Bağlantıyı kopyala'), 2500);
-    });
-  </script>
-</Base>
+  <Fragment slot="info">
+    <div class="kunye kunye--yan">
+      <Av k={yazar} boy="b" />
+      <b>{yazar.ad}</b>
+      <span>{yazar.rol} · {konuAdi(d.konu)}</span>
+      <div class="kunye__btn"><button type="button" data-paylas>Paylaş</button><button type="button" data-kopyala>Bağlantıyı kopyala</button></div>
+      <dl>
+        <div><dt>Yayın</dt><dd>{tarihUzun(sayi.data.yayin)}</dd></div>
+        <div><dt>Okuma</dt><dd>{dk} dk</dd></div>
+        <div><dt>Konu</dt><dd><a href={`/konu/${d.konu}/`}>{konuAdi(d.konu)}</a></dd></div>
+        <div><dt>Sayı</dt><dd><a href={sayiLink}>{pad(d.sayi)}</a></dd></div>
+      </dl>
+    </div>
+    <h3 class="info__h">Bu sayıda ayrıca</h3>
+    <nav class="info__list">
+      {digerleri.map((y) => <a href={yaziUrl(y)} data-slug={y.id}>{y.data.baslik}<small>{konuAdi(y.data.konu)} · {okumaSuresi(y)} dk · {ilkAd(y.data.yazar)}</small></a>)}
+    </nav>
+  </Fragment>
+</App>

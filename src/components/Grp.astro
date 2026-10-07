@@ -1,0 +1,15 @@
+---
+// Bir kişinin art arda attığı mesajlar. Avatar ve isim grubun başında durur.
+import Av from './Av.astro';
+import type { Kisi } from '../lib/site';
+interface Props { k: Kisi; isim?: boolean; adim?: boolean; flow?: string; cls?: string }
+const { k, isim = true, adim = false, flow, cls } = Astro.props;
+const rol = k.kisa === '(p)' ? '' : ` · ${k.rol}`;
+---
+<div class:list={['grp', cls]} data-adim={adim ? '' : undefined} data-kim={k.kisa}>
+  <div class="grp__av"><Av k={k} /></div>
+  {isim && <div class="grp__ad">{k.ad}{rol}</div>}
+  <div class:list={['bs', { flow: flow !== undefined }]} data-flow={flow}>
+    <slot />
+  </div>
+</div>

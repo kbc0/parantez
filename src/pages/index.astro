@@ -1,10 +1,19 @@
 ---
-import Base from '../layouts/Base.astro';
-import IssueView from '../components/IssueView.astro';
-import { sayilar, pad } from '../lib/site';
+import App from '../layouts/App.astro';
+import IssueChat from '../components/IssueChat.astro';
+import { sayilar, pad, SITE } from '../lib/site';
+import { sayiChips } from '../lib/chips';
 
 const [guncel] = await sayilar();
+const s = guncel.data;
+const disari = !!(s.oneriler && Object.keys(s.oneriler).length) || !!s.etkinlikler?.length;
 ---
-<Base description={`Sayı ${pad(guncel.data.sayi)}: ${guncel.data.baslik} Haftanın özeti ve beş yazı.`}>
-  <IssueView sayi={guncel} />
-</Base>
+<App
+  description={`Sayı ${pad(s.sayi)}: ${s.baslik} ${SITE.aciklama}`}
+  sayfa={`sayi-${s.sayi}`}
+  aktif={`sayi-${s.sayi}`}
+  bar={{ baslik: '(parantez)', alt: `Sayı ${pad(s.sayi)} · her pazartesi 07:30` }}
+  chips={sayiChips({ disari, arsiv: false })}
+>
+  <IssueChat sayi={guncel} />
+</App>

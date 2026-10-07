@@ -1,7 +1,8 @@
 ---
-import Base from '../../layouts/Base.astro';
-import IssueView from '../../components/IssueView.astro';
+import App from '../../layouts/App.astro';
+import IssueChat from '../../components/IssueChat.astro';
 import { sayilar, pad, type Sayi } from '../../lib/site';
+import { sayiChips } from '../../lib/chips';
 
 export async function getStaticPaths() {
   const liste = await sayilar();
@@ -9,7 +10,16 @@ export async function getStaticPaths() {
 }
 
 const { sayi, guncel } = Astro.props as { sayi: Sayi; guncel: boolean };
+const s = sayi.data;
+const disari = !!(s.oneriler && Object.keys(s.oneriler).length) || !!s.etkinlikler?.length;
 ---
-<Base title={`Sayı ${pad(sayi.data.sayi)}: ${sayi.data.baslik}`} description={`Sayı ${pad(sayi.data.sayi)}: ${sayi.data.baslik}`}>
-  <IssueView sayi={sayi} arsiv={!guncel} />
-</Base>
+<App
+  title={`Sayı ${pad(s.sayi)}: ${s.baslik}`}
+  description={`Sayı ${pad(s.sayi)}: ${s.baslik}`}
+  sayfa={`sayi-${s.sayi}`}
+  aktif={`sayi-${s.sayi}`}
+  bar={{ baslik: `Sayı ${pad(s.sayi)}`, alt: s.baslik, geri: '/arsiv/' }}
+  chips={sayiChips({ disari, arsiv: !guncel })}
+>
+  <IssueChat sayi={sayi} arsiv={!guncel} />
+</App>

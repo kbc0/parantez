@@ -1,26 +1,26 @@
 ---
-import Base from '../../layouts/Base.astro';
-import Sec from '../../components/Sec.astro';
-import Card from '../../components/Card.astro';
-import { yazilar, sayilar, type Yazi, type Sayi } from '../../lib/site';
+import App from '../../layouts/App.astro';
+import Grp from '../../components/Grp.astro';
+import LinkCard from '../../components/LinkCard.astro';
+import { yazilar, sayilar, pad, okumaSuresi, PARANTEZ, type Yazi, type Sayi } from '../../lib/site';
 import { KONULAR } from '../../lib/konular';
+import { GENEL } from '../../lib/chips';
 
 export async function getStaticPaths() {
   const [ys, ss] = await Promise.all([yazilar(), sayilar()]);
   return Object.entries(KONULAR)
-    .map(([k, ad]) => ({ params: { konu: k }, props: { ad, liste: ys.filter((y) => y.data.konu === k), sayilar: ss } }))
+    .map(([k, ad]) => ({ params: { konu: k }, props: { k, ad, liste: ys.filter((y) => y.data.konu === k), sayilar: ss } }))
     .filter((p) => p.props.liste.length > 0);
 }
 
-const { ad, liste, sayilar: ss } = Astro.props as { ad: string; liste: Yazi[]; sayilar: Sayi[] };
-const yayin = (y: Yazi) => ss.find((s) => s.data.sayi === y.data.sayi)!.data.yayin;
-const satirlar: Yazi[][] = [];
-for (let i = 0; i < liste.length; i += 3) satirlar.push(liste.slice(i, i + 3));
+const { k, ad, liste } = Astro.props as { k: string; ad: string; liste: Yazi[]; sayilar: Sayi[] };
+const etiket = ad.toLocaleLowerCase('tr');
 ---
-<Base title={ad} description={`(parantez)’te ${ad.toLocaleLowerCase('tr')} üzerine bütün yazılar.`}>
-  <Sec as="h1" aside={`${liste.length} yazı`}>{ad}</Sec>
-  {satirlar.map((satir) => (
-    <div class="row">{satir.map((y) => <Card yazi={y} buyuk="tarih" yayin={yayin(y)} />)}</div>
-  ))}
-  <a class="more" href="/arsiv/"><span>Bütün konular</span><span>Arşiv →</span></a>
-</Base>
+<App title={ad} description={`(parantez)’te ${etiket} üzerine bütün yazılar.`} aktif={`konu-${k}`}
+  bar={{ baslik: `#${etiket}`, alt: `${liste.length} yazı`, geri: '/arsiv/' }} chips={GENEL}>
+  <div class="day">#{etiket}</div>
+  <Grp k={PARANTEZ}>
+    <p class="b">{etiket} üzerine {liste.length} yazı, en yeniden eskiye:</p>
+    {liste.map((y) => <LinkCard yazi={y} etiket={`Sayı ${pad(y.data.sayi)} · ${okumaSuresi(y)} dk · ${y.data.yazar}`} />)}
+  </Grp>
+</App>

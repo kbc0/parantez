@@ -1,10 +1,12 @@
 ---
-import Base from '../layouts/Base.astro';
-import Sec from '../components/Sec.astro';
+import App from '../layouts/App.astro';
+import Grp from '../components/Grp.astro';
+import { PARANTEZ } from '../lib/site';
+import { GENEL } from '../lib/chips';
 ---
-<Base title="Sayfa bulunamadı">
-  <Sec as="h1">Bulunamadı</Sec>
-  <div class="page">
-    <p class="page__big">Aradığın sayfa yok, taşınmış ya da hiç olmamış. <a href="/">Bu haftanın sayısına dön</a> ya da <a href="/arsiv/">arşive bak</a>.</p>
-  </div>
-</Base>
+<App title="Bulunamadı" bar={{ baslik: '(parantez)', alt: 'sayfa bulunamadı', geri: '/' }} chips={GENEL}>
+  <Grp k={PARANTEZ}>
+    <p class="b">bu sayfa yok gibi. taşınmış ya da hiç olmamış olabilir.</p>
+    <p class="b">şunlardan birine bakalım mı?</p>
+  </Grp>
+</App>

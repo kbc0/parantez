@@ -1,0 +1,26 @@
+---
+// Alttaki mesaj kutusu. Hazır cevaplar (chip) + e-posta / mesaj alanı.
+// JavaScript yokken de çalışır: form doğrudan /api/abone'ye gider.
+import type { Chip } from '../lib/chips';
+interface Props { chips?: Chip[]; mod?: 'mesaj' | 'abone'; kaynak?: string }
+const { chips = [], mod = 'mesaj', kaynak = 'site' } = Astro.props;
+---
+<form class="composer" action="/api/abone" method="post" data-composer data-mod={mod}>
+  {chips.length > 0 && (
+    <div class="chips" data-chips>
+      {chips.map((c) => c.href
+        ? <a class="chip chip--link" href={c.href}>{c.metin}</a>
+        : <button type="button" class="chip" data-ac={c.ac} data-soz={c.soz ?? c.metin}>{c.metin}</button>)}
+    </div>
+  )}
+  <div class="cbar">
+    <input type="hidden" name="kaynak" value={kaynak}>
+    <input class="hp" type="text" name="web" tabindex="-1" autocomplete="off" aria-hidden="true">
+    <label class="sr" for="mesaj">E-posta adresin</label>
+    <input id="mesaj" name="eposta" type="text" autocomplete="email" enterkeyhint="send" autocapitalize="off" spellcheck="false"
+      placeholder="e-postanı yaz, her pazartesi sana da gelsin">
+    <button class="send" type="submit" aria-label="Gönder">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
+    </button>
+  </div>
+</form>

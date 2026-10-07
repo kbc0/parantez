@@ -1,0 +1,103 @@
+---
+// Bir sayının sohbet hâli. İlk mesajlar hep görünür; dallar (ne oldu, yazılar,
+// parantez dışı, abone) hazır cevaplarla açılır. JavaScript yoksa hepsi açıktır.
+import { render } from 'astro:content';
+import Grp from './Grp.astro';
+import LinkCard from './LinkCard.astro';
+import { sayininYazilari, okumaSuresi, pad, tarihUzun, gunAdi, kisi, PARANTEZ, type Sayi } from '../lib/site';
+import { konuAdi } from '../lib/konular';
+
+interface Props { sayi: Sayi; arsiv?: boolean }
+const { sayi, arsiv = false } = Astro.props;
+const s = sayi.data;
+const { Content } = await render(sayi);
+const liste = await sayininYazilari(s.sayi);
+const toplam = liste.reduce((t, y) => t + okumaSuresi(y), 0);
+const editor = kisi(s.imza.split(',')[0].trim());
+
+const FIIL = { dinle: 'Dinle', izle: 'İzle', oku: 'Oku' } as const;
+const oneriler = (Object.keys(FIIL) as (keyof typeof FIIL)[]).map((k) => ({ k, fiil: FIIL[k], o: s.oneriler?.[k] })).filter((x) => x.o);
+const etkinlikler = [...(s.etkinlikler ?? [])].sort((a, b) => a.tarih.getTime() - b.tarih.getTime());
+const disariVar = oneriler.length > 0 || etkinlikler.length > 0;
+const AYK = ['OCA', 'ŞUB', 'MAR', 'NİS', 'MAY', 'HAZ', 'TEM', 'AĞU', 'EYL', 'EKİ', 'KAS', 'ARA'];
+const ay = (d: Date) => AYK[new Date(d.getTime() + 3 * 3600e3).getUTCMonth()];
+const gun = (d: Date) => new Date(d.getTime() + 3 * 3600e3).getUTCDate();
+---
+<div class="sohbet" data-sohbet data-arsiv={arsiv ? '' : undefined}>
+  <div class="day">Sayı {pad(s.sayi)} · {gunAdi(s.yayin)}, {tarihUzun(s.yayin)} · 07:30</div>
+
+  {arsiv && (
+    <p class="sys">Bu bir arşiv sayısı. <a href="/">Bu haftanın sayısına git →</a></p>
+  )}
+
+  <Grp k={editor} adim>
+    <p class="b" data-tepki="selam">günaydın. bu hafta tek cümle:</p>
+    <h1 class="b b--baslik" data-tepki="baslik">{s.baslik}</h1>
+  </Grp>
+
+  <Grp k={editor} isim={false} adim flow="not" cls="grp--devam">
+    <Content />
+  </Grp>
+
+  <Grp k={PARANTEZ} adim>
+    <p class="b">bu sayıda {liste.length} yazı var, toplam {toplam} dakika. nereden başlayalım?</p>
+  </Grp>
+
+  <section class="dal" data-dal="ne-oldu" id="ne-oldu" aria-label="Ne oldu?">
+    <div class="me"><p class="b">bu hafta ne oldu?</p></div>
+    <Grp k={PARANTEZ}>
+      <p class="b">kısaca {s.kisaKisa.length} şey:</p>
+      {s.kisaKisa.map((k, i) => (
+        <p class="b" data-tepki={`ne-${i + 1}`}><span class="kt">{konuAdi(k.konu)}</span>{k.metin}</p>
+      ))}
+    </Grp>
+  </section>
+
+  <section class="dal" data-dal="yazilar" id="yazilar" aria-label="Bu sayının yazıları">
+    <div class="me"><p class="b">yazıları göster</p></div>
+    <Grp k={PARANTEZ}>
+      <p class="b">bu sayıda {liste.length} yazı, toplam {toplam} dakika. birine dokun, okumaya başla:</p>
+      {liste.map((y) => <LinkCard yazi={y} etiket={`${pad(y.data.sira)} · ${konuAdi(y.data.konu)} · ${okumaSuresi(y)} dk`} />)}
+    </Grp>
+  </section>
+
+  {disariVar && (
+    <section class="dal" data-dal="disari" id="parantez-disi" aria-label="Parantez dışı">
+      <div class="me"><p class="b">bu hafta ne yapsam?</p></div>
+      <Grp k={PARANTEZ}>
+        {oneriler.length > 0 && <p class="b">gündemin dışında kalanlar. dinle, izle, oku:</p>}
+        {oneriler.map(({ k, fiil, o }) => (
+          <div class="b on" data-tepki={`oneri-${k}`}>
+            <small>{fiil} · {o!.tur}</small>
+            <b>{o!.baslik}</b>
+            <span class="on__kim">{o!.kimden}</span>
+            <p>{o!.not}</p>
+            {o!.link && <a href={o!.link} target="_blank" rel="noopener">{o!.linkMetni ?? `${fiil} →`}</a>}
+          </div>
+        ))}
+        {etkinlikler.length > 0 && <p class="b">bir de bu hafta gidilecek yerler:</p>}
+        {etkinlikler.map((e, i) => (
+          <div class="b ev" data-tepki={`etk-${i + 1}`}>
+            <span class="ev__d"><b>{gun(e.tarih)}</b><small>{ay(e.tarih)}</small></span>
+            <span class="ev__t">
+              <small>{e.tur} · {gunAdi(e.tarih)}{e.saat && ` ${e.saat}`}</small>
+              <b>{e.link ? <a href={e.link} target="_blank" rel="noopener">{e.ad}</a> : e.ad}</b>
+              <span>{e.yer} · {e.sehir}</span>
+            </span>
+            <span class:list={['ev__u', { 'is-free': /ücretsiz|bedava/i.test(e.ucret) }]}>{e.ucret}</span>
+          </div>
+        ))}
+      </Grp>
+    </section>
+  )}
+
+  <section class="dal" data-dal="abone" id="abone" aria-label="Abone ol">
+    <div class="me"><p class="b">bülten bana da gelsin</p></div>
+    <Grp k={PARANTEZ}>
+      <p class="b">çok iyi. her pazartesi 07:30’da tek bir e-posta: haftanın özeti ve beş yazı. ücretsiz, tek tıkla çıkış.</p>
+      <p class="b">e-posta adresini aşağıya yazar mısın?</p>
+    </Grp>
+  </section>
+
+  <noscript><p class="sys">E-posta adresini aşağıya yazıp gönderirsen her pazartesi bülteni alırsın.</p></noscript>
+</div>

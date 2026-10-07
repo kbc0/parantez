@@ -1,0 +1,120 @@
+---
+import '@fontsource-variable/hanken-grotesk';
+import '../styles/global.css';
+import Av from '../components/Av.astro';
+import Composer from '../components/Composer.astro';
+import type { Chip } from '../lib/chips';
+import { SITE, PARANTEZ, sayilar, sayiUrl, pad, tarihKisa, type Kisi } from '../lib/site';
+import { KONULAR } from '../lib/konular';
+
+interface Props {
+  title?: string;
+  description?: string;
+  image?: string;
+  type?: 'website' | 'article';
+  sayfa?: string; // tepkilerin saklandığı sayfa anahtarı
+  aktif?: string; // soldaki listede işaretli olan
+  bar: { kisi?: Kisi; baslik: string; alt?: string; geri?: string; duz?: boolean };
+  chips?: Chip[];
+  mod?: 'mesaj' | 'abone';
+  kaynak?: string;
+  info?: boolean;
+}
+
+const { title, description = SITE.aciklama, image, type = 'website', sayfa, aktif, bar, chips, mod, kaynak, info = false } = Astro.props;
+const fullTitle = title ? `${title} — ${SITE.ad}` : `${SITE.ad} — ${SITE.slogan}`;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const ogImage = new URL(image ?? '/og.png', Astro.site);
+const liste = await sayilar();
+const guncel = liste[0]?.data.sayi;
+---
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>{fullTitle}</title>
+  <meta name="description" content={description}>
+  <link rel="canonical" href={canonical}>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="alternate" type="application/rss+xml" title={SITE.ad} href="/rss.xml">
+  <meta name="theme-color" content="#ffffff">
+  <meta property="og:type" content={type}>
+  <meta property="og:site_name" content={SITE.ad}>
+  <meta property="og:locale" content="tr_TR">
+  <meta property="og:title" content={title ?? SITE.ad}>
+  <meta property="og:description" content={description}>
+  <meta property="og:url" content={canonical}>
+  <meta property="og:image" content={ogImage}>
+  <meta name="twitter:card" content="summary_large_image">
+  <script is:inline>
+    document.documentElement.classList.add('js');
+    try { if (localStorage.getItem('p:duz') === '1') document.documentElement.classList.add('duz'); } catch (e) {}
+  </script>
+</head>
+<body data-sayfa={sayfa}>
+  <a class="skip" href="#icerik">İçeriğe geç</a>
+  <div class:list={['app', { 'app--info': info }]}>
+
+    <aside class="side" aria-label="Sohbetler">
+      <a class="brand" href="/"><Av k={PARANTEZ} /><b>(parantez)</b></a>
+      <p class="side__slogan">{SITE.slogan}</p>
+      <h2 class="side__h">Sohbetler</h2>
+      <nav class="clist">
+        {liste.map((s) => (
+          <a class:list={['ci', { on: aktif === `sayi-${s.data.sayi}` }]} href={s.data.sayi === guncel ? '/' : sayiUrl(s.data.sayi)}>
+            <span class="av av--o" style={`--av:${s.data.sayi === guncel ? '#2a35ff' : '#111'}`} aria-hidden="true">{pad(s.data.sayi)}</span>
+            <span class="ci__t"><b>Sayı {pad(s.data.sayi)}</b><span>{s.data.baslik}</span></span>
+            <time>{tarihKisa(s.data.yayin)}</time>
+          </a>
+        ))}
+      </nav>
+      <h2 class="side__h">Konular</h2>
+      <nav class="tags">
+        {Object.entries(KONULAR).map(([k, ad]) => <a class:list={['tag', { on: aktif === `konu-${k}` }]} href={`/konu/${k}/`}>#{ad.toLocaleLowerCase('tr')}</a>)}
+      </nav>
+      <nav class="side__foot">
+        <a href="/hakkinda/">Hakkında</a><a href="/abone/">Abone ol</a><a href="/arsiv/">Arşiv</a><a href="/rss.xml">RSS</a>
+      </nav>
+    </aside>
+
+    <div class="main">
+      <header class="bar">
+        {bar.geri
+          ? <a class="bar__geri" href={bar.geri} aria-label="Geri">‹</a>
+          : <a class="bar__liste" href="/arsiv/" aria-label="Sohbetler">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg>
+            </a>}
+        <Av k={bar.kisi ?? PARANTEZ} />
+        <div class="bar__t">
+          <b>{bar.baslik}</b>
+          {bar.alt && <span>{bar.alt}</span>}
+        </div>
+        <div class="bar__act">
+          {bar.duz && (
+            <button type="button" class="ib" data-duz aria-pressed="false" title="Düz okuma modu">
+              <span aria-hidden="true">Aa</span><span class="sr">Düz okuma modu</span>
+            </button>
+          )}
+          <a class="ib" href="/hakkinda/" title="Hakkında" aria-label="Hakkında"><span aria-hidden="true">i</span></a>
+        </div>
+      </header>
+
+      <main id="icerik" class="msgs" role="log" aria-live="polite">
+        <slot />
+      </main>
+
+      <Composer chips={chips} mod={mod} kaynak={kaynak ?? sayfa ?? 'site'} />
+    </div>
+
+    {info && <aside class="info" aria-label="Bilgi"><slot name="info" /></aside>}
+  </div>
+
+  <div class="picker" data-picker hidden role="dialog" aria-label="Tepki seç"></div>
+  <div class="toast" data-toast hidden role="status"></div>
+
+  <script>
+    import '../scripts/sohbet';
+  </script>
+</body>
+</html>

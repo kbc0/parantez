@@ -1,0 +1,16 @@
+---
+import { gorsel, yaziUrl, okumaSuresi, type Yazi } from '../lib/site';
+import { konuAdi, konuRenk } from '../lib/konular';
+interface Props { yazi: Yazi; etiket?: string; gorselli?: boolean }
+const { yazi, etiket, gorselli = true } = Astro.props;
+const d = yazi.data;
+---
+<a class="lc" href={yaziUrl(yazi)} data-slug={yazi.id} style={`--c:${konuRenk(d.konu)}`}>
+  {gorselli && <span class="lc__img"><img src={gorsel(d.gorsel, 800, 420)} alt="" width="800" height="420" loading="lazy" decoding="async"></span>}
+  <span class="lc__body">
+    <small>{etiket ?? `${konuAdi(d.konu)} · ${okumaSuresi(yazi)} dk · ${d.yazar}`}</small>
+    <b>{d.baslik}</b>
+    <span class="lc__spot">{d.spot}</span>
+  </span>
+  <span class="lc__ok" aria-label="okundu">✓✓ okundu</span>
+</a>

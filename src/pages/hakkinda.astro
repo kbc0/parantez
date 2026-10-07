@@ -1,39 +1,27 @@
 ---
-import Base from '../layouts/Base.astro';
-import Sec from '../components/Sec.astro';
-import Subscribe from '../components/Subscribe.astro';
-import { SITE } from '../lib/site';
+import App from '../layouts/App.astro';
+import Grp from '../components/Grp.astro';
+import { SITE, PARANTEZ } from '../lib/site';
 ---
-<Base title="Hakkında" description="Birkaç kişilik genç bir ekip. Bazen yazıyoruz, bazen çiziyoruz. Gündem uzun, biz kısaltıyoruz. Ara sıra da uzatıyoruz.">
-  <Sec as="h1">Hakkında</Sec>
-
-  <p class="about__big">
-    birkaç kişilik genç bir ekip. bazen yazıyoruz, bazen çiziyoruz. gündem uzun, biz kısaltıyoruz. ara sıra da uzatıyoruz.
-  </p>
-
-  <div class="row about">
-    <div>
-      <span class="label">ne yapıyoruz</span>
-      <p>her pazartesi sabahı gelen kutuna bir bülten bırakıyoruz. içinde haftanın kısa bir özeti ve beş yazı var. haftayı kaçırdıysan on dakikada yakalarsın.</p>
-    </div>
-    <div>
-      <span class="label">nasıl</span>
-      <p>bir hafta bekliyoruz. herkes bağırıp çağırmayı bitirince oturup yazıyoruz: ne oldu, neden önemli, sana nereden dokunuyor.</p>
-    </div>
-    <div>
-      <span class="label">bir de</span>
-      <p>bazı konular beş paragrafa sığmıyor. o zaman uzatıyoruz. söz, sıkmayacağız.</p>
-    </div>
-  </div>
-
-  <div class="row about">
-    <div>
-      <span class="label">bize yaz</span>
-      <p>fikrin, itirazın, çizimin ya da bir sorun mu var? <a href={`mailto:${SITE.eposta}`}>{SITE.eposta}</a></p>
-    </div>
-    <div class="about__sub">
-      <span class="label">her pazartesi gelen kutuna gelsin</span>
-      <Subscribe variant="page" kaynak="hakkinda" />
-    </div>
-  </div>
-</Base>
+<App title="Hakkında" description="Birkaç kişilik genç bir ekip. Bazen yazıyoruz, bazen çiziyoruz. Gündem uzun, biz kısaltıyoruz. Ara sıra da uzatıyoruz."
+  sayfa="hakkinda" aktif="hakkinda" bar={{ baslik: '(parantez)', alt: 'hakkında', geri: '/' }}
+  chips={[{ metin: 'Abone ol', ac: 'abone' }, { metin: 'Bu haftanın sayısı', href: '/' }, { metin: 'Önceki sayılar', href: '/arsiv/' }]}>
+  <div class="day">hakkında</div>
+  <div class="me"><p class="b">siz kimsiniz?</p></div>
+  <Grp k={PARANTEZ}>
+    <p class="b b--baslik" data-tepki="biz">birkaç kişilik genç bir ekip.</p>
+    <p class="b" data-tepki="yaziyoruz">bazen yazıyoruz, bazen çiziyoruz.</p>
+    <p class="b" data-tepki="slogan">gündem uzun, biz kısaltıyoruz. ara sıra da uzatıyoruz.</p>
+  </Grp>
+  <div class="me"><p class="b">ne yapıyorsunuz peki?</p></div>
+  <Grp k={PARANTEZ}>
+    <p class="b" data-tepki="ne">her pazartesi sabahı gelen kutuna bir bülten bırakıyoruz. içinde haftanın kısa bir özeti ve beş yazı var. haftayı kaçırdıysan on dakikada yakalarsın.</p>
+    <p class="b" data-tepki="nasil">bir hafta bekliyoruz. herkes bağırıp çağırmayı bitirince oturup yazıyoruz: ne oldu, neden önemli, sana nereden dokunuyor.</p>
+    <p class="b" data-tepki="uzun">bazı konular beş paragrafa sığmıyor. o zaman uzatıyoruz. söz, sıkmayacağız.</p>
+  </Grp>
+  <div class="me"><p class="b">size nasıl ulaşırım?</p></div>
+  <Grp k={PARANTEZ}>
+    <p class="b">fikrin, itirazın, çizimin ya da bir sorun mu var? <a href={`mailto:${SITE.eposta}`}>{SITE.eposta}</a></p>
+    <p class="b">bülten için de e-postanı aşağıya yazman yeterli.</p>
+  </Grp>
+</App>
