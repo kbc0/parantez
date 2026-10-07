@@ -1,0 +1,70 @@
+---
+import Sec from './Sec.astro';
+import { tarihKisa, gunAdi, aralik, type Sayi } from '../lib/site';
+
+interface Props { sayi: Sayi }
+const s = Astro.props.sayi.data;
+
+const FIIL = { dinle: 'Dinle', izle: 'İzle', oku: 'Oku' } as const;
+const oneriler = (Object.keys(FIIL) as (keyof typeof FIIL)[])
+  .map((k) => ({ k, fiil: FIIL[k], o: s.oneriler?.[k] }))
+  .filter((x) => x.o);
+
+const etkinlikler = [...(s.etkinlikler ?? [])].sort((a, b) => a.tarih.getTime() - b.tarih.getTime());
+const ilk = etkinlikler[0]?.tarih;
+const son = etkinlikler.at(-1)?.tarih;
+const ucretsiz = (u: string) => /ücretsiz|bedava/i.test(u);
+---
+{(oneriler.length > 0 || etkinlikler.length > 0) && (
+  <section class="disi" aria-labelledby="disi-baslik">
+    <Sec id="disi-baslik" aside="Dinle · İzle · Oku · Git">Parantez dışı</Sec>
+
+    {oneriler.length > 0 && (
+      <div class="row">
+        {oneriler.map(({ fiil, o }) => (
+          <article class="card oneri">
+            <h3>
+              {o!.baslik}
+              <span class="oneri__kim">{o!.kimden}</span>
+            </h3>
+            <div class="meta">
+              <span class="cat">{o!.tur}</span>
+              <span class="meta__big">{fiil}</span>
+            </div>
+            <div class="oneri__box">
+              <p>{o!.not}</p>
+              {o!.link && <a href={o!.link} target="_blank" rel="noopener">{o!.linkMetni ?? `${fiil} →`}</a>}
+            </div>
+          </article>
+        ))}
+      </div>
+    )}
+
+    {etkinlikler.length > 0 && (
+      <div class="etk">
+        <div class="etk__head">
+          <span class="label">Etkinlikler</span>
+          {ilk && son && <span class="label">{aralik(ilk, son)}</span>}
+        </div>
+        <ol class="etk__list">
+          {etkinlikler.map((e) => (
+            <li class="etk__row">
+              <div class="etk__when">
+                <time class="etk__date" datetime={e.tarih.toISOString().slice(0, 10)}>{tarihKisa(e.tarih)}</time>
+                <span class="etk__day">{gunAdi(e.tarih)}{e.saat && ` · ${e.saat}`}</span>
+              </div>
+              <div class="etk__what">
+                <span class="label">{e.tur}</span>
+                <h3>{e.link ? <a href={e.link} target="_blank" rel="noopener">{e.ad}</a> : e.ad}</h3>
+              </div>
+              <div class="etk__where">
+                <p>{e.yer}<br><span>{e.sehir}</span></p>
+                <span class:list={['etk__ucret', { 'is-free': ucretsiz(e.ucret) }]}>{e.ucret}</span>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </div>
+    )}
+  </section>
+)}

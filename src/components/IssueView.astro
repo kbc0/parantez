@@ -3,6 +3,7 @@ import { render } from 'astro:content';
 import Sec from './Sec.astro';
 import Card from './Card.astro';
 import Subscribe from './Subscribe.astro';
+import ParantezDisi from './ParantezDisi.astro';
 import { sayininYazilari, okumaSuresi, pad, aralik, konuUrl, yaziUrl, type Sayi } from '../lib/site';
 import { konuAdi } from '../lib/konular';
 
@@ -82,6 +83,8 @@ for (let i = 0; i < hucreler.length; i += 3) satirlar.push(hucreler.slice(i, i +
       </div>
     ))}
   </section>
+
+  <ParantezDisi sayi={sayi} />
 
   <a class="more" href="/arsiv/"><span>Önceki sayılar</span><span>Arşiv →</span></a>
 </div>

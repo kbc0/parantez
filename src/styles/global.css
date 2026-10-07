@@ -377,6 +377,68 @@ a.cat:hover { text-decoration: underline; }
 .more span:first-child { font-size: 13px; }
 .more:hover span:last-child { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 6px; }
 
+/* ---------- parantez dışı ---------- */
+.disi { margin-top: 72px; }
+
+/* öneriler: yazı kartlarıyla aynı yapı, görsel yerine gri kutu */
+.oneri h3 { text-transform: uppercase; }
+.oneri__kim {
+  display: block;
+  margin-top: 6px;
+  font-size: 15px;
+  text-transform: none;
+  color: var(--mute);
+}
+.oneri__box {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 16px;
+  aspect-ratio: 3 / 2;
+  padding: 20px;
+  background: var(--blank);
+}
+.oneri__box p { margin: 0; font-size: 18px; line-height: 1.35; text-wrap: pretty; }
+.oneri__box a { align-self: flex-start; font-size: 14px; text-decoration: underline; text-underline-offset: 3px; }
+.oneri__box a:hover { text-decoration-thickness: 2px; }
+
+/* etkinlikler: üç kolonlu ızgaraya oturan satırlar */
+.etk { border-bottom: var(--rule); }
+.etk__head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 0 14px;
+}
+.etk__list { list-style: none; margin: 0; padding: 0; }
+.etk__row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  column-gap: var(--col);
+  padding: 20px 0;
+  border-top: 1px solid var(--hair);
+}
+.etk__row > * { position: relative; min-width: 0; }
+.etk__row > * + *::before {
+  content: "";
+  position: absolute;
+  top: -20px;
+  bottom: -20px;
+  left: calc(var(--col) / -2);
+  border-left: var(--rule);
+}
+.etk__when { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; }
+.etk__date { font-size: 54px; line-height: .8; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.etk__day { font-size: 12px; text-transform: uppercase; text-align: right; }
+.etk__what .label { margin-bottom: 8px; color: var(--mute); }
+.etk__what h3 { margin: 0; font-size: 22px; font-weight: 400; line-height: 1.2; text-transform: uppercase; }
+.etk__what a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.etk__where { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; }
+.etk__where p { margin: 0; font-size: 16px; line-height: 1.35; }
+.etk__where p span { color: var(--mute); }
+.etk__ucret { flex: none; font-size: 12px; text-transform: uppercase; white-space: nowrap; }
+.etk__ucret.is-free { padding: 3px 10px; border: 1px solid var(--ink); border-radius: 99px; }
+
 /* ---------- yazı sayfası ---------- */
 .progress { position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 30; pointer-events: none; }
 .progress i { display: block; height: 100%; background: var(--ink); transform: scaleX(0); transform-origin: 0 50%; }
@@ -619,6 +681,12 @@ a.cat:hover { text-decoration: underline; }
   .olan__no { font-size: 28px; }
   .gundem, section + section, .page + .sec, .row + .sec { margin-top: 48px; }
   .more { font-size: 32px; }
+  .disi { margin-top: 48px; }
+  .oneri__box { aspect-ratio: auto; }
+  .etk__row { grid-template-columns: 1fr; row-gap: 12px; }
+  .etk__row > * + *::before { display: none; }
+  .etk__when { justify-content: flex-start; align-items: baseline; }
+  .etk__date { font-size: 40px; }
 
   .art__meta .meta__big { font-size: 48px; }
   .art__grid { grid-template-columns: 1fr; }

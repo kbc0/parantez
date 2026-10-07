@@ -31,6 +31,8 @@ const AYLAR = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz',
 // Tarihler TR saatine göre (UTC+3) gösterilir.
 const tr = (d: Date) => new Date(d.getTime() + 3 * 3600 * 1000);
 export const tarihUzun = (d: Date) => { const t = tr(d); return `${t.getUTCDate()} ${AYLAR[t.getUTCMonth()]} ${t.getUTCFullYear()}`; };
+const GUNLER = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'];
+export const gunAdi = (d: Date) => GUNLER[tr(d).getUTCDay()];
 export const tarihKisa = (d: Date) => { const t = tr(d); return `${pad(t.getUTCDate())}.${pad(t.getUTCMonth() + 1)}`; };
 export const aralik = (a: Date, b: Date) => {
   const x = tr(a), y = tr(b);

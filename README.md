@@ -8,7 +8,7 @@ Astro ile üretilen statik bir site; Cloudflare Workers üzerinde yayınlanır. 
 
 | Adres | Ne var |
 | --- | --- |
-| `/` | Güncel sayı: haftanın özeti (editör notu, bu sayıda, ne oldu?) ve 5 yazı |
+| `/` | Güncel sayı: haftanın özeti (editör notu, bu sayıda, ne oldu?), 5 yazı ve Parantez dışı (dinle, izle, oku, etkinlikler) |
 | `/sayi/<no>/` | Geçmiş bir sayı (aynı düzen, soluk görseller) |
 | `/yazi/<slug>/` | Yazı sayfası: yalnızca yazının kendisi |
 | `/arsiv/` | Bütün sayılar ve konular |
@@ -21,6 +21,8 @@ Astro ile üretilen statik bir site; Cloudflare Workers üzerinde yayınlanır. 
 1. `src/content/sayilar/` içine yeni bir dosya ekle (ör. `04.md`). Var olan bir sayıyı kopyalayıp düzenlemek en kolayı:
    - `sayi`, `baslik`, `yayin` (pazartesi), `baslangic` / `bitis` (haftanın aralığı), `imza`
    - `kisaKisa`: 3–5 kısa haber (`konu` + `metin`), ana sayfada "Ne oldu?" şeridi
+   - `oneriler` (isteğe bağlı, "Parantez dışı"): `dinle`, `izle`, `oku`; her biri `baslik`, `kimden`, `tur`, `not` (en fazla 200 karakter), isteğe bağlı `link` + `linkMetni`
+   - `etkinlikler` (isteğe bağlı, en fazla 6): `tarih`, `saat` (ör. "20:00"), `ad`, `tur`, `yer`, `sehir`, `ucret` ("Ücretsiz" yazılırsa işaretlenir), isteğe bağlı `link`. Tarihe göre kendiliğinden sıralanır.
    - Dosyanın gövdesi: yayın yönetmeninin kısa notu (markdown)
 2. `src/content/yazilar/` içine 5 yazı ekle. Dosya adı adresi belirler (`faiz-sabit.md` → `/yazi/faiz-sabit/`).
    - `sayi`: hangi sayıya ait, `sira`: 1–5
