@@ -1,11 +1,11 @@
 ---
+// Yazı sayfası: sohbetten açılan, balonsuz ve rahat okunan sayfa.
+// Sohbetle bağı: aynı üst bar, yazarın avatarı ve (parantez)'in kenara düştüğü notlar.
 import { render } from 'astro:content';
 import App from '../../layouts/App.astro';
-import Grp from '../../components/Grp.astro';
 import Av from '../../components/Av.astro';
-import LinkCard from '../../components/LinkCard.astro';
 import { yazilar, sayilar, sayininYazilari, okumaSuresi, gorsel, pad, tarihUzun, sayiUrl, yaziUrl, kisi, ilkAd, PARANTEZ, type Yazi, type Sayi } from '../../lib/site';
-import { konuAdi } from '../../lib/konular';
+import { konuAdi, konuRenk } from '../../lib/konular';
 
 export async function getStaticPaths() {
   const [ys, ss] = await Promise.all([yazilar(), sayilar()]);
@@ -22,12 +22,9 @@ const i = kardesler.findIndex((y) => y.id === yazi.id);
 const sonraki = kardesler[i + 1];
 const sayiLink = sayiUrl(d.sayi);
 const digerleri = kardesler.filter((y) => y.id !== yazi.id);
-
-const chips = [
-  ...(sonraki ? [{ metin: 'Sıradaki yazı', href: yaziUrl(sonraki) }] : []),
-  { metin: 'Sayıya dön', href: sayiLink },
-  { metin: 'Abone ol', ac: 'abone' },
-];
+const EMOJI = ['❤️', '😂', '😮', '😢', '🔥'];
+// Sohbetteki link kartıyla aynı görsel: önbellekten gelir, kart görsele dönüşür
+const foto = (y: Yazi) => gorsel(y.data.gorsel, 1200, 632);
 ---
 <App
   title={d.baslik}
@@ -36,53 +33,102 @@ const chips = [
   type="article"
   sayfa={`yazi-${yazi.id}`}
   aktif={`sayi-${d.sayi}`}
-  bar={{ kisi: yazar, baslik: d.baslik, alt: `${yazar.ad} · ${konuAdi(d.konu)} · ${dk} dk`, geri: sayiLink, duz: true }}
-  chips={chips}
-  kaynak={`yazi-${yazi.id}`}
+  bar={{
+    baslik: `Sayı ${pad(d.sayi)}`,
+    alt: `yazı ${i + 1}/${kardesler.length} · ${konuAdi(d.konu).toLocaleLowerCase('tr')}`,
+    geri: sayiLink,
+    ikinci: { kisi: yazar, baslik: d.baslik, alt: `${ilkAd(yazar.ad)} · {kalan}` },
+    paylas: true,
+  }}
+  composer={false}
+  okuma
   info
 >
-  <article class="yazi">
-    <div class="day">Sayı {pad(d.sayi)} · {tarihUzun(sayi.data.yayin)}</div>
+  <article class="yz" data-dk={dk} style={`--c:${konuRenk(d.konu)}`}>
+    <header class="yz__bas">
+      <p class="yz__ust">
+        <a class="yz__konu" href={`/konu/${d.konu}/`}>{konuAdi(d.konu)}</a>
+        <span>Sayı {pad(d.sayi)} · {i + 1}/{kardesler.length}</span>
+      </p>
+      <h1 class="yz__baslik">{d.baslik}</h1>
+      <p class="yz__spot">{d.spot}</p>
+      <div class="yz__imza">
+        <Av k={yazar} />
+        <span><b>{yazar.ad}</b><small>{tarihUzun(sayi.data.yayin)} · {dk} dk okuma</small></span>
+      </div>
+    </header>
 
-    <details class="pin" open>
-      <summary><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 17v5M9 3h6l-1 6 4 4H6l4-4z"/></svg>Sabitlendi · Kısaca</summary>
-      <ol>{d.kisaca.map((k) => <li>{k}</li>)}</ol>
-    </details>
+    <figure class="yz__foto">
+      <span class="yz__g"><img src={foto(yazi)} alt={d.gorselAlt} width="1200" height="632" fetchpriority="high" style={`view-transition-name: foto-${yazi.id}`}></span>
+      <figcaption>{d.gorselKaynak}</figcaption>
+    </figure>
 
-    <Grp k={yazar}>
-      <h1 class="b b--baslik" data-tepki="baslik">{d.baslik}</h1>
-      <p class="b b--spot" data-tepki="spot">{d.spot}</p>
-      <figure class="b b--foto">
-        <img src={gorsel(d.gorsel, 1200, 750)} alt={d.gorselAlt} width="1200" height="750" fetchpriority="high">
-        <figcaption>{d.gorselKaynak}</figcaption>
-      </figure>
-    </Grp>
+    <aside class="not" aria-label="Kısaca">
+      <Av k={PARANTEZ} />
+      <div class="not__b">
+        <b class="not__e">Kısaca</b>
+        <ol>{d.kisaca.map((k) => <li>{k}</li>)}</ol>
+      </div>
+    </aside>
 
-    <Grp k={yazar} isim={false} flow="p" cls="grp--devam">
+    <div class="yz__metin">
       <Content />
-    </Grp>
-
-    <Grp k={PARANTEZ}>
-      <div class="b b--neden" data-tepki="neden"><span>Neden önemli?</span>{d.neden}</div>
-    </Grp>
-
-    <p class="sys son" data-son>yazının sonu · {dk} dk</p>
-
-    {sonraki
-      ? <Grp k={PARANTEZ}><p class="b">sıradaki yazı:</p><LinkCard yazi={sonraki} gorselli={false} etiket={`Sıradaki · ${pad(sonraki.data.sira)} · ${okumaSuresi(sonraki)} dk`} /></Grp>
-      : <Grp k={PARANTEZ}><p class="b">bu sayının son yazısıydı. <a href={sayiLink}>sayının tamamına dön</a> ya da aşağıdan abone ol.</p></Grp>}
-
-    <div class="kunye">
-      <Av k={yazar} boy="b" />
-      <b>{yazar.ad}</b>
-      <span>{yazar.rol} · {konuAdi(d.konu)}</span>
-      <dl>
-        <div><dt>Yayın</dt><dd>{tarihUzun(sayi.data.yayin)}</dd></div>
-        <div><dt>Okuma</dt><dd>{dk} dk</dd></div>
-        <div><dt>Sayı</dt><dd><a href={sayiLink}>{pad(d.sayi)}</a></dd></div>
-      </dl>
-      <div class="kunye__btn"><button type="button" data-paylas>Paylaş</button><button type="button" data-kopyala>Bağlantıyı kopyala</button></div>
     </div>
+
+    <aside class="not not--neden" aria-label="Neden önemli?">
+      <Av k={PARANTEZ} />
+      <div class="not__b">
+        <b class="not__e">Neden önemli?</b>
+        <p>{d.neden}</p>
+      </div>
+    </aside>
+
+    <footer class="yz__son">
+      <p class="bitti" data-son><span>(son)</span><span class="bitti__ok">okundu ✓✓</span></p>
+
+      <div class="yz-tepki" data-yazi-tepki hidden>
+        <p>bu yazı nasıldı?</p>
+        <div>{EMOJI.map((e) => <button type="button" data-e={e} aria-pressed="false">{e}<span></span></button>)}</div>
+      </div>
+
+      {sonraki
+        ? (
+          <a class="sonraki" href={yaziUrl(sonraki)} data-slug={sonraki.id}>
+            <span class="sonraki__t">
+              <small>Sıradaki · {i + 2}/{kardesler.length} · {okumaSuresi(sonraki)} dk</small>
+              <b>{sonraki.data.baslik}</b>
+              <span>{sonraki.data.yazar} · {konuAdi(sonraki.data.konu)}</span>
+            </span>
+            <span class="sonraki__g"><img src={foto(sonraki)} alt="" width="1200" height="632" loading="lazy" decoding="async" style={`view-transition-name: foto-${sonraki.id}`}></span>
+          </a>
+        )
+        : (
+          <a class="sonraki sonraki--son" href={sayiLink}>
+            <span class="sonraki__t">
+              <small>Bu sayının son yazısıydı</small>
+              <b>Sayı {pad(d.sayi)} sohbetine dön</b>
+              <span>özet, öneriler ve etkinlikler orada</span>
+            </span>
+          </a>
+        )}
+
+      <section class="yz-abone" data-yazi-abone aria-label="Abone ol">
+        <div class="not">
+          <Av k={PARANTEZ} />
+          <div class="not__b"><p>bu yazı her pazartesi 07:30’da gelen bültenimizden. sana da gelsin mi?</p></div>
+        </div>
+        <form class="yz-abone__form" action="/api/abone" method="post">
+          <input type="hidden" name="kaynak" value={`yazi-${yazi.id}`}>
+          <input class="hp" type="text" name="web" tabindex="-1" autocomplete="off" aria-hidden="true">
+          <label class="sr" for="yz-eposta">E-posta adresin</label>
+          <input id="yz-eposta" name="eposta" type="email" inputmode="email" autocomplete="email" enterkeyhint="send" autocapitalize="off" spellcheck="false" placeholder="e-posta adresin" required>
+          <button class="send" type="submit" aria-label="Abone ol">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
+          </button>
+        </form>
+        <p class="yz-abone__uyari" data-uyari hidden role="status"></p>
+      </section>
+    </footer>
   </article>
 
   <Fragment slot="info">

@@ -1,20 +1,6 @@
 // (parantez) — sohbet davranışları.
 // Sayfalar JavaScript olmadan da okunur; bu dosya üstüne sohbet hissini ekler.
-
-const EMOJI = ['❤️', '😂', '😮', '😢', '🔥'];
-const EPOSTA = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-const azHareket = matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-const depo = (s: () => Storage) => ({
-  get(k: string) { try { return s().getItem(k); } catch { return null; } },
-  set(k: string, v: string) { try { s().setItem(k, v); } catch { /* gizli sekme vb. */ } },
-});
-const ls = depo(() => localStorage);
-const ss = depo(() => sessionStorage);
-
-const $ = <T extends Element = HTMLElement>(s: string, r: ParentNode = document) => r.querySelector<T>(s);
-const $$ = <T extends Element = HTMLElement>(s: string, r: ParentNode = document) => [...r.querySelectorAll<T>(s)];
-const bekle = (ms: number) => new Promise((r) => setTimeout(r, azHareket ? 0 : ms));
+import { EMOJI, EPOSTA, azHareket, ls, ss, $, $$, bekle, toast, kimlik } from './ortak';
 
 const sayfa = document.body.dataset.sayfa ?? '';
 const msgs = $('.msgs')!;
@@ -23,16 +9,7 @@ const akis = sohbet ?? msgs;
 const form = $<HTMLFormElement>('[data-composer]');
 const girdi = form ? $<HTMLInputElement>('#mesaj', form) : null;
 const chipler = form ? $('[data-chips]', form) : null;
-const toastEl = $('[data-toast]')!;
 const picker = $('[data-picker]')!;
-
-let toastZaman = 0;
-function toast(metin: string, ms = 2400) {
-  toastEl.textContent = metin;
-  toastEl.hidden = false;
-  clearTimeout(toastZaman);
-  toastZaman = window.setTimeout(() => (toastEl.hidden = true), ms);
-}
 
 function goster(el: Element, blok: ScrollLogicalPosition = 'start') {
   el.scrollIntoView({ behavior: azHareket ? 'auto' : 'smooth', block: blok });
@@ -316,15 +293,6 @@ chipler?.addEventListener('click', async (e) => {
 type Sayilar = Record<string, Record<string, number>>;
 const tepki = { sayilar: {} as Sayilar, benim: {} as Record<string, string>, acik: false };
 
-function kimlik() {
-  let k = ls.get('p:k');
-  if (!k) {
-    k = (crypto.randomUUID?.() ?? `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`).toLowerCase();
-    ls.set('p:k', k);
-  }
-  return k;
-}
-
 // Markdown'dan gelen paragraflara sırayla kimlik ver (p1, p2…)
 for (const f of $$('.flow')) {
   const on = f.dataset.flow || 'p';
@@ -438,61 +406,6 @@ function ipucu() {
   if (!tepki.acik || ls.get('p:ipucu')) return;
   ls.set('p:ipucu', '1');
   toast(matchMedia('(pointer: coarse)').matches ? 'ipucu: mesaja dokun, tepki bırak' : 'ipucu: mesaja tıkla, tepki bırak', 3200);
-}
-
-// ---------------------------------------------------------------- yazı sayfası
-
-const duzBtn = $<HTMLButtonElement>('[data-duz]');
-if (duzBtn) {
-  const html = document.documentElement;
-  const yansit = () => duzBtn.setAttribute('aria-pressed', String(html.classList.contains('duz')));
-  yansit();
-  duzBtn.addEventListener('click', () => {
-    const duz = html.classList.toggle('duz');
-    ls.set('p:duz', duz ? '1' : '0');
-    yansit();
-    toast(duz ? 'düz okuma modu: balonlar kapalı' : 'sohbet modu', 1600);
-  });
-}
-
-function okunanlar(): string[] {
-  try { return JSON.parse(ls.get('p:okunan') ?? '[]'); } catch { return []; }
-}
-function okunduIsaretle() {
-  const o = new Set(okunanlar());
-  for (const a of $$('[data-slug]')) a.classList.toggle('okundu', o.has(a.dataset.slug!));
-}
-okunduIsaretle();
-
-const son = $('[data-son]');
-if (son && sayfa.startsWith('yazi-')) {
-  const slug = sayfa.slice(5);
-  new IntersectionObserver((ent, obs) => {
-    if (!ent.some((x) => x.isIntersecting)) return;
-    const o = new Set(okunanlar());
-    o.add(slug);
-    ls.set('p:okunan', JSON.stringify([...o].slice(-200)));
-    son.textContent = `${son.textContent} · okundu ✓✓`;
-    obs.disconnect();
-  }).observe(son);
-}
-
-async function kopyala() {
-  try { await navigator.clipboard.writeText(location.href.split('#')[0]); toast('bağlantı kopyalandı'); }
-  catch { toast(location.href.split('#')[0], 4000); }
-}
-for (const b of $$('[data-kopyala]')) b.addEventListener('click', kopyala);
-for (const b of $$('[data-paylas]')) b.addEventListener('click', async () => {
-  if (navigator.share) {
-    try { await navigator.share({ title: document.title, url: location.href.split('#')[0] }); } catch { /* vazgeçildi */ }
-  } else kopyala();
-});
-
-// Yüklenemeyen görsel boş gri kutu olarak kalsın
-for (const img of $$<HTMLImageElement>('.lc__img img, .b--foto img')) {
-  const kirik = () => img.classList.add('kirik');
-  if (img.complete && img.naturalWidth === 0) kirik();
-  img.addEventListener('error', kirik);
 }
 
 // ---------------------------------------------------------------- başlat

@@ -6,7 +6,7 @@ const { yazi, etiket, gorselli = true } = Astro.props;
 const d = yazi.data;
 ---
 <a class="lc" href={yaziUrl(yazi)} data-slug={yazi.id} style={`--c:${konuRenk(d.konu)}`}>
-  {gorselli && <span class="lc__img"><img src={gorsel(d.gorsel, 800, 420)} alt="" width="800" height="420" loading="lazy" decoding="async"></span>}
+  {gorselli && <span class="lc__img"><img src={gorsel(d.gorsel, 1200, 632)} alt="" width="1200" height="632" loading="lazy" decoding="async" style={`view-transition-name: foto-${yazi.id}`}></span>}
   <span class="lc__body">
     <small>{etiket ?? `${konuAdi(d.konu)} · ${okumaSuresi(yazi)} dk · ${d.yazar}`}</small>
     <b>{d.baslik}</b>

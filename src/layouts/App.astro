@@ -14,16 +14,18 @@ interface Props {
   type?: 'website' | 'article';
   sayfa?: string; // tepkilerin saklandığı sayfa anahtarı
   aktif?: string; // soldaki listede işaretli olan
-  bar: { kisi?: Kisi; baslik: string; alt?: string; geri?: string; duz?: boolean; kok?: boolean };
+  // ikinci: okuma sayfasında başlık kayınca barda görünen satır. alt içindeki {kalan} okuma süresiyle dolar.
+  bar: { kisi?: Kisi; baslik: string; alt?: string; geri?: string; kok?: boolean; ikinci?: { kisi: Kisi; baslik: string; alt: string }; paylas?: boolean };
   chips?: Chip[];
   mod?: 'mesaj' | 'abone';
   kaynak?: string;
   info?: boolean;
   composer?: boolean; // sohbet listesinde yazma alanı yok
   yan?: boolean; // masaüstünde soldaki sohbet listesi (ana sayfada zaten liste var)
+  okuma?: boolean; // yazı sayfası: balonsuz, rahat okunan düzen
 }
 
-const { title, description = SITE.aciklama, image, type = 'website', sayfa, aktif, bar, chips, mod, kaynak, info = false, composer = true, yan = true } = Astro.props;
+const { title, description = SITE.aciklama, image, type = 'website', sayfa, aktif, bar, chips, mod, kaynak, info = false, composer = true, yan = true, okuma = false } = Astro.props;
 const fullTitle = title ? `${title} — ${SITE.ad}` : `${SITE.ad} — ${SITE.slogan}`;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 const ogImage = new URL(image ?? '/og.png', Astro.site);
@@ -51,7 +53,6 @@ const guncel = liste[0]?.data.sayi;
   <meta name="twitter:card" content="summary_large_image">
   <script is:inline>
     document.documentElement.classList.add('js');
-    try { if (localStorage.getItem('p:duz') === '1') document.documentElement.classList.add('duz'); } catch (e) {}
   </script>
 </head>
 <body data-sayfa={sayfa}>
@@ -87,24 +88,37 @@ const guncel = liste[0]?.data.sayi;
           : <a class="bar__liste" href="/" aria-label="Tüm sayılar">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg>
             </a>}
-        <Av k={bar.kisi ?? PARANTEZ} />
-        <div class="bar__t">
-          <b>{bar.baslik}</b>
-          {bar.alt && <span>{bar.alt}</span>}
+        <div class="bar__kim">
+          <div class="bar__k">
+            <Av k={bar.kisi ?? PARANTEZ} />
+            <div class="bar__t">
+              <b>{bar.baslik}</b>
+              {bar.alt && <span>{bar.alt}</span>}
+            </div>
+          </div>
+          {bar.ikinci && (
+            <div class="bar__k bar__k--2" aria-hidden="true">
+              <Av k={bar.ikinci.kisi} />
+              <div class="bar__t">
+                <b>{bar.ikinci.baslik}</b>
+                <span>{bar.ikinci.alt.split('{kalan}')[0]}<span data-kalan></span>{bar.ikinci.alt.split('{kalan}')[1]}</span>
+              </div>
+            </div>
+          )}
         </div>
         <div class="bar__act">
-          {bar.duz && (
-            <button type="button" class="ib" data-duz aria-pressed="false" title="Düz okuma modu">
-              <span aria-hidden="true">Aa</span><span class="sr">Düz okuma modu</span>
-            </button>
-          )}
-          <a class="ib" href="/hakkinda/" title="Hakkında" aria-label="Hakkında"><span aria-hidden="true">i</span></a>
+          {bar.paylas
+            ? <button type="button" class="ib" data-paylas title="Paylaş" aria-label="Paylaş">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>
+              </button>
+            : <a class="ib" href="/hakkinda/" title="Hakkında" aria-label="Hakkında"><span aria-hidden="true">i</span></a>}
         </div>
+        {okuma && <div class="bar__ilerleme" aria-hidden="true"></div>}
       </header>
 
-      <main id="icerik" class="msgs" role="log" aria-live="polite">
-        <slot />
-      </main>
+      {okuma
+        ? <main id="icerik" class="oku"><slot /></main>
+        : <main id="icerik" class="msgs" role="log" aria-live="polite"><slot /></main>}
 
       {composer && <Composer chips={chips} mod={mod} kaynak={kaynak ?? sayfa ?? 'site'} />}
     </div>
@@ -116,7 +130,9 @@ const guncel = liste[0]?.data.sayi;
   <div class="toast" data-toast hidden role="status"></div>
 
   <script>
-    import '../scripts/sohbet';
+    import '../scripts/ortak';
+    if (document.querySelector('.oku')) import('../scripts/okuma');
+    else import('../scripts/sohbet');
   </script>
 </body>
 </html>
