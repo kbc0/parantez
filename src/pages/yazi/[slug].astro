@@ -21,7 +21,6 @@ const kardesler = await sayininYazilari(d.sayi);
 const i = kardesler.findIndex((y) => y.id === yazi.id);
 const sonraki = kardesler[i + 1];
 const sayiLink = sayiUrl(d.sayi);
-const digerleri = kardesler.filter((y) => y.id !== yazi.id);
 const EMOJI = ['❤️', '😂', '😮', '😢', '🔥'];
 // Sohbetteki link kartıyla aynı görsel: önbellekten gelir, kart görsele dönüşür
 const foto = (y: Yazi) => gorsel(y.data.gorsel, 1200, 632);
@@ -42,7 +41,6 @@ const foto = (y: Yazi) => gorsel(y.data.gorsel, 1200, 632);
   }}
   composer={false}
   okuma
-  info
 >
   <article class="yz" data-dk={dk} style={`--c:${konuRenk(d.konu)}`}>
     <header class="yz__bas">
@@ -131,22 +129,4 @@ const foto = (y: Yazi) => gorsel(y.data.gorsel, 1200, 632);
     </footer>
   </article>
 
-  <Fragment slot="info">
-    <div class="kunye kunye--yan">
-      <Av k={yazar} boy="b" />
-      <b>{yazar.ad}</b>
-      <span>{yazar.rol} · {konuAdi(d.konu)}</span>
-      <div class="kunye__btn"><button type="button" data-paylas>Paylaş</button><button type="button" data-kopyala>Bağlantıyı kopyala</button></div>
-      <dl>
-        <div><dt>Yayın</dt><dd>{tarihUzun(sayi.data.yayin)}</dd></div>
-        <div><dt>Okuma</dt><dd>{dk} dk</dd></div>
-        <div><dt>Konu</dt><dd><a href={`/konu/${d.konu}/`}>{konuAdi(d.konu)}</a></dd></div>
-        <div><dt>Sayı</dt><dd><a href={sayiLink}>{pad(d.sayi)}</a></dd></div>
-      </dl>
-    </div>
-    <h3 class="info__h">Bu sayıda ayrıca</h3>
-    <nav class="info__list">
-      {digerleri.map((y) => <a href={yaziUrl(y)} data-slug={y.id}>{y.data.baslik}<small>{konuAdi(y.data.konu)} · {okumaSuresi(y)} dk · {ilkAd(y.data.yazar)}</small></a>)}
-    </nav>
-  </Fragment>
 </App>

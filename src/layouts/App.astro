@@ -19,13 +19,12 @@ interface Props {
   chips?: Chip[];
   mod?: 'mesaj' | 'abone';
   kaynak?: string;
-  info?: boolean;
   composer?: boolean; // sohbet listesinde yazma alanı yok
   yan?: boolean; // masaüstünde soldaki sohbet listesi (ana sayfada zaten liste var)
   okuma?: boolean; // yazı sayfası: balonsuz, rahat okunan düzen
 }
 
-const { title, description = SITE.aciklama, image, type = 'website', sayfa, aktif, bar, chips, mod, kaynak, info = false, composer = true, yan = true, okuma = false } = Astro.props;
+const { title, description = SITE.aciklama, image, type = 'website', sayfa, aktif, bar, chips, mod, kaynak, composer = true, yan = true, okuma = false } = Astro.props;
 const fullTitle = title ? `${title} — ${SITE.ad}` : `${SITE.ad} — ${SITE.slogan}`;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 const ogImage = new URL(image ?? '/og.png', Astro.site);
@@ -57,7 +56,7 @@ const guncel = liste[0]?.data.sayi;
 </head>
 <body data-sayfa={sayfa}>
   <a class="skip" href="#icerik">İçeriğe geç</a>
-  <div class:list={['app', { 'app--info': info, 'app--tek': !yan }]}>
+  <div class:list={['app', { 'app--tek': !yan }]}>
 
     <aside class="side" aria-label="Sohbetler">
       <a class="brand" href="/"><Av k={PARANTEZ} /><b>(parantez)</b></a>
@@ -123,7 +122,6 @@ const guncel = liste[0]?.data.sayi;
       {composer && <Composer chips={chips} mod={mod} kaynak={kaynak ?? sayfa ?? 'site'} />}
     </div>
 
-    {info && <aside class="info" aria-label="Bilgi"><slot name="info" /></aside>}
   </div>
 
   <div class="picker" data-picker hidden role="dialog" aria-label="Tepki seç"></div>

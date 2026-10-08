@@ -52,7 +52,6 @@ async function kopyala() {
   try { await navigator.clipboard.writeText(location.href.split('#')[0]); toast('bağlantı kopyalandı'); }
   catch { toast(location.href.split('#')[0], 4000); }
 }
-for (const b of $$('[data-kopyala]')) b.addEventListener('click', kopyala);
 for (const b of $$('[data-paylas]')) b.addEventListener('click', async () => {
   if (navigator.share) {
     try { await navigator.share({ title: document.title, url: location.href.split('#')[0] }); } catch { /* vazgeçildi */ }
