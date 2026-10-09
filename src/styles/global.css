@@ -616,15 +616,8 @@ html:not(.js) .b--aksiyon, .kutu-acik .b--aksiyon, .abone-oldu .b--aksiyon { dis
 
 /* ---------------------------------------------------------------- masaüstü */
 @media (min-width: 900px) {
-  body { background: var(--app); }
-  .app {
-    display: grid;
-    grid-template-columns: 300px minmax(0, 1fr);
-    max-width: 1440px;
-    margin: 0 auto;
-    background: var(--bg);
-    border-inline: 1px solid var(--line);
-  }
+  /* Masaüstünde uygulama ekranı kenardan kenara doldurur; yanlarda boşluk kalmaz */
+  .app { display: grid; grid-template-columns: 300px minmax(0, 1fr); }
   .side {
     display: flex;
     flex-direction: column;
@@ -663,8 +656,10 @@ html:not(.js) .b--aksiyon, .kutu-acik .b--aksiyon, .abone-oldu .b--aksiyon { dis
 .side__foot a:hover { color: var(--ink); }
 
 @media (min-width: 900px) {
-  .app--tek { grid-template-columns: minmax(0, 1fr); max-width: 860px; }
+  .app--tek { grid-template-columns: minmax(0, 1fr); }
   .app--tek .side { display: none; }
+  /* Ana sayfa: bar tam genişlikte, içeriği listeyle aynı hizada */
+  .app--tek .bar { padding-inline: max(20px, calc((100% - 820px) / 2 + 28px)); }
 }
 
 @media (min-width: 1200px) {
