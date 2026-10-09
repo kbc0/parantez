@@ -66,15 +66,14 @@ button { font: inherit; color: inherit; }
   flex: none;
   display: grid;
   place-items: center;
-  width: 34px;
-  height: 34px;
-  margin-left: -6px;
+  width: 36px;
+  height: 36px;
+  margin-left: -8px;
+  border-radius: 10px;
   text-decoration: none;
-  font-size: 34px;
-  line-height: 1;
-  font-weight: 400;
   color: var(--me);
 }
+.bar__geri svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
 .bar__yan { display: none; }
 .bar__liste svg { width: 24px; height: 24px; fill: none; stroke: var(--ink); stroke-width: 2.2; stroke-linecap: round; }
 /* Başlık alanı iki katmanlı: okuma sayfasında yazının başlığı kayınca ikinci katman gelir */
@@ -610,10 +609,15 @@ html:not(.js) .b--aksiyon, .kutu-acik .b--aksiyon, .abone-oldu .b--aksiyon { dis
 
 @media (min-width: 900px) {
   /* Sohbet listesi açılır kapanır (bar'ın solundaki düğme); kapalıyken sohbet tüm genişliği kullanır */
+  /* Solda tek bir düğme grubu: liste düğmesi ve geri, aynı boyda ve aynı renkte; ardından ince bir çizgi */
   .js .bar__yan { display: grid; place-items: center; flex: none; width: 36px; height: 36px; margin-left: -8px; padding: 0; border: 0; border-radius: 10px; background: none; color: var(--ink); cursor: pointer; }
-  .bar__yan:hover { background: var(--bubble); }
-  .bar__yan svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; }
-  .bar__yan[aria-expanded="false"] svg path { stroke-dasharray: 2 3; }
+  .bar__yan svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; }
+  .bar__yan-dolu { fill: currentColor; stroke: none; opacity: 0; transition: opacity .15s; }
+  .bar__yan[aria-expanded="true"] .bar__yan-dolu { opacity: 1; }
+  .js .bar__yan + .bar__geri { margin-left: -6px; }
+  .bar__geri { color: var(--ink); }
+  :is(.bar__yan, .bar__geri):hover { background: var(--bubble); }
+  .js .bar:has(.bar__yan) .bar__kim { padding-left: 14px; border-left: 1px solid var(--line); margin-left: 2px; }
   html.yan-kapali .app:not(.app--ana) { grid-template-columns: minmax(0, 1fr); }
   html.yan-kapali .side { display: none; }
 

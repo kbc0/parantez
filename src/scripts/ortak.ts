@@ -83,7 +83,7 @@ if (yanBtn) {
   };
   yansit();
   yanBtn.addEventListener('click', () => {
-    ls.set('p:yan', html.classList.toggle('yan-kapali') ? '0' : '1');
+    ls.set('p:liste', html.classList.toggle('yan-kapali') ? 'kapali' : 'acik');
     yansit();
   });
 }

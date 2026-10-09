@@ -52,7 +52,8 @@ const guncel = liste[0]?.data.sayi;
   <meta name="twitter:card" content="summary_large_image">
   <script is:inline>
     document.documentElement.classList.add('js');
-    try { if (localStorage.getItem('p:yan') === '0') document.documentElement.classList.add('yan-kapali'); } catch (e) {}
+    // Masaüstünde sohbet listesi okur açmadıkça kapalı gelir
+    try { if (localStorage.getItem('p:liste') !== 'acik') document.documentElement.classList.add('yan-kapali'); } catch (e) {}
   </script>
 </head>
 <body data-sayfa={sayfa}>
@@ -85,11 +86,11 @@ const guncel = liste[0]?.data.sayi;
       <header class="bar">
         {!ana && (
           <button type="button" class="bar__yan" data-yan aria-controls="yan" aria-expanded="true" aria-label="Sohbet listesini kapat" title="Sohbet listesini kapat">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="3"/><path d="M9.5 4.5v15"/></svg>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path class="bar__yan-dolu" d="M9.5 4.75H7a3.25 3.25 0 0 0-3.25 3.25v8A3.25 3.25 0 0 0 7 19.25h2.5z"/><rect x="3.75" y="4.75" width="16.5" height="14.5" rx="3.25"/><path d="M9.5 4.75v14.5"/></svg>
           </button>
         )}
         {bar.kok ? null : bar.geri
-          ? <a class="bar__geri" href={bar.geri} aria-label="Geri">‹</a>
+          ? <a class="bar__geri" href={bar.geri} aria-label="Geri"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 5.5L8 12l6.5 6.5"/></svg></a>
           : <a class="bar__liste" href="/" aria-label="Tüm sayılar">
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg>
             </a>}
