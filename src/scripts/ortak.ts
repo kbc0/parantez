@@ -70,6 +70,16 @@ $<HTMLAnchorElement>('.bar__geri')?.addEventListener('click', (e) => {
   }
 });
 
+// Masaüstü ana sayfadaki çekmece: "Konular" doğrudan konulara, "Tüm sayılar" başa açar
+for (const b of $$<HTMLButtonElement>('[popovertarget="liste"]:not([popovertargetaction])')) {
+  b.addEventListener('click', () => requestAnimationFrame(() => {
+    const cekmece = $('#liste');
+    if (!cekmece) return;
+    if (b.hasAttribute('data-konulara')) $('#konular')?.scrollIntoView({ block: 'start' });
+    else cekmece.scrollTop = 0;
+  }));
+}
+
 // ---------------------------------------------------------------- sayfa içi abonelik
 // Sohbetteki mesaj kutusunun aynısı: e-posta yazılır, (parantez) cevap verir.
 // [data-abone-kutu] içinde bir form; [data-abone-ac] varsa kutu ona basınca açılır.
@@ -101,7 +111,13 @@ for (const kutu of $$('[data-abone-kutu]')) {
     kapali.forEach((el) => (el.hidden = acik));
     if (acik) girdi.focus();
   };
-  for (const a of ac) a.addEventListener('click', (e) => { e.preventDefault(); goster(true); });
+  for (const a of ac) a.addEventListener('click', (e) => {
+    // Kutu bu ekranda görünmüyorsa (ör. mobilde kapak yok) bağlantı normal çalışsın
+    if (!kutu.parentElement?.getClientRects().length) return;
+    e.preventDefault();
+    a.closest<HTMLElement>('[popover]')?.hidePopover();
+    goster(true);
+  });
   $('[data-kapat]', kutu)?.addEventListener('click', () => { uyari.hidden = true; goster(false); });
 
   form.addEventListener('submit', async (e) => {

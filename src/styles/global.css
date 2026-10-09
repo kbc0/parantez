@@ -601,42 +601,65 @@ html:not(.js) .b--aksiyon, .kutu-acik .b--aksiyon, .abone-oldu .b--aksiyon { dis
 
 /* ---------------------------------------------------------------- ana sayfa kapağı (masaüstü)
    Masaüstünde sohbet listesi solda durur; ortada bu haftanın sayısı açılır. */
-.kapak, .ana-ust, .arsiv { display: none; }
+.kapak, .ana-ust, .liste__bas { display: none; }
+/* Liste mobilde sayfanın kendisi; popover özniteliği yalnızca masaüstünde çekmece yapar */
+.liste[popover] { position: static; inset: auto; width: auto; height: auto; margin: 0; padding: 0 0 calc(24px + env(safe-area-inset-bottom)); border: 0; background: none; color: inherit; overflow: visible; display: block; }
 .chip--dolu { background: var(--me); color: #fff; }
 .chip--dolu::after { content: " →"; }
 
 @media (min-width: 900px) {
   /* Masaüstü ana sayfa: yan liste yok, ekranın tamamı kapak. Logo sol üstte. */
   .app.app--ana { grid-template-columns: minmax(0, 1fr); }
-  .app--ana .side, .app--ana .bar, .app--ana .liste { display: none; }
+  .app--ana .side, .app--ana .bar { display: none; }
   .app--ana .msgs { display: block; max-width: none; padding: 0; }
   .ana-ust { display: flex; align-items: center; justify-content: space-between; height: 84px; padding: 0 clamp(28px, 3vw, 48px); }
   .ana-ust .brand { padding: 0; }
-  .ana-ust nav { display: flex; gap: 26px; font-size: 15px; font-weight: 700; }
-  .ana-ust nav a { text-decoration: none; }
-  .ana-ust nav a:hover { color: var(--me); }
-  .kapak { display: flex; align-items: center; width: 100%; min-height: calc(100dvh - 84px); padding: 24px clamp(40px, 6vw, 112px) 72px; }
-  .kapak__ic { width: 100%; max-width: 1440px; margin: 0 auto; }
+  .ana-ust nav { display: flex; align-items: center; gap: 26px; font-size: 15px; font-weight: 700; }
+  .ana-ust nav :is(a, button) { display: inline-flex; align-items: center; gap: 6px; padding: 0; border: 0; background: none; font: inherit; color: inherit; text-decoration: none; cursor: pointer; }
+  .ana-ust nav :is(a, button):hover { color: var(--me); }
+  .sayac { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 99px; background: var(--me); color: #fff; font-size: 11.5px; }
 
-  .kapak__ust { display: flex; align-items: center; gap: 4px; margin: 0 0 22px; font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--mute); }
+  /* Tüm sayılar ve konular: sağdan açılan çekmece. Sayfa kaymaz. */
+  .liste[popover]:not(:popover-open) { display: none; }
+  .liste[popover] {
+    position: fixed;
+    inset: 0 0 0 auto;
+    width: min(440px, 100vw);
+    height: 100dvh;
+    max-height: none;
+    padding: 0 24px 32px;
+    border-left: 1px solid var(--line);
+    background: #fff;
+    box-shadow: -30px 0 80px rgba(17, 17, 17, .1);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .liste[popover]:popover-open { animation: cekmece .3s cubic-bezier(.2, .7, .3, 1); }
+  .liste::backdrop { background: rgba(17, 17, 17, .16); }
+  .liste__bas { position: sticky; top: 0; z-index: 1; display: flex; align-items: center; justify-content: space-between; height: 84px; margin-bottom: 4px; background: #fff; }
+  .liste__bas b { font-size: 20px; font-weight: 800; letter-spacing: -0.02em; }
+  .liste .liste__h { margin-top: 28px; scroll-margin-top: 96px; }
+  .kapak { display: flex; align-items: center; width: 100%; min-height: calc(100dvh - 84px); padding: 8px clamp(40px, 6vw, 112px) 56px; }
+  .kapak__ic { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); column-gap: clamp(40px, 6vw, 112px); align-items: center; width: 100%; max-width: 1440px; margin: 0 auto; }
+
+  .kapak__ust { display: flex; align-items: center; gap: 4px; margin: 0 0 clamp(12px, 2.4vh, 22px); font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--mute); }
   .kapak__ust .rozet { margin-left: 8px; letter-spacing: 0; text-transform: none; }
   .kapak__selam { display: flex; align-items: center; gap: 10px; }
   .kapak__selam .av { width: 32px; height: 32px; font-size: 11px; }
   .kapak__selam p { margin: 0; padding: 10px 14px; border-radius: 20px 20px 20px 6px; background: var(--bubble); font-size: 17px; }
-  .kapak__baslik { margin: 18px 0 0; font-size: clamp(56px, 6.4vw, 112px); font-weight: 800; line-height: .96; letter-spacing: -0.045em; text-wrap: balance; }
+  .kapak__baslik { margin: clamp(12px, 2vh, 18px) 0 0; font-size: clamp(48px, min(6.4vw, 11.5vh), 112px); font-weight: 800; line-height: .96; letter-spacing: -0.045em; text-wrap: balance; }
   .kapak__baslik a { text-decoration: none; }
   .kapak__baslik a:hover { color: var(--me); }
-  .kapak__ozet { max-width: 620px; margin: 26px 0 0; font-size: 20px; line-height: 1.5; color: #4b4b46; text-wrap: pretty; }
-  .kapak__cta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 30px; }
+  .kapak__ozet { max-width: 620px; margin: clamp(14px, 2.8vh, 26px) 0 0; font-size: clamp(17px, 2.2vh, 20px); line-height: 1.5; color: #4b4b46; text-wrap: pretty; }
+  .kapak__cta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: clamp(18px, 3.2vh, 30px); }
   .kapak__cta .chip { padding: 11px 20px; font-size: 16px; }
 
-  .kapak__sag { margin-top: 48px; }
   .kapak__h { margin: 0 0 4px; font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--mute); }
   .kapak__yazilar { margin: 0; padding: 0; list-style: none; border-top: 2px solid var(--ink); }
   .kapak__yazilar li { border-bottom: 1px solid var(--line); }
-  .kapak__yazilar a { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 12px; align-items: baseline; padding: 16px 0 17px; text-decoration: none; }
+  .kapak__yazilar a { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 12px; align-items: baseline; padding: clamp(10px, 1.8vh, 16px) 0 clamp(11px, 1.9vh, 17px); text-decoration: none; }
   .kapak__no { font-size: 14px; font-weight: 800; color: var(--mute); font-variant-numeric: tabular-nums; }
-  .kapak__t b { display: block; font-size: 21px; font-weight: 800; line-height: 1.2; letter-spacing: -0.015em; }
+  .kapak__t b { display: block; font-size: clamp(17px, min(1.6vw, 2.3vh), 21px); font-weight: 800; line-height: 1.2; letter-spacing: -0.015em; }
   .kapak__t small { display: flex; align-items: center; gap: 6px; margin-top: 5px; font-size: 13.5px; color: var(--mute); }
   .kapak__t small i { width: 8px; height: 8px; border-radius: 50%; background: var(--c); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .1); }
   .kapak__yazilar a:hover b { color: var(--me); }
@@ -649,25 +672,13 @@ html:not(.js) .b--aksiyon, .kutu-acik .b--aksiyon, .abone-oldu .b--aksiyon { dis
   .hizli-abone .yz-abone__form .kapat { width: 32px; height: 32px; margin-right: 8px; }
   .hizli-abone .yz-abone__uyari { margin-left: 40px; }
 
-  .arsiv { display: block; padding: 64px clamp(40px, 6vw, 112px) 88px; border-top: 1px solid var(--line); }
-  .arsiv__ic { display: grid; gap: 56px; max-width: 1440px; margin: 0 auto; }
-  .arsiv .kapak__t b { display: flex; align-items: center; gap: 10px; }
-  .arsiv .tags { padding: 14px 0 0; }
-  .arsiv .tag { font-size: 15px; padding: 8px 13px; }
-  .arsiv__alt { display: flex; gap: 20px; margin: 40px 0 0; font-size: 14px; color: var(--mute); }
-  .arsiv__alt a { text-decoration: none; }
-  .arsiv__alt a:hover { color: var(--ink); }
 }
 
-@media (min-width: 1300px) {
-  .arsiv__ic { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); column-gap: clamp(56px, 6vw, 112px); }
-  .kapak__ic { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); column-gap: clamp(56px, 6vw, 112px); align-items: center; }
-  .kapak__sag { margin-top: 0; }
-}
 
 /* ---------------------------------------------------------------- sohbet dalları + animasyon */
 .js .dal:not(.acik) { display: none; }
 
+@keyframes cekmece { from { opacity: 0; transform: translateX(40px); } }
 @keyframes gir { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 @keyframes pop { from { opacity: 0; transform: scale(.9); } to { opacity: 1; transform: none; } }
 @keyframes zipla { 0%, 60%, 100% { transform: none; opacity: .5; } 30% { transform: translateY(-4px); opacity: 1; } }

@@ -1,6 +1,7 @@
 ---
 // Ana sayfa. Mobilde sohbet listesi: her sayı bir sohbet, okur buradan sayılara girer.
-// Masaüstünde ekranın tamamı bu haftanın kapağı; tüm sayılar ve konular aşağıda.
+// Masaüstünde ekranın tamamı bu haftanın kapağı ve sayfa kaymaz. Aynı liste orada
+// sağdan açılan bir çekmece olur (popover): üstteki "Tüm sayılar" ve "Konular" açar.
 import App from '../layouts/App.astro';
 import Av from '../components/Av.astro';
 import { sayilar, yazilar, sayininYazilari, sayiUrl, yaziUrl, pad, tarihKisa, tarihUzun, gunAdi, aralik, okumaSuresi, ilkAd, kisi, PARANTEZ, SITE } from '../lib/site';
@@ -20,7 +21,13 @@ const editor = g ? kisi(g.data.imza.split(',')[0].trim()) : PARANTEZ;
 ---
 <App composer={false} ana
   bar={{ baslik: '(parantez)', alt: `her pazartesi 07:30 · ${liste.length} sayı`, kok: true }}>
-  <div class="liste">
+  <div class="liste" id="liste" popover>
+    <div class="liste__bas">
+      <b>Sayılar ve konular</b>
+      <button type="button" class="kapat" popovertarget="liste" popovertargetaction="hide" aria-label="Kapat">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
     <nav class="clist clist--sayfa" aria-label="Sayılar">
       {satirlar.map(({ s, yazi, guncel }) => (
         <a class="ci" href={sayiUrl(s.data.sayi)}>
@@ -31,13 +38,13 @@ const editor = g ? kisi(g.data.imza.split(',')[0].trim()) : PARANTEZ;
       ))}
     </nav>
 
-    <h2 class="liste__h">Konular</h2>
+    <h2 class="liste__h" id="konular">Konular</h2>
     <nav class="tags tags--sayfa" aria-label="Konular">
       {konular.map((x) => <a class="tag" href={`/konu/${x.k}/`}>#{x.ad.toLocaleLowerCase('tr')} <small>{x.n}</small></a>)}
     </nav>
 
     <nav class="liste__alt" aria-label="Diğer">
-      <a class="ci ci--yalin" href="/abone/"><span class="av av--o" style="--av:#ff4a24" aria-hidden="true">@</span><span class="ci__t"><b>Abone ol</b><span>Her pazartesi 07:30 gelen kutunda</span></span><span aria-hidden="true">›</span></a>
+      <a class="ci ci--yalin" href="/abone/" data-abone-ac="hizli-abone" data-abone-gizle><span class="av av--o" style="--av:#ff4a24" aria-hidden="true">@</span><span class="ci__t"><b>Abone ol</b><span>Her pazartesi 07:30 gelen kutunda</span></span><span aria-hidden="true">›</span></a>
       <a class="ci ci--yalin" href="/hakkinda/"><span class="av av--o" style="--av:#111" aria-hidden="true">(p)</span><span class="ci__t"><b>Hakkında</b><span>{SITE.slogan}</span></span><span aria-hidden="true">›</span></a>
     </nav>
   </div>
@@ -45,8 +52,8 @@ const editor = g ? kisi(g.data.imza.split(',')[0].trim()) : PARANTEZ;
   <header class="ana-ust">
     <a class="brand" href="/"><Av k={PARANTEZ} /><b>(parantez)</b></a>
     <nav aria-label="Site">
-      <a href="#sayilar">Tüm sayılar</a>
-      <a href="#konular">Konular</a>
+      <button type="button" popovertarget="liste">Tüm sayılar <span class="sayac">{liste.length}</span></button>
+      <button type="button" popovertarget="liste" data-konulara>Konular</button>
       <a href="/hakkinda/">Hakkında</a>
     </nav>
   </header>
@@ -106,32 +113,4 @@ const editor = g ? kisi(g.data.imza.split(',')[0].trim()) : PARANTEZ;
       </div>
     </section>
   )}
-
-  <section class="arsiv" aria-label="Tüm sayılar ve konular">
-    <div class="arsiv__ic">
-      <div id="sayilar">
-        <h2 class="kapak__h">Tüm sayılar · {liste.length}</h2>
-        <ol class="kapak__yazilar">
-          {satirlar.map(({ s, yazi, guncel }) => (
-            <li>
-              <a href={sayiUrl(s.data.sayi)}>
-                <span class="kapak__no">{pad(s.data.sayi)}</span>
-                <span class="kapak__t">
-                  <b>{s.data.baslik}{guncel && <em class="rozet">bu hafta</em>}</b>
-                  <small>{aralik(s.data.baslangic, s.data.bitis)} · {yazi} yazı</small>
-                </span>
-              </a>
-            </li>
-          ))}
-        </ol>
-      </div>
-      <div id="konular">
-        <h2 class="kapak__h">Konular</h2>
-        <nav class="tags" aria-label="Konular">
-          {konular.map((x) => <a class="tag" href={`/konu/${x.k}/`}>#{x.ad.toLocaleLowerCase('tr')} <small>{x.n}</small></a>)}
-        </nav>
-        <p class="arsiv__alt"><a href="/hakkinda/">Hakkında</a><a href="/rss.xml">RSS</a></p>
-      </div>
-    </div>
-  </section>
 </App>
