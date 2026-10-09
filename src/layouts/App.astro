@@ -52,13 +52,14 @@ const guncel = liste[0]?.data.sayi;
   <meta name="twitter:card" content="summary_large_image">
   <script is:inline>
     document.documentElement.classList.add('js');
+    try { if (localStorage.getItem('p:yan') === '0') document.documentElement.classList.add('yan-kapali'); } catch (e) {}
   </script>
 </head>
 <body data-sayfa={sayfa}>
   <a class="skip" href="#icerik">İçeriğe geç</a>
   <div class:list={['app', { 'app--ana': ana }]}>
 
-    <aside class="side" aria-label="Sohbetler">
+    <aside class="side" id="yan" aria-label="Sohbetler">
       <a class="brand" href="/"><Av k={PARANTEZ} /><b>(parantez)</b></a>
       <p class="side__slogan">{SITE.slogan}</p>
       <h2 class="side__h">Sohbetler</h2>
@@ -82,6 +83,11 @@ const guncel = liste[0]?.data.sayi;
 
     <div class="main">
       <header class="bar">
+        {!ana && (
+          <button type="button" class="bar__yan" data-yan aria-controls="yan" aria-expanded="true" aria-label="Sohbet listesini kapat" title="Sohbet listesini kapat">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="3"/><path d="M9.5 4.5v15"/></svg>
+          </button>
+        )}
         {bar.kok ? null : bar.geri
           ? <a class="bar__geri" href={bar.geri} aria-label="Geri">‹</a>
           : <a class="bar__liste" href="/" aria-label="Tüm sayılar">

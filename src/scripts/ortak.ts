@@ -70,6 +70,24 @@ $<HTMLAnchorElement>('.bar__geri')?.addEventListener('click', (e) => {
   }
 });
 
+// Masaüstünde soldaki sohbet listesi açılıp kapanır; okurun tercihi hatırlanır
+const yanBtn = $<HTMLButtonElement>('[data-yan]');
+if (yanBtn) {
+  const html = document.documentElement;
+  const yansit = () => {
+    const acik = !html.classList.contains('yan-kapali');
+    const etiket = acik ? 'Sohbet listesini kapat' : 'Sohbet listesini aç';
+    yanBtn.setAttribute('aria-expanded', String(acik));
+    yanBtn.setAttribute('aria-label', etiket);
+    yanBtn.title = etiket;
+  };
+  yansit();
+  yanBtn.addEventListener('click', () => {
+    ls.set('p:yan', html.classList.toggle('yan-kapali') ? '0' : '1');
+    yansit();
+  });
+}
+
 // Masaüstü ana sayfadaki arşiv çekmecesi her açılışta baştan başlasın
 $('#liste')?.addEventListener('toggle', (e) => {
   if ((e as ToggleEvent).newState === 'open') (e.currentTarget as HTMLElement).scrollTop = 0;

@@ -75,6 +75,7 @@ button { font: inherit; color: inherit; }
   font-weight: 400;
   color: var(--me);
 }
+.bar__yan { display: none; }
 .bar__liste svg { width: 24px; height: 24px; fill: none; stroke: var(--ink); stroke-width: 2.2; stroke-linecap: round; }
 /* Başlık alanı iki katmanlı: okuma sayfasında yazının başlığı kayınca ikinci katman gelir */
 .bar__kim { flex: 1; min-width: 0; display: grid; }
@@ -608,6 +609,14 @@ html:not(.js) .b--aksiyon, .kutu-acik .b--aksiyon, .abone-oldu .b--aksiyon { dis
 .chip--dolu::after { content: " →"; }
 
 @media (min-width: 900px) {
+  /* Sohbet listesi açılır kapanır (bar'ın solundaki düğme); kapalıyken sohbet tüm genişliği kullanır */
+  .js .bar__yan { display: grid; place-items: center; flex: none; width: 36px; height: 36px; margin-left: -8px; padding: 0; border: 0; border-radius: 10px; background: none; color: var(--ink); cursor: pointer; }
+  .bar__yan:hover { background: var(--bubble); }
+  .bar__yan svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; }
+  .bar__yan[aria-expanded="false"] svg path { stroke-dasharray: 2 3; }
+  html.yan-kapali .app:not(.app--ana) { grid-template-columns: minmax(0, 1fr); }
+  html.yan-kapali .side { display: none; }
+
   /* Masaüstü ana sayfa: yan liste yok, ekranın tamamı kapak. Logo sol üstte. */
   .app.app--ana { grid-template-columns: minmax(0, 1fr); }
   .app--ana .side, .app--ana .bar { display: none; }
