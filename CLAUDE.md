@@ -16,13 +16,15 @@ Site sahibi bu çizgiyi çok seviyor; yeni işler bu çizgide kalsın:
   - sonda tek tepki satırı, sıradaki yazı ve sayfa içi abonelik.
 - **Masaüstü ana sayfa tek ekranlık bir kapaktır ve kaymaz.**
   - Editörün selam balonu, dev başlık, özet, chip düğmeler ve numaralı beş yazı.
-  - Logo sol üstte durur. Tüm sayılar ve konular sağdan açılan çekmecededir.
+  - Logo sol üstte durur. Sağ üstte tek "Arşiv" düğmesi var; tüm sayılar ve konular sağdan açılan çekmecede.
   - "Abone ol" yerinde açılır.
 - **Mobil ana sayfa sohbet listesidir.**
 - **Geri düğmesi** okuru geldiği yere götürür. Sohbete dönen okur kaldığı yerden devam eder.
 
 Kaçınılacaklar:
 - büyük siyah yuvarlaklar ve küçük siyah numara yuvarlakları;
+- bildirim gibi görünen sayaç rozetleri (ör. menüde mavi "3");
+- aynı yeri açan birden fazla düğme;
 - ekran kenarlarında gri boşluklar;
 - kalabalık sayfa sonları;
 - karanlık mod;

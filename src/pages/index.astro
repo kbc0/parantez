@@ -1,7 +1,7 @@
 ---
 // Ana sayfa. Mobilde sohbet listesi: her sayı bir sohbet, okur buradan sayılara girer.
 // Masaüstünde ekranın tamamı bu haftanın kapağı ve sayfa kaymaz. Aynı liste orada
-// sağdan açılan bir çekmece olur (popover): üstteki "Tüm sayılar" ve "Konular" açar.
+// sağdan açılan bir çekmece olur (popover): üstteki "Arşiv" açar.
 import App from '../layouts/App.astro';
 import Av from '../components/Av.astro';
 import { sayilar, yazilar, sayininYazilari, sayiUrl, yaziUrl, pad, tarihKisa, tarihUzun, gunAdi, aralik, okumaSuresi, ilkAd, kisi, PARANTEZ, SITE } from '../lib/site';
@@ -23,7 +23,7 @@ const editor = g ? kisi(g.data.imza.split(',')[0].trim()) : PARANTEZ;
   bar={{ baslik: '(parantez)', alt: `her pazartesi 07:30 · ${liste.length} sayı`, kok: true }}>
   <div class="liste" id="liste" popover>
     <div class="liste__bas">
-      <b>Sayılar ve konular</b>
+      <b>Arşiv</b>
       <button type="button" class="kapat" popovertarget="liste" popovertargetaction="hide" aria-label="Kapat">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
       </button>
@@ -52,8 +52,9 @@ const editor = g ? kisi(g.data.imza.split(',')[0].trim()) : PARANTEZ;
   <header class="ana-ust">
     <a class="brand" href="/"><Av k={PARANTEZ} /><b>(parantez)</b></a>
     <nav aria-label="Site">
-      <button type="button" popovertarget="liste">Tüm sayılar <span class="sayac">{liste.length}</span></button>
-      <button type="button" popovertarget="liste" data-konulara>Konular</button>
+      <button type="button" popovertarget="liste">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg>Arşiv
+      </button>
       <a href="/hakkinda/">Hakkında</a>
     </nav>
   </header>

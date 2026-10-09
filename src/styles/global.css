@@ -617,7 +617,7 @@ html:not(.js) .b--aksiyon, .kutu-acik .b--aksiyon, .abone-oldu .b--aksiyon { dis
   .ana-ust nav { display: flex; align-items: center; gap: 26px; font-size: 15px; font-weight: 700; }
   .ana-ust nav :is(a, button) { display: inline-flex; align-items: center; gap: 6px; padding: 0; border: 0; background: none; font: inherit; color: inherit; text-decoration: none; cursor: pointer; }
   .ana-ust nav :is(a, button):hover { color: var(--me); }
-  .sayac { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 99px; background: var(--me); color: #fff; font-size: 11.5px; }
+  .ana-ust nav svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; }
 
   /* Tüm sayılar ve konular: sağdan açılan çekmece. Sayfa kaymaz. */
   .liste[popover]:not(:popover-open) { display: none; }

@@ -70,15 +70,10 @@ $<HTMLAnchorElement>('.bar__geri')?.addEventListener('click', (e) => {
   }
 });
 
-// Masaüstü ana sayfadaki çekmece: "Konular" doğrudan konulara, "Tüm sayılar" başa açar
-for (const b of $$<HTMLButtonElement>('[popovertarget="liste"]:not([popovertargetaction])')) {
-  b.addEventListener('click', () => requestAnimationFrame(() => {
-    const cekmece = $('#liste');
-    if (!cekmece) return;
-    if (b.hasAttribute('data-konulara')) $('#konular')?.scrollIntoView({ block: 'start' });
-    else cekmece.scrollTop = 0;
-  }));
-}
+// Masaüstü ana sayfadaki arşiv çekmecesi her açılışta baştan başlasın
+$('#liste')?.addEventListener('toggle', (e) => {
+  if ((e as ToggleEvent).newState === 'open') (e.currentTarget as HTMLElement).scrollTop = 0;
+});
 
 // ---------------------------------------------------------------- sayfa içi abonelik
 // Sohbetteki mesaj kutusunun aynısı: e-posta yazılır, (parantez) cevap verir.
