@@ -601,15 +601,22 @@ html:not(.js) .b--aksiyon, .kutu-acik .b--aksiyon, .abone-oldu .b--aksiyon { dis
 
 /* ---------------------------------------------------------------- ana sayfa kapağı (masaüstü)
    Masaüstünde sohbet listesi solda durur; ortada bu haftanın sayısı açılır. */
-.kapak { display: none; }
+.kapak, .ana-ust, .arsiv { display: none; }
 .chip--dolu { background: var(--me); color: #fff; }
 .chip--dolu::after { content: " →"; }
 
 @media (min-width: 900px) {
-  .app--ana .bar, .app--ana .liste { display: none; }
-  .app--ana .msgs { display: flex; max-width: none; padding: 0; }
-  .kapak { display: flex; align-items: center; width: 100%; min-height: 100dvh; padding: 56px clamp(40px, 6vw, 112px); }
-  .kapak__ic { width: 100%; max-width: 1240px; margin: 0 auto; }
+  /* Masaüstü ana sayfa: yan liste yok, ekranın tamamı kapak. Logo sol üstte. */
+  .app.app--ana { grid-template-columns: minmax(0, 1fr); }
+  .app--ana .side, .app--ana .bar, .app--ana .liste { display: none; }
+  .app--ana .msgs { display: block; max-width: none; padding: 0; }
+  .ana-ust { display: flex; align-items: center; justify-content: space-between; height: 84px; padding: 0 clamp(28px, 3vw, 48px); }
+  .ana-ust .brand { padding: 0; }
+  .ana-ust nav { display: flex; gap: 26px; font-size: 15px; font-weight: 700; }
+  .ana-ust nav a { text-decoration: none; }
+  .ana-ust nav a:hover { color: var(--me); }
+  .kapak { display: flex; align-items: center; width: 100%; min-height: calc(100dvh - 84px); padding: 24px clamp(40px, 6vw, 112px) 72px; }
+  .kapak__ic { width: 100%; max-width: 1440px; margin: 0 auto; }
 
   .kapak__ust { display: flex; align-items: center; gap: 4px; margin: 0 0 22px; font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--mute); }
   .kapak__ust .rozet { margin-left: 8px; letter-spacing: 0; text-transform: none; }
@@ -636,7 +643,24 @@ html:not(.js) .b--aksiyon, .kutu-acik .b--aksiyon, .abone-oldu .b--aksiyon { dis
   .kapak__yazilar a.okundu small::after { content: "· ✓✓ okundu"; color: var(--me); font-weight: 700; }
 }
 
+@media (min-width: 900px) {
+  .hizli-abone { max-width: 560px; margin-top: 30px; }
+  .hizli-abone .yz-abone__form { margin-left: 0; }
+  .hizli-abone .yz-abone__form .kapat { width: 32px; height: 32px; margin-right: 8px; }
+  .hizli-abone .yz-abone__uyari { margin-left: 40px; }
+
+  .arsiv { display: block; padding: 64px clamp(40px, 6vw, 112px) 88px; border-top: 1px solid var(--line); }
+  .arsiv__ic { display: grid; gap: 56px; max-width: 1440px; margin: 0 auto; }
+  .arsiv .kapak__t b { display: flex; align-items: center; gap: 10px; }
+  .arsiv .tags { padding: 14px 0 0; }
+  .arsiv .tag { font-size: 15px; padding: 8px 13px; }
+  .arsiv__alt { display: flex; gap: 20px; margin: 40px 0 0; font-size: 14px; color: var(--mute); }
+  .arsiv__alt a { text-decoration: none; }
+  .arsiv__alt a:hover { color: var(--ink); }
+}
+
 @media (min-width: 1300px) {
+  .arsiv__ic { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); column-gap: clamp(56px, 6vw, 112px); }
   .kapak__ic { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); column-gap: clamp(56px, 6vw, 112px); align-items: center; }
   .kapak__sag { margin-top: 0; }
 }

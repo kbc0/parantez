@@ -1,6 +1,6 @@
 ---
 // Ana sayfa. Mobilde sohbet listesi: her sayı bir sohbet, okur buradan sayılara girer.
-// Masaüstünde liste zaten solda durduğu için ortada bu haftanın kapağı açılır.
+// Masaüstünde ekranın tamamı bu haftanın kapağı; tüm sayılar ve konular aşağıda.
 import App from '../layouts/App.astro';
 import Av from '../components/Av.astro';
 import { sayilar, yazilar, sayininYazilari, sayiUrl, yaziUrl, pad, tarihKisa, tarihUzun, gunAdi, aralik, okumaSuresi, ilkAd, kisi, PARANTEZ, SITE } from '../lib/site';
@@ -42,6 +42,15 @@ const editor = g ? kisi(g.data.imza.split(',')[0].trim()) : PARANTEZ;
     </nav>
   </div>
 
+  <header class="ana-ust">
+    <a class="brand" href="/"><Av k={PARANTEZ} /><b>(parantez)</b></a>
+    <nav aria-label="Site">
+      <a href="#sayilar">Tüm sayılar</a>
+      <a href="#konular">Konular</a>
+      <a href="/hakkinda/">Hakkında</a>
+    </nav>
+  </header>
+
   {g && (
     <section class="kapak" aria-labelledby="kapak-baslik">
       <div class="kapak__ic">
@@ -53,9 +62,28 @@ const editor = g ? kisi(g.data.imza.split(',')[0].trim()) : PARANTEZ;
           </div>
           <h1 class="kapak__baslik" id="kapak-baslik"><a href={sayiUrl(g.data.sayi)}>{g.data.baslik}</a></h1>
           {ozet && <p class="kapak__ozet">{ozet}</p>}
-          <div class="kapak__cta">
+          <div class="kapak__cta" data-abone-yerine="hizli-abone">
             <a class="chip chip--dolu" href={sayiUrl(g.data.sayi)}>Sohbeti aç</a>
-            <a class="chip" href="/abone/">Abone ol</a>
+            <a class="chip" href="/abone/" data-abone-ac="hizli-abone" data-abone-gizle>Abone ol</a>
+          </div>
+          <div class="yz-abone hizli-abone" id="hizli-abone" data-abone-kutu hidden>
+            <div class="not">
+              <Av k={PARANTEZ} />
+              <div class="not__b"><p>her pazartesi 07:30’da tek bir e-posta: haftanın özeti ve beş yazı. ücretsiz, tek tıkla çıkış. adresin?</p></div>
+            </div>
+            <form class="yz-abone__form" action="/api/abone" method="post">
+              <button type="button" class="kapat" data-kapat aria-label="Vazgeç">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+              </button>
+              <input type="hidden" name="kaynak" value="ana-sayfa">
+              <input class="hp" type="text" name="web" tabindex="-1" autocomplete="off" aria-hidden="true">
+              <label class="sr" for="hizli-eposta">E-posta adresin</label>
+              <input id="hizli-eposta" name="eposta" type="email" inputmode="email" autocomplete="email" enterkeyhint="send" autocapitalize="off" spellcheck="false" placeholder="e-posta adresin" required>
+              <button class="send" type="submit" aria-label="Abone ol">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
+              </button>
+            </form>
+            <p class="yz-abone__uyari" data-uyari hidden role="status"></p>
           </div>
         </div>
 
@@ -78,4 +106,32 @@ const editor = g ? kisi(g.data.imza.split(',')[0].trim()) : PARANTEZ;
       </div>
     </section>
   )}
+
+  <section class="arsiv" aria-label="Tüm sayılar ve konular">
+    <div class="arsiv__ic">
+      <div id="sayilar">
+        <h2 class="kapak__h">Tüm sayılar · {liste.length}</h2>
+        <ol class="kapak__yazilar">
+          {satirlar.map(({ s, yazi, guncel }) => (
+            <li>
+              <a href={sayiUrl(s.data.sayi)}>
+                <span class="kapak__no">{pad(s.data.sayi)}</span>
+                <span class="kapak__t">
+                  <b>{s.data.baslik}{guncel && <em class="rozet">bu hafta</em>}</b>
+                  <small>{aralik(s.data.baslangic, s.data.bitis)} · {yazi} yazı</small>
+                </span>
+              </a>
+            </li>
+          ))}
+        </ol>
+      </div>
+      <div id="konular">
+        <h2 class="kapak__h">Konular</h2>
+        <nav class="tags" aria-label="Konular">
+          {konular.map((x) => <a class="tag" href={`/konu/${x.k}/`}>#{x.ad.toLocaleLowerCase('tr')} <small>{x.n}</small></a>)}
+        </nav>
+        <p class="arsiv__alt"><a href="/hakkinda/">Hakkında</a><a href="/rss.xml">RSS</a></p>
+      </div>
+    </div>
+  </section>
 </App>

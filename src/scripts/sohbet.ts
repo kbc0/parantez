@@ -220,8 +220,29 @@ async function dalAc(ad: string, animasyon: boolean) {
   if (ad === 'abone' && animasyon) aboneModu(true);
 }
 
+// Sohbete dönen okur kaldığı yerden devam eder (sekme açık kaldığı sürece)
+const konumKey = `p:konum:${sayfa}`;
+if (sohbet) {
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+  let zaman = 0;
+  const konumKaydet = () => ss.set(konumKey, String(Math.round(scrollY)));
+  addEventListener('scroll', () => { clearTimeout(zaman); zaman = window.setTimeout(konumKaydet, 150); }, { passive: true });
+  addEventListener('pagehide', konumKaydet);
+}
+
+function konumaDon(y: number) {
+  // Son açılan konunun altındaki boşluk yeniden kurulmadıysa sayfa kısa kalabilir
+  const enFazla = document.documentElement.scrollHeight - innerHeight;
+  if (y > enFazla) {
+    akis.append(bosluk);
+    bosluk.style.height = `${y - enFazla}px`;
+  }
+  scrollTo(0, y);
+}
+
 async function giris() {
   if (!sohbet) return;
+  const konum = Number(ss.get(konumKey)) || 0;
   const hedef = location.hash.slice(1);
   const hashDal: Record<string, string> = { 'ne-oldu': 'ne-oldu', yazilar: 'yazilar', 'parantez-disi': 'disari', abone: 'abone' };
   const adimlar = $$('[data-adim]', sohbet);
@@ -256,7 +277,11 @@ async function giris() {
     await dalAc(hashDal[hedef], false);
     if (hashDal[hedef] === 'abone') aboneModu(true, false);
     const sec = dal(hashDal[hedef]);
-    if (sec) requestAnimationFrame(() => goster(sec));
+    const geriGeldi = (performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined)?.type === 'back_forward';
+    if (geriGeldi && konum > 0) konumaDon(konum);
+    else if (sec) requestAnimationFrame(() => goster(sec));
+  } else if (konum > 0) {
+    konumaDon(konum);
   }
   chipGuncelle();
 }

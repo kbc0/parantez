@@ -1,7 +1,7 @@
 // (parantez) — yazı sayfası. Sohbetten açılan, rahat okunan sayfa.
-// JavaScript olmadan da eksiksiz okunur; bu dosya ilerleme çubuğu, tepkiler ve
-// sayfa içi abonelik ekler.
-import { EMOJI, EPOSTA, ls, $, $$, toast, kimlik, okunduEkle, okunduIsaretle } from './ortak';
+// JavaScript olmadan da eksiksiz okunur; bu dosya ilerleme çubuğu ve tepkileri ekler.
+// Sayfa içi abonelik ortak.ts'de.
+import { EMOJI, $, $$, toast, kimlik, okunduEkle, okunduIsaretle } from './ortak';
 
 const sayfa = document.body.dataset.sayfa ?? '';
 const slug = sayfa.replace(/^yazi-/, '');
@@ -106,57 +106,3 @@ tepkiKutu?.addEventListener('click', (e) => {
   if (b && EMOJI.includes(b.dataset.e!)) tepkiVer(b.dataset.e!);
 });
 tepkiYukle();
-
-// ---------------------------------------------------------------- abonelik
-// Yazının sonunda, sohbetteki mesaj kutusunun aynısı.
-
-const abone = $('[data-yazi-abone]');
-const aboneForm = abone ? $<HTMLFormElement>('form', abone) : null;
-if (abone && ls.get('p:abone') === '1') abone.hidden = true;
-// Uyarıyı tarayıcının balonu yerine sohbet diliyle verelim
-if (aboneForm) aboneForm.noValidate = true;
-
-function balon(sinif: string, metin: string, av = '') {
-  const d = document.createElement('div');
-  d.className = sinif;
-  d.innerHTML = `${av}<div class="not__b"><p></p></div>`;
-  $('p', d)!.textContent = metin;
-  return d;
-}
-
-aboneForm?.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const girdi = $<HTMLInputElement>('input[name=eposta]', aboneForm)!;
-  const uyari = $('[data-uyari]', abone!)!;
-  const eposta = girdi.value.trim();
-  if (($<HTMLInputElement>('input[name=web]', aboneForm)?.value ?? '') !== '') return; // bot tuzağı
-  if (!EPOSTA.test(eposta)) {
-    uyari.textContent = 'bu bir e-posta adresine benzemiyor. ornek@site.com gibi yazar mısın?';
-    uyari.hidden = false;
-    girdi.focus();
-    return;
-  }
-  uyari.hidden = true;
-  const gonder = $<HTMLButtonElement>('button[type=submit]', aboneForm)!;
-  gonder.disabled = true;
-  let ok = false;
-  let mesaj = 'bağlantı kurulamadı. birazdan tekrar dener misin?';
-  try {
-    const r = await fetch('/api/abone', { method: 'POST', headers: { Accept: 'application/json' }, body: new FormData(aboneForm) });
-    const j = await r.json().catch(() => ({}));
-    ok = r.ok;
-    if (j.mesaj) mesaj = j.mesaj;
-    else if (!r.ok) mesaj = 'bir şeyler ters gitti. birazdan tekrar dener misin?';
-  } catch { /* çevrim dışı */ }
-  gonder.disabled = false;
-  if (!ok) {
-    uyari.textContent = mesaj;
-    uyari.hidden = false;
-    return;
-  }
-  ls.set('p:abone', '1');
-  aboneForm.replaceWith(
-    balon('yz-me', eposta),
-    balon('not not--cevap', mesaj, $('.not .av', abone!)?.outerHTML ?? ''),
-  );
-});

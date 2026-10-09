@@ -58,6 +58,86 @@ for (const b of $$('[data-paylas]')) b.addEventListener('click', async () => {
   } else kopyala();
 });
 
+// Geri düğmesi: okur sitenin içinden geldiyse geldiği yere döner (ana sayfadan
+// açılan yazı ana sayfaya, sohbetten açılan sohbete). Bağlantıyla doğrudan
+// gelindiyse bağlantının gösterdiği yere gider.
+$<HTMLAnchorElement>('.bar__geri')?.addEventListener('click', (e) => {
+  let once: URL | null = null;
+  try { once = document.referrer ? new URL(document.referrer) : null; } catch { /* geçersiz */ }
+  if (once && once.origin === location.origin && once.pathname !== location.pathname && history.length > 1) {
+    e.preventDefault();
+    history.back();
+  }
+});
+
+// ---------------------------------------------------------------- sayfa içi abonelik
+// Sohbetteki mesaj kutusunun aynısı: e-posta yazılır, (parantez) cevap verir.
+// [data-abone-kutu] içinde bir form; [data-abone-ac] varsa kutu ona basınca açılır.
+// JavaScript yoksa form /api/abone'ye gider, düğmeler /abone/ sayfasına.
+
+export const AV_P = '<span class="av av--o" style="--av:#111111" aria-hidden="true">(p)</span>';
+
+function balon(sinif: string, metin: string, av = '') {
+  const d = document.createElement('div');
+  d.className = sinif;
+  d.innerHTML = `${av}<div class="not__b"><p></p></div>`;
+  $('p', d)!.textContent = metin;
+  return d;
+}
+
+const aboneyim = () => ls.get('p:abone') === '1';
+if (aboneyim()) for (const el of $$('[data-abone-gizle]')) el.hidden = true;
+
+for (const kutu of $$('[data-abone-kutu]')) {
+  const form = $<HTMLFormElement>('form', kutu)!;
+  const girdi = $<HTMLInputElement>('input[name=eposta]', form)!;
+  const uyari = $('[data-uyari]', kutu)!;
+  const ac = kutu.id ? $$<HTMLElement>(`[data-abone-ac="${kutu.id}"]`) : [];
+  const kapali = ac.length ? $$<HTMLElement>(`[data-abone-yerine="${kutu.id}"]`) : [];
+  form.noValidate = true; // uyarıyı tarayıcının balonu yerine sohbet diliyle verelim
+
+  const goster = (acik: boolean) => {
+    kutu.hidden = !acik;
+    kapali.forEach((el) => (el.hidden = acik));
+    if (acik) girdi.focus();
+  };
+  for (const a of ac) a.addEventListener('click', (e) => { e.preventDefault(); goster(true); });
+  $('[data-kapat]', kutu)?.addEventListener('click', () => { uyari.hidden = true; goster(false); });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const eposta = girdi.value.trim();
+    if (($<HTMLInputElement>('input[name=web]', form)?.value ?? '') !== '') return; // bot tuzağı
+    if (!EPOSTA.test(eposta)) {
+      uyari.textContent = 'bu bir e-posta adresine benzemiyor. ornek@site.com gibi yazar mısın?';
+      uyari.hidden = false;
+      girdi.focus();
+      return;
+    }
+    uyari.hidden = true;
+    const gonder = $<HTMLButtonElement>('button[type=submit]', form)!;
+    gonder.disabled = true;
+    let ok = false;
+    let mesaj = 'bağlantı kurulamadı. birazdan tekrar dener misin?';
+    try {
+      const r = await fetch('/api/abone', { method: 'POST', headers: { Accept: 'application/json' }, body: new FormData(form) });
+      const j = await r.json().catch(() => ({}));
+      ok = r.ok;
+      if (j.mesaj) mesaj = j.mesaj;
+      else if (!r.ok) mesaj = 'bir şeyler ters gitti. birazdan tekrar dener misin?';
+    } catch { /* çevrim dışı */ }
+    gonder.disabled = false;
+    if (!ok) {
+      uyari.textContent = mesaj;
+      uyari.hidden = false;
+      return;
+    }
+    ls.set('p:abone', '1');
+    $('[data-kapat]', kutu)?.remove();
+    form.replaceWith(balon('yz-me', eposta), balon('not not--cevap', mesaj, AV_P));
+  });
+}
+
 // Yüklenemeyen görsel boş gri kutu olarak kalsın
 for (const img of $$<HTMLImageElement>('.lc__img img, .b--foto img, .yz__foto img, .sonraki img')) {
   const kirik = () => img.classList.add('kirik');
