@@ -599,6 +599,48 @@ html:not(.js) .b--aksiyon, .kutu-acik .b--aksiyon, .abone-oldu .b--aksiyon { dis
 @keyframes vt-gir { from { opacity: 0; transform: translateY(12px); } }
 @media (prefers-reduced-motion: reduce) { @view-transition { navigation: none; } }
 
+/* ---------------------------------------------------------------- ana sayfa kapağı (masaüstü)
+   Masaüstünde sohbet listesi solda durur; ortada bu haftanın sayısı açılır. */
+.kapak { display: none; }
+.chip--dolu { background: var(--me); color: #fff; }
+.chip--dolu::after { content: " →"; }
+
+@media (min-width: 900px) {
+  .app--ana .bar, .app--ana .liste { display: none; }
+  .app--ana .msgs { display: flex; max-width: none; padding: 0; }
+  .kapak { display: flex; align-items: center; width: 100%; min-height: 100dvh; padding: 56px clamp(40px, 6vw, 112px); }
+  .kapak__ic { width: 100%; max-width: 1240px; margin: 0 auto; }
+
+  .kapak__ust { display: flex; align-items: center; gap: 4px; margin: 0 0 22px; font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--mute); }
+  .kapak__ust .rozet { margin-left: 8px; letter-spacing: 0; text-transform: none; }
+  .kapak__selam { display: flex; align-items: center; gap: 10px; }
+  .kapak__selam .av { width: 32px; height: 32px; font-size: 11px; }
+  .kapak__selam p { margin: 0; padding: 10px 14px; border-radius: 20px 20px 20px 6px; background: var(--bubble); font-size: 17px; }
+  .kapak__baslik { margin: 18px 0 0; font-size: clamp(56px, 6.4vw, 112px); font-weight: 800; line-height: .96; letter-spacing: -0.045em; text-wrap: balance; }
+  .kapak__baslik a { text-decoration: none; }
+  .kapak__baslik a:hover { color: var(--me); }
+  .kapak__ozet { max-width: 620px; margin: 26px 0 0; font-size: 20px; line-height: 1.5; color: #4b4b46; text-wrap: pretty; }
+  .kapak__cta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 30px; }
+  .kapak__cta .chip { padding: 11px 20px; font-size: 16px; }
+
+  .kapak__sag { margin-top: 48px; }
+  .kapak__h { margin: 0 0 4px; font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--mute); }
+  .kapak__yazilar { margin: 0; padding: 0; list-style: none; border-top: 2px solid var(--ink); }
+  .kapak__yazilar li { border-bottom: 1px solid var(--line); }
+  .kapak__yazilar a { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 12px; align-items: baseline; padding: 16px 0 17px; text-decoration: none; }
+  .kapak__no { font-size: 14px; font-weight: 800; color: var(--mute); font-variant-numeric: tabular-nums; }
+  .kapak__t b { display: block; font-size: 21px; font-weight: 800; line-height: 1.2; letter-spacing: -0.015em; }
+  .kapak__t small { display: flex; align-items: center; gap: 6px; margin-top: 5px; font-size: 13.5px; color: var(--mute); }
+  .kapak__t small i { width: 8px; height: 8px; border-radius: 50%; background: var(--c); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .1); }
+  .kapak__yazilar a:hover b { color: var(--me); }
+  .kapak__yazilar a.okundu small::after { content: "· ✓✓ okundu"; color: var(--me); font-weight: 700; }
+}
+
+@media (min-width: 1300px) {
+  .kapak__ic { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); column-gap: clamp(56px, 6vw, 112px); align-items: center; }
+  .kapak__sag { margin-top: 0; }
+}
+
 /* ---------------------------------------------------------------- sohbet dalları + animasyon */
 .js .dal:not(.acik) { display: none; }
 
@@ -654,13 +696,6 @@ html:not(.js) .b--aksiyon, .kutu-acik .b--aksiyon, .abone-oldu .b--aksiyon { dis
 .side__foot { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: auto; padding: 22px 20px 0; font-size: 13px; color: var(--mute); }
 .side__foot a { text-decoration: none; }
 .side__foot a:hover { color: var(--ink); }
-
-@media (min-width: 900px) {
-  .app--tek { grid-template-columns: minmax(0, 1fr); }
-  .app--tek .side { display: none; }
-  /* Ana sayfa: bar tam genişlikte, içeriği listeyle aynı hizada */
-  .app--tek .bar { padding-inline: max(20px, calc((100% - 820px) / 2 + 28px)); }
-}
 
 @media (min-width: 1200px) {
   /* yazı sayfası: sağdaki boşluk yazıya kalır, fotoğraf metin sütunundan taşar */

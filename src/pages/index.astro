@@ -1,15 +1,24 @@
 ---
-// Ana sayfa: sohbet listesi. Her sayı bir sohbet; okur buradan sayılara girer.
+// Ana sayfa. Mobilde sohbet listesi: her sayı bir sohbet, okur buradan sayılara girer.
+// Masaüstünde liste zaten solda durduğu için ortada bu haftanın kapağı açılır.
 import App from '../layouts/App.astro';
-import { sayilar, yazilar, sayininYazilari, sayiUrl, pad, tarihKisa, aralik, SITE } from '../lib/site';
-import { KONULAR } from '../lib/konular';
+import Av from '../components/Av.astro';
+import { sayilar, yazilar, sayininYazilari, sayiUrl, yaziUrl, pad, tarihKisa, tarihUzun, gunAdi, aralik, okumaSuresi, ilkAd, kisi, PARANTEZ, SITE } from '../lib/site';
+import { KONULAR, konuAdi, konuRenk } from '../lib/konular';
 
 const liste = await sayilar();
 const tum = await yazilar();
 const satirlar = await Promise.all(liste.map(async (s, i) => ({ s, yazi: (await sayininYazilari(s.data.sayi)).length, guncel: i === 0 })));
 const konular = Object.entries(KONULAR).map(([k, ad]) => ({ k, ad, n: tum.filter((y) => y.data.konu === k).length })).filter((x) => x.n > 0);
+
+const g = liste[0];
+const gYazilar = g ? await sayininYazilari(g.data.sayi) : [];
+const gDk = gYazilar.reduce((t, y) => t + okumaSuresi(y), 0);
+// Sayının ilk paragrafı kapakta özet olur
+const ozet = (g?.body ?? '').trim().split(/\n\s*\n/)[0]?.replace(/[*_`#>]/g, '').trim();
+const editor = g ? kisi(g.data.imza.split(',')[0].trim()) : PARANTEZ;
 ---
-<App composer={false} yan={false}
+<App composer={false} ana
   bar={{ baslik: '(parantez)', alt: `her pazartesi 07:30 · ${liste.length} sayı`, kok: true }}>
   <div class="liste">
     <nav class="clist clist--sayfa" aria-label="Sayılar">
@@ -32,4 +41,41 @@ const konular = Object.entries(KONULAR).map(([k, ad]) => ({ k, ad, n: tum.filter
       <a class="ci ci--yalin" href="/hakkinda/"><span class="av av--o" style="--av:#111" aria-hidden="true">(p)</span><span class="ci__t"><b>Hakkında</b><span>{SITE.slogan}</span></span><span aria-hidden="true">›</span></a>
     </nav>
   </div>
+
+  {g && (
+    <section class="kapak" aria-labelledby="kapak-baslik">
+      <div class="kapak__ic">
+        <div class="kapak__sol">
+          <p class="kapak__ust">Sayı {pad(g.data.sayi)} · {gunAdi(g.data.yayin)}, {tarihUzun(g.data.yayin)} <em class="rozet">bu hafta</em></p>
+          <div class="kapak__selam">
+            <Av k={editor} />
+            <p>günaydın. bu hafta tek cümle:</p>
+          </div>
+          <h1 class="kapak__baslik" id="kapak-baslik"><a href={sayiUrl(g.data.sayi)}>{g.data.baslik}</a></h1>
+          {ozet && <p class="kapak__ozet">{ozet}</p>}
+          <div class="kapak__cta">
+            <a class="chip chip--dolu" href={sayiUrl(g.data.sayi)}>Sohbeti aç</a>
+            <a class="chip" href="/abone/">Abone ol</a>
+          </div>
+        </div>
+
+        <div class="kapak__sag">
+          <h2 class="kapak__h">Bu sayıda · {gYazilar.length} yazı · {gDk} dk</h2>
+          <ol class="kapak__yazilar">
+            {gYazilar.map((y, i) => (
+              <li>
+                <a href={yaziUrl(y)} data-slug={y.id} style={`--c:${konuRenk(y.data.konu)}`}>
+                  <span class="kapak__no">{pad(i + 1)}</span>
+                  <span class="kapak__t">
+                    <b>{y.data.baslik}</b>
+                    <small><i aria-hidden="true"></i>{konuAdi(y.data.konu)} · {okumaSuresi(y)} dk · {ilkAd(y.data.yazar)}</small>
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </div>
+    </section>
+  )}
 </App>
