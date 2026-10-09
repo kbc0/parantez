@@ -307,7 +307,8 @@ chipler?.addEventListener('click', async (e) => {
     benSoyle(c.dataset.soz ?? 'abone olmak istiyorum');
     aboneModu(true);
     await botSoyle([
-      'çok iyi. her pazartesi 07:30’da tek bir e-posta: haftanın özeti ve beş yazı. ücretsiz, tek tıkla çıkış.',
+      'çok iyi. her pazartesi 07:30’da tek bir e-posta: haftanın özeti ve beş yazı. ücretsiz.',
+      'istediğin an, her e-postanın en altındaki bağlantıyla tek tıkla abonelikten çıkabilirsin.',
       'e-posta adresini aşağıya yazar mısın?',
     ]);
   }
