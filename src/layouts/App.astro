@@ -28,6 +28,8 @@ const { title, description = SITE.aciklama, image, type = 'website', sayfa, akti
 const fullTitle = title ? `${title} — ${SITE.ad}` : `${SITE.ad} — ${SITE.slogan}`;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 const ogImage = new URL(image ?? '/og.png', Astro.site);
+// Başlığı (parantez) olan barlarda (p) ikonu yok; yazının kendisi logo gibi durur
+const markaBar = bar.baslik === SITE.ad && !bar.kisi;
 const liste = await sayilar();
 const guncel = liste[0]?.data.sayi;
 ---
@@ -95,8 +97,8 @@ const guncel = liste[0]?.data.sayi;
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg>
             </a>}
         <div class="bar__kim">
-          <div class="bar__k">
-            <Av k={bar.kisi ?? PARANTEZ} />
+          <div class:list={['bar__k', { 'bar__k--marka': markaBar }]}>
+            {!markaBar && <Av k={bar.kisi ?? PARANTEZ} />}
             <div class="bar__t">
               <b>{bar.baslik}</b>
               {bar.alt && <span>{bar.alt}</span>}

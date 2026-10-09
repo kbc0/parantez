@@ -86,6 +86,7 @@ button { font: inherit; color: inherit; }
 .bar__t > b, .bar__t > span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .bar__t > b { font-size: 16px; font-weight: 800; letter-spacing: -0.01em; }
 .bar__t > span { font-size: 12.5px; color: var(--mute); }
+.bar__k--marka .bar__t > b { font-size: 21px; letter-spacing: -0.03em; line-height: 1.15; }
 .bar__act { display: flex; gap: 6px; flex: none; }
 .ib {
   display: grid;

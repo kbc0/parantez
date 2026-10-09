@@ -4,14 +4,13 @@ import Grp from '../components/Grp.astro';
 import { SITE, PARANTEZ, guncelUrl } from '../lib/site';
 const buHafta = await guncelUrl();
 ---
-<App title="Hakkında" description="Birkaç kişilik genç bir ekip. Bazen yazıyoruz, bazen çiziyoruz. Gündem uzun, biz kısaltıyoruz. Ara sıra da uzatıyoruz."
+<App title="Hakkında" description="Birkaç kişilik genç bir ekip. Gündem uzun, biz kısaltıyoruz. Ara sıra da uzatıyoruz."
   sayfa="hakkinda" aktif="hakkinda" bar={{ baslik: '(parantez)', alt: 'hakkında', geri: '/' }}
   chips={[{ metin: 'Abone ol', ac: 'abone' }, { metin: 'Bu haftanın sayısı', href: buHafta }, { metin: 'Tüm sayılar', href: '/' }]}>
   <div class="day">hakkında</div>
   <div class="me"><p class="b">siz kimsiniz?</p></div>
   <Grp k={PARANTEZ}>
     <p class="b b--baslik" data-tepki="biz">birkaç kişilik genç bir ekip.</p>
-    <p class="b" data-tepki="yaziyoruz">bazen yazıyoruz, bazen çiziyoruz.</p>
     <p class="b" data-tepki="slogan">gündem uzun, biz kısaltıyoruz. ara sıra da uzatıyoruz.</p>
   </Grp>
   <div class="me"><p class="b">ne yapıyorsunuz peki?</p></div>
@@ -22,14 +21,14 @@ const buHafta = await guncelUrl();
   </Grp>
   <div class="me"><p class="b">bunları yapay zekâ mı yazıyor?</p></div>
   <Grp k={PARANTEZ}>
-    <p class="b" data-tepki="insan">hayır. burada okuduğun her cümleyi bir insan yazıyor, her çizimi bir insan çiziyor.</p>
+    <p class="b" data-tepki="insan">hayır. burada okuduğun her cümleyi bir insan yazıyor.</p>
     <p class="b" data-tepki="emek">insan emeğinin değerli olduğunu düşünüyoruz. bir konuyu okumak, birilerine sormak, kendi aramızda tartışmak, sonra da sana anlatmak. bu kısmı bir makineye bırakmak istemiyoruz.</p>
     <p class="b" data-tepki="karsi">yapay zekâya karşı değiliz, hatta hakkında yazıyoruz da. ama yazıyı yazan, neyin önemli olduğuna karar veren ve yanılınca özür dileyen biziz.</p>
     <p class="b" data-tepki="hata">yani bir hata görürsen, o da insan hatası. söyle, düzeltelim.</p>
   </Grp>
   <div class="me"><p class="b">size nasıl ulaşırım?</p></div>
   <Grp k={PARANTEZ}>
-    <p class="b">fikrin, itirazın, çizimin ya da bir sorun mu var? <a href={`mailto:${SITE.eposta}`}>{SITE.eposta}</a></p>
+    <p class="b">fikrin, itirazın ya da bir sorun mu var? <a href={`mailto:${SITE.eposta}`}>{SITE.eposta}</a></p>
     <p class="b">bülten için aşağıdan “Abone ol”a dokunman yeterli.</p>
   </Grp>
 </App>
