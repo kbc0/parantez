@@ -8,6 +8,7 @@
 // Aynı bilgiler sonradan da çalışır (parola unutulursa kurtarma yolu).
 
 import { github, GithubHatasi } from './github.js';
+import { inceleme, incelemeSemasi } from './inceleme.js';
 
 const EPOSTA = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const ITERASYON = 20000; // Workers'ın CPU sınırına sığsın diye ölçülü
@@ -92,6 +93,7 @@ function sema(db) {
       ozet TEXT PRIMARY KEY, eposta TEXT NOT NULL, bitis INTEGER NOT NULL)`),
     db.prepare('CREATE TABLE IF NOT EXISTS panel_girisler (ip TEXT NOT NULL, zaman INTEGER NOT NULL)'),
     db.prepare('CREATE INDEX IF NOT EXISTS panel_girisler_ip ON panel_girisler (ip, zaman)'),
+    ...incelemeSemasi(db),
   ]).catch((e) => { semaHazir = null; throw e; });
   return semaHazir;
 }
@@ -166,6 +168,7 @@ export async function panel(request, env, url) {
 
   if (yol === 'uyeler' || yol.startsWith('uyeler/')) return uyeler(yol, yontem, veri, ben, db);
   if (['icerik', 'dosya', 'dosyalar', 'kaydet'].includes(yol)) return icerik(yol, yontem, veri, ben, env, url);
+  if (yol === 'oneriler' || yol === 'oneri' || yol === 'gorsel' || yol.startsWith('oneri/')) return inceleme(yol, yontem, veri, ben, env, url);
   return hata(404, 'Bulunamadı.');
 }
 
@@ -285,6 +288,8 @@ async function icerik(yol, yontem, veri, ben, env, url) {
       const sil = Array.isArray(veri.sil) ? veri.sil : [];
       const beklenen = veri.beklenen && typeof veri.beklenen === 'object' ? veri.beklenen : {};
       if (!dosyalar.length && !sil.length) return hata(400, 'Kaydedilecek bir şey yok.');
+      // Sayı ve yazılar yalnızca akran incelemesiyle yayına çıkar (worker/inceleme.js)
+      if (sil.length || dosyalar.some((d) => d?.yol !== 'src/data/ekip.json')) return hata(403, 'Sayı ve yazılar inceleme ile yayınlanır.');
       if (dosyalar.length > 6 || sil.length > 6) return hata(400, 'Tek seferde çok fazla dosya.');
 
       for (const d of dosyalar) {

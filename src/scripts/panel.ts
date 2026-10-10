@@ -1,18 +1,25 @@
 // (parantez) — yazı paneli (/admin). Tek sayfalık küçük bir uygulama.
 // Sunucu: worker/panel.js (/api/panel/*). Dosya biçimi ve denetim: panel-icerik.ts.
-import { marked } from 'marked';
-
-// Önizlemede ham HTML gösterilmez (yalnızca Markdown)
-marked.use({ renderer: { html: () => '' } });
 import { KONULAR } from '../lib/konular';
 import {
   FIILLER, KONU_LISTESI, adres, blobSha, gunEkle, kisaltma, sayiDenetle, sayiMetni, sayiOku,
   sonrakiPazartesi, yaziDenetle, yaziMetni, yaziOku,
   type Etkinlik, type Kayit, type Kisi, type Oneri, type SayiVeri, type YaziVeri,
 } from './panel-icerik';
+import { av, kisiBul, onizlemeKur, sayiFarki, sayiOnizleme, yaziFarki, yaziOnizleme, type Baglam } from './panel-onizleme';
 
 type Uye = { eposta: string; ad: string; yetki: 'yonetici' | 'yazar'; degistirmeli: boolean };
 type Bekleyen = { commit: string; oncesi: string; baslik: string; adres?: string; zaman: number; yayinda?: boolean };
+type OneriDurum = 'taslak' | 'inceleme' | 'degisiklik' | 'yayinlandi' | 'kapatildi';
+// Öneri: yayına çıkmadan önce ekipten birinin onayını bekleyen değişiklik (worker/inceleme.js)
+type OneriOzet = {
+  id: number; tur: 'yazi' | 'sayi'; islem: 'kaydet' | 'sil'; yol: string; temel: string | null; metin: string | null;
+  baslik: string; gorsel_yol: string | null; durum: OneriDurum; yazan: string; yazan_ad: string;
+  olusturma: number; guncelleme: number; yorum: number;
+};
+type OneriTam = OneriOzet & { onaylayan: string | null; onaylayan_ad: string | null; commit_sha: string | null; gorselVar: boolean; surum: number };
+type OneriSon = Pick<OneriTam, 'id' | 'tur' | 'islem' | 'yol' | 'baslik' | 'durum' | 'yazan' | 'yazan_ad' | 'onaylayan_ad' | 'commit_sha' | 'guncelleme'>;
+type Yorum = { id: number; eposta: string; ad: string; metin: string; tur: 'yorum' | 'olay' | 'degisiklik' | 'onay'; zaman: number };
 
 const EKIP_YOLU = 'src/data/ekip.json';
 const RENKLER: [string, string][] = [
@@ -29,6 +36,7 @@ const durum = {
   sayilar: [] as Kayit<SayiVeri>[],
   yazilar: [] as Kayit<YaziVeri>[],
   ekip: { sha: '' as string | null, liste: [] as Kisi[] },
+  oneriler: { acik: [] as OneriOzet[], son: [] as OneriSon[] },
   kirli: false,
   gecici: null as null | { eposta: string; parola: string },
 };
@@ -50,21 +58,52 @@ function toast(metin: string, ms = 2600) {
   toastZaman = window.setTimeout(() => (toastEl.hidden = true), ms);
 }
 
-class ApiHatasi extends Error { constructor(mesaj: string, public status: number) { super(mesaj); } }
+class ApiHatasi extends Error { constructor(mesaj: string, public status: number, public veri: Record<string, unknown> = {}) { super(mesaj); } }
 
 async function api<T = Record<string, unknown>>(yol: string, govde?: unknown): Promise<T> {
   const r = await fetch(`/api/panel/${yol}`, govde === undefined
     ? { credentials: 'same-origin' }
     : { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'X-Panel': '1' }, body: JSON.stringify(govde) });
   const j = await r.json().catch(() => ({}));
-  if (!r.ok) throw new ApiHatasi(j.hata || `Bir şeyler ters gitti (${r.status}).`, r.status);
+  if (!r.ok) throw new ApiHatasi(j.hata || `Bir şeyler ters gitti (${r.status}).`, r.status, j);
   return j as T;
 }
 
 const yonetici = () => durum.ben?.yetki === 'yonetici';
 const kisiler = () => durum.ekip.liste;
 const sayiBul = (n: number) => durum.sayilar.find((s) => s.veri.sayi === n);
-const sayilarSirali = () => [...durum.sayilar].sort((a, b) => b.veri.sayi - a.veri.sayi);
+
+// Öneriler
+const DURUM_ADI: Record<OneriDurum, string> = {
+  taslak: 'taslak', inceleme: 'onay bekliyor', degisiklik: 'düzeltme istendi', yayinlandi: 'yayınlandı', kapatildi: 'geri çekildi',
+};
+const acikOneri = (yol: string) => durum.oneriler.acik.find((o) => o.yol === yol);
+const benim = (o: { yazan: string }) => o.yazan === durum.ben?.eposta;
+const onayimiBekleyen = () => durum.oneriler.acik.filter((o) => o.durum === 'inceleme' && !benim(o));
+function rozet(o: { durum: OneriDurum; islem: string; temel?: string | null }) {
+  const kapali = o.durum === 'yayinlandi' || o.durum === 'kapatildi';
+  const metin = o.islem === 'sil' ? (o.durum === 'yayinlandi' ? 'silindi' : kapali ? DURUM_ADI[o.durum] : 'silinmesi önerildi')
+    : o.temel === null && !kapali ? `yeni · ${DURUM_ADI[o.durum]}` : DURUM_ADI[o.durum];
+  return `<em class="pn-rozet pn-rozet--${o.durum}">${metin}</em>`;
+}
+// Henüz yayında olmayan, öneri olarak bekleyen yeni yazı ve sayılar
+const yeniYazilar = () => durum.oneriler.acik
+  .filter((o) => o.tur === 'yazi' && o.islem === 'kaydet' && o.metin && !durum.yazilar.some((y) => y.yol === o.yol))
+  .map((o) => ({ oneri: o, kayit: yaziOku({ yol: o.yol, sha: '', metin: o.metin! }) }));
+const yeniSayilar = () => durum.oneriler.acik
+  .filter((o) => o.tur === 'sayi' && o.islem === 'kaydet' && o.metin && !durum.sayilar.some((s) => s.yol === o.yol))
+  .map((o) => ({ oneri: o, kayit: sayiOku({ yol: o.yol, sha: '', metin: o.metin! }) }));
+// Önizleme için: yayındakiler ve önerilen yeni sayılar
+const baglam = (): Baglam => ({ sayilar: [...durum.sayilar, ...yeniSayilar().map((x) => x.kayit)], yazilar: durum.yazilar, ekip: durum.ekip.liste });
+
+function zamanMetni(t: number) {
+  const dk = Math.round((Date.now() - t) / 60e3);
+  if (dk < 1) return 'az önce';
+  if (dk < 60) return `${dk} dk önce`;
+  if (dk < 24 * 60) return `${Math.round(dk / 60)} saat önce`;
+  if (dk < 48 * 60) return 'dün';
+  return new Date(t).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
+}
 
 // ------------------------------------------------------------------ giriş ve iskelet
 
@@ -118,6 +157,7 @@ function iskelet(etkin: string, icerik: string) {
     </header>
     <div class="pn-govde">
       <nav class="pn-menu" aria-label="Panel">
+        ${link('inceleme', `İnceleme${onayimiBekleyen().length ? ` <small>${onayimiBekleyen().length} bekliyor</small>` : ''}`)}
         ${link('yazilar', 'Yazılar')}${link('sayilar', 'Sayılar')}${link('ekip', 'Ekip')}${yonetici() ? link('hesaplar', 'Hesaplar') : ''}
         <a class="pn-menu__site" href="/" target="_blank" rel="noopener">Siteyi aç ↗</a>
         <div class="pn-yayin" data-yayin></div>
@@ -152,9 +192,29 @@ const onbellek = {
   yaz(sha: string, metin: string) { try { localStorage.setItem(`pn:b:${sha}`, metin); } catch { /* dolu */ } },
 };
 
-async function icerikYukle() {
-  durum.yukHata = '';
+async function onerileriYukle() {
+  const j = await api<{ acik: OneriOzet[]; son: OneriSon[] }>('oneriler');
+  // Başkasının onayladığı bir öneri yayına çıktıysa içerik de tazelenmeli
+  const yayina = j.son.some((o) => o.durum === 'yayinlandi' && durum.oneriler.acik.some((a) => a.id === o.id));
+  const degisti = JSON.stringify(j) !== JSON.stringify(durum.oneriler);
+  durum.oneriler = j;
+  return { yayina, degisti };
+}
+
+// Arka planda gelen veriyle sayfa, okurun kaldığı yer kaybolmadan yeniden çizilir
+function yerindeCiz() {
+  const y = scrollY;
+  ciz();
+  scrollTo(0, y);
+}
+
+// Liste sayfalarındayken arka planda tazelenen veriyle sayfa yeniden çizilir; formlara dokunulmaz
+const listede = () => ['', 'yazilar', 'sayilar', 'inceleme'].includes(location.hash.replace(/^#\/?/, '').split('/')[0]);
+
+async function icerikYukle(sessiz = false) {
+  if (!sessiz) durum.yukHata = '';
   try {
+    await onerileriYukle();
     const j = await api<{ sayilar?: Ham[]; yazilar?: Ham[]; ekip?: Ham | null; agac?: { yol: string; sha: string }[] }>('icerik');
     let sayilar = j.sayilar ?? [];
     let yazilar = j.yazilar ?? [];
@@ -175,24 +235,54 @@ async function icerikYukle() {
     durum.ekip = { sha: ekip?.sha ?? null, liste: ekip ? JSON.parse(ekip.metin) : [] };
     durum.yuklendi = true;
   } catch (err) {
+    if (sessiz) return;
     durum.yukHata = (err as Error).message;
   }
-  ciz();
+  if (!sessiz) ciz();
+  else if (listede() && !durum.kirli) yerindeCiz();
+}
+
+let sonTazeleme = Date.now();
+async function tazele() {
+  if (!durum.yuklendi || document.hidden || Date.now() - sonTazeleme < 45e3) return;
+  sonTazeleme = Date.now();
+  try {
+    const { yayina, degisti } = await onerileriYukle();
+    if (yayina) return icerikYukle(true);
+    if (!degisti) return;
+    if (listede() && !durum.kirli) yerindeCiz();
+    else menuyuTazele();
+  } catch { /* sessiz */ }
+}
+setInterval(tazele, 60e3);
+document.addEventListener('visibilitychange', tazele);
+
+function menuyuTazele() {
+  const a = $('.pn-menu a[href="#/inceleme"]');
+  const n = onayimiBekleyen().length;
+  if (a) a.innerHTML = `İnceleme${n ? ` <small>${n} bekliyor</small>` : ''}`;
 }
 
 // ------------------------------------------------------------------ yazılar
 
+const adOf = (yol: string) => yol.split('/').pop()!.replace(/\.md$/, '');
+const siteYolu = (yol: string) => `/${yol.replace(/^public\//, '')}`;
+const formOnerisi = (f: HTMLFormElement) => (f.dataset.oneri ? durum.oneriler.acik.find((o) => o.id === Number(f.dataset.oneri)) : undefined);
+
 function yazilarSayfasi() {
   if (!durum.github) return iskelet('yazilar', githubYok());
   if (!durum.yuklendi) return iskelet('yazilar', yukleniyor());
-  const gruplar = new Map<number, Kayit<YaziVeri>[]>();
-  for (const y of durum.yazilar) gruplar.set(y.veri.sayi, [...(gruplar.get(y.veri.sayi) ?? []), y]);
-  const nolar = [...new Set([...durum.sayilar.map((s) => s.veri.sayi), ...gruplar.keys()])].sort((a, b) => b - a);
-  const satir = (y: Kayit<YaziVeri>) => `
-    <a class="pn-satir-link" href="#/yazi/${e(adOf(y.yol))}">
+  type Satir = { kayit: Kayit<YaziVeri>; oneri?: OneriOzet };
+  const satirlar: Satir[] = [...durum.yazilar.map((kayit) => ({ kayit, oneri: acikOneri(kayit.yol) })), ...yeniYazilar()];
+  const gruplar = new Map<number, Satir[]>();
+  for (const x of satirlar) gruplar.set(x.kayit.veri.sayi, [...(gruplar.get(x.kayit.veri.sayi) ?? []), x]);
+  const tum = baglam().sayilar;
+  const nolar = [...new Set([...tum.map((s) => s.veri.sayi), ...gruplar.keys()])].sort((a, b) => b - a);
+  const satir = ({ kayit: y, oneri: o }: Satir) => `
+    <a class="pn-satir-link" href="${o ? `#/oneri/${o.id}` : `#/yazi/${e(adOf(y.yol))}`}">
       <span class="pn-no">${pad(y.veri.sira)}</span>
-      <span class="pn-satir-t"><b>${e(y.veri.baslik)}</b><small>${e(KONULAR[y.veri.konu] ?? y.veri.konu)} · ${e(y.veri.yazar)}</small></span>
-      ${y.veri.taslak ? '<em class="pn-rozet">taslak</em>' : ''}
+      <span class="pn-satir-t"><b>${e(y.veri.baslik)}</b><small>${e(KONULAR[y.veri.konu] ?? (y.veri.konu || 'konu yok'))} · ${e(y.veri.yazar)}${o ? ` · öneren ${e(o.yazan_ad)}` : ''}</small></span>
+      ${o ? rozet(o) : y.veri.taslak ? '<em class="pn-rozet">gizli</em>' : ''}
     </a>`;
   iskelet('yazilar', `
     <div class="pn-bas">
@@ -200,53 +290,71 @@ function yazilarSayfasi() {
       <a class="chip chip--dolu" href="#/yazi/yeni">+ Yeni yazı</a>
     </div>
     ${nolar.map((n) => {
-      const s = sayiBul(n);
-      const liste = (gruplar.get(n) ?? []).sort((a, b) => a.veri.sira - b.veri.sira);
+      const s = tum.find((x) => x.veri.sayi === n);
+      const sOneri = s ? acikOneri(s.yol) : undefined;
+      const liste = (gruplar.get(n) ?? []).sort((a, b) => a.kayit.veri.sira - b.kayit.veri.sira);
       return `
         <section class="pn-grup">
-          <h2>Sayı ${pad(n)}${s ? ` · ${e(s.veri.baslik)}` : ''} ${s?.veri.taslak ? '<em class="pn-rozet">sayı taslak</em>' : ''}</h2>
+          <h2>Sayı ${pad(n)}${s ? ` · ${e(s.veri.baslik)}` : ''} ${sOneri ? rozet(sOneri) : s?.veri.taslak ? '<em class="pn-rozet">sayı gizli</em>' : ''}</h2>
           ${liste.length ? liste.map(satir).join('') : '<p class="pn-bos">Bu sayıda henüz yazı yok.</p>'}
         </section>`;
     }).join('') || '<p class="pn-bos">Henüz yazı yok.</p>'}`);
 }
 
-const adOf = (yol: string) => yol.split('/').pop()!.replace(/\.md$/, '');
-
 let yeniGorsel: { yol: string; base64: string; url: string } | null = null;
 
-function yaziFormu(slug: string) {
+// Başkasının açık önerisi olan bir şey düzenlenmez: öneriye gidilir, orada yorum yazılır
+function oneriyeYonlendir(o: OneriOzet) {
+  if (!benim(o)) toast(`Bunun için ${o.yazan_ad} bir öneri hazırlamış. Ona yorum yazabilirsin.`, 4200);
+  location.replace(benim(o) && o.islem === 'kaydet' ? `#/oneri/${o.id}/duzenle` : `#/oneri/${o.id}`);
+}
+
+function yaziFormu(slug: string, oneriId?: number) {
   if (!durum.github) return iskelet('yazilar', githubYok());
   if (!durum.yuklendi) return iskelet('yazilar', yukleniyor());
-  const kayit = slug === 'yeni' ? null : durum.yazilar.find((y) => adOf(y.yol) === slug);
-  if (slug !== 'yeni' && !kayit) return iskelet('yazilar', '<p class="pn-bos">Yazı bulunamadı.</p>');
+  const oneri = oneriId ? durum.oneriler.acik.find((o) => o.id === oneriId) : undefined;
+  if (oneriId && (!oneri || !benim(oneri) || oneri.islem !== 'kaydet')) return void location.replace(`#/oneri/${oneriId}`);
+  const yol = oneri?.yol ?? (slug === 'yeni' ? null : `src/content/yazilar/${slug}.md`);
+  const kayit = yol ? durum.yazilar.find((y) => y.yol === yol) ?? null : null;
+  if (!oneri && yol) {
+    const o = acikOneri(yol);
+    if (o) return oneriyeYonlendir(o);
+    if (!kayit) return iskelet('yazilar', '<p class="pn-bos">Yazı bulunamadı.</p>');
+  }
+  const kaynak = oneri ? yaziOku({ yol: oneri.yol, sha: '', metin: oneri.metin ?? '' }) : kayit;
+  const eskimis = !!oneri && (oneri.temel ?? null) !== (kayit?.sha ?? null);
   yeniGorsel = null;
 
-  const son = sayilarSirali()[0]?.veri.sayi ?? 1;
+  const tum = baglam().sayilar.sort((a, b) => b.veri.sayi - a.veri.sayi);
+  const son = tum[0]?.veri.sayi ?? 1;
   const benKisi = kisiler().find((k) => k.ad === durum.ben?.ad)?.ad ?? kisiler()[0]?.ad ?? '';
-  const v: YaziVeri = kayit?.veri ?? {
-    baslik: '', sayi: son, sira: (durum.yazilar.filter((y) => y.veri.sayi === son).length || 0) + 1, konu: '', yazar: benKisi,
-    spot: '', gorsel: '', gorselAlt: '', gorselKaynak: '', neden: '', kisaca: ['', '', ''], taslak: true,
+  const v: YaziVeri = kaynak?.veri ?? {
+    baslik: '', sayi: son, sira: durum.yazilar.filter((y) => y.veri.sayi === son).length + 1, konu: '', yazar: benKisi,
+    spot: '', gorsel: '', gorselAlt: '', gorselKaynak: '', neden: '', kisaca: ['', '', ''],
   };
-  const govde = kayit?.govde ?? '';
+  const govde = kaynak?.govde ?? '';
   const kisaca = v.kisaca.length ? v.kisaca : [''];
   const yazarlar = kisiler().some((k) => k.ad === v.yazar) || !v.yazar ? kisiler() : [...kisiler(), { ad: v.yazar, kisa: '', renk: '', rol: '' }];
+  const gorselSrc = oneri?.gorsel_yol && v.gorsel === siteYolu(oneri.gorsel_yol) ? `/api/panel/gorsel?id=${oneri.id}` : v.gorsel;
+  const ad = yol ? adOf(yol) : 'yeni';
 
   iskelet('yazilar', `
-    <form class="pn-form" data-form="yazi" data-slug="${e(slug)}" novalidate>
+    <form class="pn-form" data-form="yazi" data-slug="${e(ad)}" data-oneri="${oneri?.id ?? ''}" novalidate>
       <div class="pn-bas">
-        <h1>${kayit ? 'Yazıyı düzenle' : 'Yeni yazı'}</h1>
-        ${kayit ? `<a class="pn-dis" href="/yazi/${e(slug)}/" target="_blank" rel="noopener">Sitede gör ↗</a>` : ''}
+        <h1>${oneri ? 'Önerini düzenle' : kayit ? 'Yazıyı düzenle' : 'Yeni yazı'}</h1>
+        ${kayit ? `<a class="pn-dis" href="/yazi/${e(ad)}/" target="_blank" rel="noopener">Yayındaki hâli ↗</a>` : ''}
       </div>
+      ${eskimis ? '<p class="pn-uyari">Sen bu öneriyi hazırladıktan sonra yazının yayındaki hâli değişti. Kaydettiğinde önerin yayındaki son hâlin üzerine kurulur; önizlemede ve değişikliklerde, araya girmiş bir düzeltmeyi geri almadığına bak.</p>' : ''}
       <div class="pn-hatalar" data-hatalar hidden></div>
 
       <label class="pn-alan"><span>Başlık</span><input name="baslik" value="${e(v.baslik)}" maxlength="140" required></label>
-      ${kayit
-        ? `<p class="pn-adres">parantezbulten.com/yazi/<b>${e(slug)}</b>/</p>`
+      ${yol
+        ? `<p class="pn-adres">parantezbulten.com/yazi/<b>${e(ad)}</b>/</p>`
         : `<label class="pn-alan"><span>Adres <small>başlıktan oluşur; kaydettikten sonra değişmez</small></span>
             <div class="pn-adres-gir"><span>parantezbulten.com/yazi/</span><input name="adres" pattern="[a-z0-9-]+" maxlength="60" data-adres-elle="0"><span>/</span></div></label>`}
 
       <div class="pn-izgara">
-        <label class="pn-alan"><span>Sayı</span><select name="sayi">${sayilarSirali().map((s) => `<option value="${s.veri.sayi}"${s.veri.sayi === v.sayi ? ' selected' : ''}>Sayı ${pad(s.veri.sayi)}${s.veri.taslak ? ' (taslak)' : ''}</option>`).join('')}</select></label>
+        <label class="pn-alan"><span>Sayı</span><select name="sayi">${tum.map((s) => `<option value="${s.veri.sayi}"${s.veri.sayi === v.sayi ? ' selected' : ''}>Sayı ${pad(s.veri.sayi)}${!s.sha ? ' (öneri)' : s.veri.taslak ? ' (gizli)' : ''}</option>`).join('')}</select></label>
         <label class="pn-alan"><span>Sıra</span><input name="sira" type="number" min="1" max="9" value="${v.sira}"></label>
         <label class="pn-alan"><span>Konu</span><select name="konu"><option value="">Seç</option>${KONU_LISTESI.map(([k, ad]) => `<option value="${k}"${k === v.konu ? ' selected' : ''}>${ad}</option>`).join('')}</select></label>
         <label class="pn-alan"><span>Yazar</span><select name="yazar">${yazarlar.map((k) => `<option${k.ad === v.yazar ? ' selected' : ''}>${e(k.ad)}</option>`).join('')}</select></label>
@@ -256,7 +364,7 @@ function yaziFormu(slug: string) {
 
       <fieldset class="pn-kutu pn-gorsel">
         <legend>Görsel</legend>
-        <div class="pn-gorsel__on" data-gorsel-on>${v.gorsel ? `<img src="${e(v.gorsel)}" alt="">` : '<span>Görsel yok</span>'}</div>
+        <div class="pn-gorsel__on" data-gorsel-on>${gorselSrc ? `<img src="${e(gorselSrc)}" alt="">` : '<span>Görsel yok</span>'}</div>
         <div class="pn-gorsel__alan">
           <label class="chip pn-dosya">Görsel seç<input type="file" name="gorselDosya" accept="image/*"></label>
           <small>Yatay bir fotoğraf iyi durur. Büyükse küçültülür.</small>
@@ -276,14 +384,26 @@ function yaziFormu(slug: string) {
 
       ${metinAlani(govde)}
 
-      <label class="pn-onay"><input type="checkbox" name="taslak"${v.taslak ? ' checked' : ''}> Taslak olarak kalsın <small>sitede görünmez</small></label>
+      ${v.taslak ? '<label class="pn-onay"><input type="checkbox" name="taslak" checked> Sitede gizli kalsın <small>onaylansa da görünmez</small></label>' : ''}
 
-      <div class="pn-eylem">
-        <button class="chip chip--dolu" type="submit" data-kaydet>${v.taslak ? 'Taslağı kaydet' : 'Kaydet ve yayınla'}</button>
-        <a class="chip" href="#/yazilar">Vazgeç</a>
-        ${kayit ? '<button class="pn-tehlike" type="button" data-sil>Yazıyı sil</button>' : ''}
-      </div>
+      ${eylemler(oneri, kayit ? 'Silinmesini öner' : '', '#/yazilar')}
     </form>`);
+}
+
+// Formların altı: önizle, incelemeye gönder, taslak olarak sakla
+function eylemler(oneri: OneriOzet | undefined, silme: string, geri: string) {
+  const inceleniyor = oneri?.durum === 'inceleme';
+  return `
+    <div class="pn-gonder">
+      <div class="pn-eylem">
+        <button class="chip" type="button" data-onizle>Önizle</button>
+        <button class="chip chip--dolu" type="submit" data-gonder="1">${inceleniyor ? 'Öneriyi güncelle' : oneri?.durum === 'degisiklik' ? 'Düzelttim, yeniden gönder' : 'İncelemeye gönder'}</button>
+        ${inceleniyor ? '' : `<button class="chip" type="submit" data-gonder="0">${oneri?.durum === 'degisiklik' ? 'Kaydet, sonra gönderirim' : 'Taslak olarak sakla'}</button>`}
+        <a class="pn-vazgec" href="${oneri ? `#/oneri/${oneri.id}` : geri}">Vazgeç</a>
+        ${silme && !oneri ? `<button class="pn-tehlike" type="button" data-sil>${silme}</button>` : ''}
+      </div>
+      <p class="pn-not">Hiçbir şey doğrudan yayına çıkmaz. İncelemeye gönderince ekipten başka biri önizleyip onaylar; kendi önerini onaylayamazsın.</p>
+    </div>`;
 }
 
 const kisacaSatiri = (k: string) =>
@@ -297,56 +417,72 @@ function metinAlani(govde: string, baslik = 'Metin', ipucu = 'Paragraflar arası
         <button type="button" data-bicim="h2">Ara başlık</button>
         <button type="button" data-bicim="b"><b>Kalın</b></button>
         <button type="button" data-bicim="a">Bağlantı</button>
-        <button type="button" data-onizle aria-pressed="false">Önizle</button>
       </div>
       <textarea name="govde" rows="16">${e(govde)}</textarea>
-      <div class="pn-onizleme yz__metin" data-onizleme hidden></div>
       <small>${ipucu}</small>
     </div>`;
 }
 
 function yaziOkuForm(f: HTMLFormElement): YaziVeri {
+  const oneri = formOnerisi(f);
+  const kaynak = oneri?.metin ? yaziOku({ yol: oneri.yol, sha: '', metin: oneri.metin }) : durum.yazilar.find((y) => adOf(y.yol) === f.dataset.slug);
   return {
     baslik: deger(f, 'baslik'), sayi: Number(deger(f, 'sayi')), sira: Number(deger(f, 'sira')),
     konu: deger(f, 'konu'), yazar: deger(f, 'yazar'), spot: deger(f, 'spot'), gorsel: deger(f, 'gorsel'),
     gorselAlt: deger(f, 'gorselAlt'), gorselKaynak: deger(f, 'gorselKaynak'), neden: deger(f, 'neden'),
     kisaca: $$<HTMLInputElement>('[name="kisaca"]', f).map((i) => i.value.trim()).filter(Boolean),
-    podcast: durum.yazilar.find((y) => adOf(y.yol) === f.dataset.slug)?.veri.podcast,
-    taslak: $<HTMLInputElement>('[name="taslak"]', f)!.checked,
+    podcast: kaynak?.veri.podcast,
+    taslak: !!$<HTMLInputElement>('[name="taslak"]', f)?.checked,
   };
 }
 
-async function yaziKaydet(f: HTMLFormElement) {
-  const slug = f.dataset.slug!;
-  const kayit = slug === 'yeni' ? null : durum.yazilar.find((y) => adOf(y.yol) === slug) ?? null;
+// Görsel: yeni seçildiyse gönderilir; önerideki eski görsel artık kullanılmıyorsa silinir
+function gorselIstegi(gorsel: string, oneri?: OneriOzet) {
+  if (yeniGorsel && gorsel === siteYolu(yeniGorsel.yol)) return { yol: yeniGorsel.yol, base64: yeniGorsel.base64 };
+  if (oneri?.gorsel_yol && gorsel !== siteYolu(oneri.gorsel_yol)) return null;
+  return undefined;
+}
+
+async function yaziKaydet(f: HTMLFormElement, gonder: boolean) {
+  const oneri = formOnerisi(f);
+  const sabit = f.dataset.slug !== 'yeni';
   const v = yaziOkuForm(f);
   const govde = $<HTMLTextAreaElement>('[name="govde"]', f)!.value;
-  const ad = kayit ? slug : (deger(f, 'adres') || adres(v.baslik));
-  const hatalar = yaziDenetle(v, govde);
-  if (!kayit) {
-    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(ad)) hatalar.push('Adres yalnızca küçük harf, rakam ve tire içerebilir.');
-    else if (durum.yazilar.some((y) => adOf(y.yol) === ad)) hatalar.push('Bu adresle bir yazı zaten var; adresi değiştir.');
-  }
-  const ayniSira = durum.yazilar.find((y) => y !== kayit && y.veri.sayi === v.sayi && y.veri.sira === v.sira);
-  if (ayniSira) hatalar.push(`Sayı ${pad(v.sayi)}'te ${v.sira}. sırada zaten “${ayniSira.veri.baslik}” var.`);
-  if (hataGoster(f, hatalar)) return;
-
+  const ad = sabit ? f.dataset.slug! : (deger(f, 'adres') || adres(v.baslik));
   const yol = `src/content/yazilar/${ad}.md`;
-  const metin = yaziMetni(v, govde);
-  const dosyalar: { yol: string; metin?: string; base64?: string }[] = [{ yol, metin }];
-  if (yeniGorsel && v.gorsel === `/${yeniGorsel.yol.replace(/^public\//, '')}`) dosyalar.push({ yol: yeniGorsel.yol, base64: yeniGorsel.base64 });
+  const kayit = durum.yazilar.find((y) => y.yol === yol) ?? null;
+  const hatalar = gonder ? yaziDenetle(v, govde) : v.baslik ? [] : ['Başlık boş.'];
+  if (!sabit) {
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(ad)) hatalar.push('Adres yalnızca küçük harf, rakam ve tire içerebilir.');
+    else if (kayit || acikOneri(yol)) hatalar.push('Bu adresle bir yazı ya da öneri zaten var; adresi değiştir.');
+  }
+  if (gonder) {
+    const ayniSira = [...durum.yazilar, ...yeniYazilar().map((x) => x.kayit)]
+      .find((y) => y.yol !== yol && y.veri.sayi === v.sayi && y.veri.sira === v.sira && !y.veri.taslak);
+    if (ayniSira) hatalar.push(`Sayı ${pad(v.sayi)}'te ${v.sira}. sırada zaten “${ayniSira.veri.baslik}” var.`);
+  }
+  if (hataGoster(f, hatalar)) return;
+  await oneriKaydet(f, {
+    id: oneri?.id, tur: 'yazi', islem: 'kaydet', yol, temel: kayit?.sha ?? null,
+    metin: yaziMetni(v, govde), baslik: v.baslik, gorsel: gorselIstegi(v.gorsel, oneri),
+  }, gonder);
+}
 
-  await kaydet(f, {
-    mesaj: `${kayit ? 'Yazı güncellendi' : 'Yeni yazı'}: ${v.baslik}${v.taslak ? ' (taslak)' : ''}`,
-    dosyalar, beklenen: { [yol]: kayit?.sha ?? null },
-  }, async (commit) => {
-    const yeni = { yol, sha: await blobSha(metin), veri: v, govde };
-    durum.yazilar = kayit ? durum.yazilar.map((y) => (y === kayit ? yeni : y)) : [...durum.yazilar, yeni];
-    const sayiYayinda = !sayiBul(v.sayi)?.veri.taslak;
-    bekleyenEkle(commit, v.baslik, !v.taslak && sayiYayinda ? `/yazi/${ad}/` : undefined);
-    toast(v.taslak ? 'Taslak kaydedildi.' : 'Kaydedildi. Sitede 1–2 dakika içinde görünür.');
-    location.hash = '#/yazilar';
-  });
+async function oneriKaydet(f: HTMLFormElement, istek: Record<string, unknown>, gonder: boolean) {
+  const dugmeler = $$<HTMLButtonElement>('.pn-eylem button', f);
+  for (const d of dugmeler) d.disabled = true;
+  try {
+    const j = await api<{ id: number }>('oneri', { ...istek, gonder });
+    durum.kirli = false;
+    await onerileriYukle().catch(() => {});
+    toast(gonder ? 'İncelemeye gönderildi. Ekipten biri onaylayınca yayına çıkar.' : 'Kaydedildi. Hazır olunca incelemeye gönder.', 3800);
+    location.hash = `#/oneri/${j.id}`;
+  } catch (err) {
+    const a = err as ApiHatasi;
+    hataGoster(f, [a.message], a.veri?.id ? `#/oneri/${a.veri.id}` : undefined);
+  } finally {
+    for (const d of dugmeler) if (d.isConnected) d.disabled = false;
+  }
 }
 
 // ------------------------------------------------------------------ sayılar
@@ -354,17 +490,19 @@ async function yaziKaydet(f: HTMLFormElement) {
 function sayilarSayfasi() {
   if (!durum.github) return iskelet('sayilar', githubYok());
   if (!durum.yuklendi) return iskelet('sayilar', yukleniyor());
+  const satirlar = [...durum.sayilar.map((kayit) => ({ kayit, oneri: acikOneri(kayit.yol) })), ...yeniSayilar()]
+    .sort((a, b) => b.kayit.veri.sayi - a.kayit.veri.sayi);
   iskelet('sayilar', `
     <div class="pn-bas">
       <h1>Sayılar</h1>
       <a class="chip chip--dolu" href="#/sayi/yeni">+ Yeni sayı</a>
     </div>
     <section class="pn-grup">
-      ${sayilarSirali().map((s) => `
-        <a class="pn-satir-link" href="#/sayi/${s.veri.sayi}">
+      ${satirlar.map(({ kayit: s, oneri: o }) => `
+        <a class="pn-satir-link" href="${o ? `#/oneri/${o.id}` : `#/sayi/${s.veri.sayi}`}">
           <span class="pn-no">${pad(s.veri.sayi)}</span>
-          <span class="pn-satir-t"><b>${e(s.veri.baslik)}</b><small>yayın ${e(s.veri.yayin)} · ${durum.yazilar.filter((y) => y.veri.sayi === s.veri.sayi).length} yazı</small></span>
-          ${s.veri.taslak ? '<em class="pn-rozet">taslak</em>' : ''}
+          <span class="pn-satir-t"><b>${e(s.veri.baslik || 'Başlıksız')}</b><small>yayın ${e(s.veri.yayin)} · ${durum.yazilar.filter((y) => y.veri.sayi === s.veri.sayi).length} yazı${o ? ` · öneren ${e(o.yazan_ad)}` : ''}</small></span>
+          ${o ? rozet(o) : s.veri.taslak ? '<em class="pn-rozet">gizli</em>' : ''}
         </a>`).join('') || '<p class="pn-bos">Henüz sayı yok.</p>'}
     </section>`);
 }
@@ -410,32 +548,43 @@ function oneriAlani(k: string, ad: string, o?: Oneri) {
     </fieldset>`;
 }
 
-function sayiFormu(arg: string) {
+function sayiFormu(arg: string, oneriId?: number) {
   if (!durum.github) return iskelet('sayilar', githubYok());
   if (!durum.yuklendi) return iskelet('sayilar', yukleniyor());
-  const kayit = arg === 'yeni' ? null : sayiBul(Number(arg));
-  if (arg !== 'yeni' && !kayit) return iskelet('sayilar', '<p class="pn-bos">Sayı bulunamadı.</p>');
+  const oneri = oneriId ? durum.oneriler.acik.find((o) => o.id === oneriId) : undefined;
+  if (oneriId && (!oneri || !benim(oneri) || oneri.islem !== 'kaydet')) return void location.replace(`#/oneri/${oneriId}`);
+  const kayit = oneri ? durum.sayilar.find((s) => s.yol === oneri.yol) ?? null : arg === 'yeni' ? null : sayiBul(Number(arg)) ?? null;
+  if (!oneri && arg !== 'yeni') {
+    const o = kayit ? acikOneri(kayit.yol) : yeniSayilar().find((x) => x.kayit.veri.sayi === Number(arg))?.oneri;
+    if (o) return oneriyeYonlendir(o);
+    if (!kayit) return iskelet('sayilar', '<p class="pn-bos">Sayı bulunamadı.</p>');
+  }
+  const kaynak = oneri ? sayiOku({ yol: oneri.yol, sha: '', metin: oneri.metin ?? '' }) : kayit;
+  const eskimis = !!oneri && (oneri.temel ?? null) !== (kayit?.sha ?? null);
   const yayin = sonrakiPazartesi();
   const editor = kisiler()[0];
-  const v: SayiVeri = kayit?.veri ?? {
-    sayi: (sayilarSirali()[0]?.veri.sayi ?? 0) + 1, baslik: '', yayin, baslangic: gunEkle(yayin, -6), bitis: yayin,
+  const enBuyuk = Math.max(0, ...baglam().sayilar.map((s) => s.veri.sayi));
+  const v: SayiVeri = kaynak?.veri ?? {
+    sayi: enBuyuk + 1, baslik: '', yayin, baslangic: gunEkle(yayin, -6), bitis: yayin,
     imza: editor ? `${editor.ad}, ${editor.rol}` : '', kisaKisa: [{ konu: '', metin: '' }, { konu: '', metin: '' }, { konu: '', metin: '' }],
     oneriler: {}, etkinlikler: [], taslak: true,
   };
   const imzalar = kisiler().map((k) => `${k.ad}, ${k.rol}`);
   if (v.imza && !imzalar.includes(v.imza)) imzalar.push(v.imza);
   const yazilari = durum.yazilar.filter((y) => y.veri.sayi === v.sayi).length;
+  const yol = oneri?.yol ?? kayit?.yol ?? '';
 
   iskelet('sayilar', `
-    <form class="pn-form" data-form="sayi" data-no="${kayit ? v.sayi : 'yeni'}" novalidate>
+    <form class="pn-form" data-form="sayi" data-yol="${e(yol)}" data-oneri="${oneri?.id ?? ''}" novalidate>
       <div class="pn-bas">
-        <h1>${kayit ? `Sayı ${pad(v.sayi)}` : 'Yeni sayı'}</h1>
-        ${kayit ? `<a class="pn-dis" href="/sayi/${v.sayi}/" target="_blank" rel="noopener">Sitede gör ↗</a>` : ''}
+        <h1>${oneri ? 'Önerini düzenle' : kayit ? `Sayı ${pad(v.sayi)}` : 'Yeni sayı'}</h1>
+        ${kayit && !kayit.veri.taslak ? `<a class="pn-dis" href="/sayi/${v.sayi}/" target="_blank" rel="noopener">Yayındaki hâli ↗</a>` : ''}
       </div>
+      ${eskimis ? '<p class="pn-uyari">Sen bu öneriyi hazırladıktan sonra sayının yayındaki hâli değişti. Kaydettiğinde önerin yayındaki son hâlin üzerine kurulur; araya girmiş bir düzeltmeyi geri almadığına bak.</p>' : ''}
       <div class="pn-hatalar" data-hatalar hidden></div>
 
       <div class="pn-izgara">
-        <label class="pn-alan"><span>Sayı no</span><input name="sayi" type="number" min="1" value="${v.sayi}"${kayit ? ' readonly' : ''}></label>
+        <label class="pn-alan"><span>Sayı no</span><input name="sayi" type="number" min="1" value="${v.sayi}"${yol ? ' readonly' : ''}></label>
         <label class="pn-alan"><span>Yayın (pazartesi)</span><input name="yayin" type="date" value="${e(v.yayin)}"></label>
         <label class="pn-alan"><span>Kapsadığı hafta: başlangıç</span><input name="baslangic" type="date" value="${e(v.baslangic)}"></label>
         <label class="pn-alan"><span>Bitiş</span><input name="bitis" type="date" value="${e(v.bitis)}"></label>
@@ -443,7 +592,7 @@ function sayiFormu(arg: string) {
       <label class="pn-alan"><span>Haftanın cümlesi <small>sohbetteki büyük başlık</small></span><input name="baslik" value="${e(v.baslik)}" maxlength="90" placeholder="Faiz sabit, kira değil."></label>
       <label class="pn-alan"><span>İmza <small>selamı veren editör</small></span><select name="imza">${imzalar.map((i) => `<option${i === v.imza ? ' selected' : ''}>${e(i)}</option>`).join('')}</select></label>
 
-      ${metinAlani(kayit?.govde ?? '', 'Haftanın özeti', 'Editörün notu: iki kısa paragraf. Sohbette selamdan sonra gelir.')}
+      ${metinAlani(kaynak?.govde ?? '', 'Haftanın özeti', 'Editörün notu: iki kısa paragraf. Sohbette selamdan sonra gelir.')}
 
       <fieldset class="pn-kutu" data-liste="kisaKisa">
         <legend>Kısa kısa <small>“Ne oldu?” · 3–5 madde</small></legend>
@@ -460,13 +609,10 @@ function sayiFormu(arg: string) {
         <button type="button" class="pn-ekle" data-ekle="etkinlik">+ etkinlik ekle</button>
       </fieldset>
 
-      <label class="pn-onay"><input type="checkbox" name="taslak"${v.taslak ? ' checked' : ''}> Taslak olarak kalsın <small>sayı ve yazıları sitede görünmez</small></label>
+      <label class="pn-onay"><input type="checkbox" name="taslak"${v.taslak ? ' checked' : ''}> Sitede gizli kalsın <small>sayı ve yazıları onaylansa da görünmez; hepsi hazır olunca işareti kaldırıp yeniden gönder, birlikte yayına çıksınlar</small></label>
 
-      <div class="pn-eylem">
-        <button class="chip chip--dolu" type="submit" data-kaydet>${v.taslak ? 'Taslağı kaydet' : 'Kaydet ve yayınla'}</button>
-        <a class="chip" href="#/sayilar">Vazgeç</a>
-        ${kayit ? `<button class="pn-tehlike" type="button" data-sil${yazilari ? ` disabled title="Önce bu sayıdaki ${yazilari} yazıyı sil ya da başka sayıya taşı."` : ''}>Sayıyı sil</button>` : ''}
-      </div>
+      ${eylemler(oneri, kayit && !yazilari ? 'Silinmesini öner' : '', '#/sayilar')}
+      ${kayit && yazilari && !oneri ? `<p class="pn-not">Bu sayıyı silmek için önce içindeki ${yazilari} yazının silinmesi ya da başka sayıya taşınması gerekiyor.</p>` : ''}
     </form>`);
 }
 
@@ -492,27 +638,20 @@ function sayiOkuForm(f: HTMLFormElement): SayiVeri {
   };
 }
 
-async function sayiKaydet(f: HTMLFormElement) {
-  const kayit = f.dataset.no === 'yeni' ? null : sayiBul(Number(f.dataset.no)) ?? null;
+async function sayiKaydet(f: HTMLFormElement, gonder: boolean) {
+  const oneri = formOnerisi(f);
   const v = sayiOkuForm(f);
   const govde = $<HTMLTextAreaElement>('[name="govde"]', f)!.value;
-  const hatalar = sayiDenetle(v);
-  if (!govde.trim()) hatalar.push('Haftanın özeti boş.');
-  if (!kayit && sayiBul(v.sayi)) hatalar.push(`Sayı ${pad(v.sayi)} zaten var.`);
+  const yol = f.dataset.yol || `src/content/sayilar/${pad(v.sayi)}.md`;
+  const kayit = durum.sayilar.find((s) => s.yol === yol) ?? null;
+  const hatalar = gonder ? sayiDenetle(v) : v.sayi > 0 ? [] : ['Sayı numarası geçersiz.'];
+  if (gonder && !govde.trim()) hatalar.push('Haftanın özeti boş.');
+  if (!f.dataset.yol && v.sayi > 0 && (baglam().sayilar.some((s) => s.veri.sayi === v.sayi) || acikOneri(yol))) hatalar.push(`Sayı ${pad(v.sayi)} zaten var ya da önerilmiş.`);
   if (hataGoster(f, hatalar)) return;
-
-  const yol = kayit?.yol ?? `src/content/sayilar/${pad(v.sayi)}.md`;
-  const metin = sayiMetni(v, govde);
-  await kaydet(f, {
-    mesaj: `${kayit ? 'Sayı güncellendi' : 'Yeni sayı'}: ${pad(v.sayi)} · ${v.baslik}${v.taslak ? ' (taslak)' : ''}`,
-    dosyalar: [{ yol, metin }], beklenen: { [yol]: kayit?.sha ?? null },
-  }, async (commit) => {
-    const yeni = { yol, sha: await blobSha(metin), veri: v, govde };
-    durum.sayilar = kayit ? durum.sayilar.map((s) => (s === kayit ? yeni : s)) : [...durum.sayilar, yeni];
-    bekleyenEkle(commit, `Sayı ${pad(v.sayi)}`, v.taslak ? undefined : `/sayi/${v.sayi}/`);
-    toast(v.taslak ? 'Taslak kaydedildi.' : 'Kaydedildi. Sitede 1–2 dakika içinde görünür.');
-    location.hash = '#/sayilar';
-  });
+  await oneriKaydet(f, {
+    id: oneri?.id, tur: 'sayi', islem: 'kaydet', yol, temel: kayit?.sha ?? null,
+    metin: sayiMetni(v, govde), baslik: `Sayı ${pad(v.sayi)}${v.baslik ? ` · ${v.baslik}` : ''}`,
+  }, gonder);
 }
 
 // ------------------------------------------------------------------ ekip
@@ -600,12 +739,295 @@ async function hesaplarSayfasi() {
   durum.gecici = null;
 }
 
+// ------------------------------------------------------------------ inceleme
+
+function incelemeSayfasi() {
+  if (!durum.github) return iskelet('inceleme', githubYok());
+  if (!durum.yuklendi) return iskelet('inceleme', yukleniyor());
+  const { acik, son } = durum.oneriler;
+  const satir = (o: OneriOzet | OneriSon, alt: string) => `
+    <a class="pn-satir-link" href="#/oneri/${o.id}">
+      <span class="pn-tur">${o.tur === 'yazi' ? 'yazı' : 'sayı'}</span>
+      <span class="pn-satir-t"><b>${e(o.baslik)}</b><small>${alt}</small></span>
+      ${rozet(o as OneriOzet)}
+    </a>`;
+  const acikSatir = (o: OneriOzet) => satir(o, `${benim(o) ? 'sen' : e(o.yazan_ad)} · ${zamanMetni(o.guncelleme)}${o.yorum ? ` · ${o.yorum} yorum` : ''}`);
+  const bolum = (baslik: string, liste: string[], bos?: string) => (liste.length || bos)
+    ? `<section class="pn-grup"><h2>${baslik}</h2>${liste.join('') || `<p class="pn-bos">${bos}</p>`}</section>` : '';
+  iskelet('inceleme', `
+    <div class="pn-bas"><h1>İnceleme</h1></div>
+    <p class="pn-not pn-not--ust">Sayı ve yazılar doğrudan yayınlanmaz. Yazan incelemeye gönderir; ekipten başka biri önizleyip onaylayınca yayına çıkar. Kimse kendi önerisini onaylayamaz.</p>
+    ${bolum('Onayını bekleyenler', onayimiBekleyen().map(acikSatir), 'Şu an onayını bekleyen bir şey yok.')}
+    ${bolum('Senin önerilerin', acik.filter(benim).map(acikSatir), 'Açık önerin yok. Yazılar ya da Sayılar’dan bir şey düzenleyince burada görünür.')}
+    ${bolum('Ekipte hazırlananlar', acik.filter((o) => !benim(o) && o.durum !== 'inceleme').map(acikSatir))}
+    ${bolum('Son kapananlar', son.map((o) => satir(o, `${e(o.yazan_ad)} önerdi${o.onaylayan_ad ? ` · ${e(o.onaylayan_ad)} onayladı` : ''} · ${zamanMetni(o.guncelleme)}`)))}`);
+}
+
+let sayfaOnerisi: OneriTam | null = null;
+
+async function oneriSayfasi(id: number) {
+  if (!durum.github) return iskelet('inceleme', githubYok());
+  if (!durum.yuklendi) return iskelet('inceleme', yukleniyor());
+  if (sayfaOnerisi?.id !== id) iskelet('inceleme', '<p class="pn-bos">Öneri yükleniyor…</p>');
+  let j: { oneri: OneriTam; yorumlar: Yorum[] };
+  try {
+    j = await api(`oneri?id=${id}`);
+  } catch (err) {
+    return iskelet('inceleme', `<p class="pn-bos">${e((err as Error).message)} <a href="#/inceleme">İncelemeye dön</a></p>`);
+  }
+  if (location.hash !== `#/oneri/${id}`) return; // bu arada başka sayfaya geçildi
+  sayfaOnerisi = j.oneri;
+  // Listedeki kopyası da güncellensin (düzenleme formu oradan okur)
+  const { gorselVar, onaylayan, onaylayan_ad, commit_sha, surum, ...ozet } = j.oneri;
+  const digerleri = durum.oneriler.acik.filter((x) => x.id !== id);
+  durum.oneriler.acik = ['taslak', 'inceleme', 'degisiklik'].includes(ozet.durum)
+    ? [{ ...ozet, yorum: j.yorumlar.filter((y) => y.tur === 'yorum').length }, ...digerleri] : digerleri;
+  menuyuTazele();
+  oneriCiz(j.oneri, j.yorumlar);
+}
+
+function oneriCiz(o: OneriTam, yorumlar: Yorum[]) {
+  const acik = ['taslak', 'inceleme', 'degisiklik'].includes(o.durum);
+  const ben = benim(o);
+  const inceleyen = o.durum === 'inceleme' && !ben;
+  const yayindaki = (o.tur === 'yazi' ? durum.yazilar : durum.sayilar).find((k) => k.yol === o.yol);
+  const eskimis = acik && (o.temel ?? null) !== (yayindaki?.sha ?? null);
+  const ne = o.tur === 'yazi' ? 'yazı' : 'sayı';
+  const ilk = (ad: string) => ad.split(/\s+/)[0];
+
+  // Önizleme ve farklar
+  let onizleme = '';
+  let farklar = '';
+  let adres = '';
+  const gorselUrl = o.gorselVar && o.gorsel_yol ? `/api/panel/gorsel?id=${o.id}` : undefined;
+  if (o.tur === 'yazi') {
+    const yeni = o.islem === 'kaydet' && o.metin ? yaziOku({ yol: o.yol, sha: '', metin: o.metin }) : yayindaki as Kayit<YaziVeri> | undefined;
+    const url = gorselUrl && yeni?.veri.gorsel === siteYolu(o.gorsel_yol!) ? gorselUrl : undefined;
+    if (yeni) onizleme = yaziOnizleme(yeni, baglam(), url);
+    if (acik && o.islem === 'kaydet' && yayindaki && yeni) farklar = yaziFarki(yayindaki as Kayit<YaziVeri>, yeni, url);
+    adres = `/yazi/${adOf(o.yol)}/`;
+  } else {
+    const yeni = o.islem === 'kaydet' && o.metin ? sayiOku({ yol: o.yol, sha: '', metin: o.metin }) : yayindaki as Kayit<SayiVeri> | undefined;
+    if (yeni) onizleme = sayiOnizleme(yeni.veri, yeni.govde, baglam());
+    if (acik && o.islem === 'kaydet' && yayindaki && yeni) farklar = sayiFarki(yayindaki as Kayit<SayiVeri>, yeni);
+    if (yeni) adres = `/sayi/${yeni.veri.sayi}/`;
+  }
+
+  const ne2 = o.islem === 'sil' ? 'siteden kaldırmak' : o.temel ? 'güncellemek' : 'yayınlamak';
+  const durumMetni: Record<OneriDurum, string> = {
+    taslak: ben ? 'Taslak. Ekip görebilir ama onaylayamaz; hazır olunca incelemeye gönder.' : `${e(ilk(o.yazan_ad))} hâlâ üzerinde çalışıyor. İncelemeye gönderilince onaylayabilirsin; şimdiden yorum yazabilirsin.`,
+    inceleme: ben ? 'Onay bekliyor. Ekipten başka biri onaylayınca yayına çıkar.' : `${e(ilk(o.yazan_ad))} bu ${ne}yı ${ne2} istiyor. Önizlemeye${farklar ? ' ve değişikliklere' : ''} bak; uygunsa onayla, değilse neyin değişmesi gerektiğini yaz.`,
+    degisiklik: ben ? 'Değişiklik istendi. Konuşmaya bak, düzeltip yeniden gönder.' : 'Yazandan düzeltme bekleniyor.',
+    yayinlandi: `Yayınlandı. ${e(o.onaylayan_ad ?? '')} onayladı.`,
+    kapatildi: 'Geri çekildi; yayına çıkmadı.',
+  };
+  const eylem = [
+    ben && acik && o.islem === 'kaydet' ? `<a class="chip${o.durum === 'degisiklik' ? ' chip--dolu' : ''}" href="#/oneri/${o.id}/duzenle">Düzenle</a>` : '',
+    ben && o.durum === 'taslak' ? '<button type="button" class="chip chip--dolu" data-gonder-oneri>İncelemeye gönder</button>' : '',
+    o.durum === 'yayinlandi' && o.islem === 'kaydet' && adres ? `<a class="pn-dis" href="${e(adres)}" target="_blank" rel="noopener">Sitede gör ↗</a>` : '',
+    acik && (ben || yonetici()) ? `<button type="button" class="pn-tehlike" data-geri-cek>${ben ? 'Geri çek' : 'Öneriyi kapat'}</button>` : '',
+  ].join('');
+
+  const kisi = kisiBul(o.yazan_ad, kisiler());
+  iskelet('inceleme', `
+    <div class="pn-oneri">
+      <a class="pn-geri" href="#/inceleme">← İnceleme</a>
+      <header class="pn-oneri__bas">
+        <p class="pn-ust-not">${o.tur === 'yazi' ? 'Yazı' : 'Sayı'} · ${o.islem === 'sil' ? 'silme önerisi' : o.temel ? 'düzenleme önerisi' : 'yeni'}</p>
+        <h1>${e(o.baslik)}</h1>
+        <p class="pn-kim">${av(kisi)}<span><b>${ben ? 'Sen' : e(o.yazan_ad)}</b> · ${zamanMetni(o.olusturma)} açıldı</span>${rozet(o)}</p>
+      </header>
+      <div class="pn-durum pn-durum--${o.durum}">
+        <p>${durumMetni[o.durum]}</p>
+        ${eylem ? `<div class="pn-eylem">${eylem}</div>` : ''}
+      </div>
+      ${eskimis ? `<p class="pn-uyari">Bu öneri hazırlandıktan sonra ${ne}nın yayındaki hâli değişti. ${ben ? 'Önerini açıp yeniden kaydet; yayındaki son hâlin üzerine kurulur.' : 'Onaylanırsa çakışır ve yazana geri döner; önce yazanın güncellemesi gerekiyor.'}</p>` : ''}
+      ${o.islem === 'sil' && acik ? `<p class="pn-uyari">Onaylanırsa bu ${ne} siteden kalkar. Aşağıda şu anki hâli var.</p>` : ''}
+
+      <div class="pn-oneri__izgara">
+        <section class="pn-oneri__on">
+          ${farklar ? `
+            <div class="pn-sekmeler" role="tablist">
+              <button type="button" role="tab" data-sekme="onizleme" aria-selected="true">Önizleme</button>
+              <button type="button" role="tab" data-sekme="fark" aria-selected="false">Değişiklikler</button>
+            </div>` : ''}
+          <div data-sekme-alan="onizleme">${onizleme ? '<div data-onizleme-kap></div>' : '<p class="pn-bos">Önizlenecek bir şey yok.</p>'}</div>
+          ${farklar ? `<div class="pn-fark" data-sekme-alan="fark" hidden>${farklar}</div>` : ''}
+        </section>
+        <aside class="pn-konusma" aria-label="Konuşma">
+          <h2>Konuşma</h2>
+          <div class="pn-yorumlar">
+            <p class="pn-olay"><b>${e(o.yazan_ad)}</b> öneriyi açtı · ${zamanMetni(o.olusturma)}</p>
+            ${yorumlar.map(yorumHtml).join('')}
+          </div>
+          ${acik ? `
+            <form class="pn-yaz" data-form="yorum" data-id="${o.id}" novalidate>
+              <textarea name="metin" rows="3" placeholder="${inceleyen ? 'Yorumun ya da düzeltme isteğin…' : 'Bir şey yaz…'}"></textarea>
+              <div class="pn-yaz__eylem">
+                <button type="submit" class="chip" data-islem="yorum">Yorum yaz</button>
+                ${inceleyen ? `
+                  <button type="submit" class="chip" data-islem="degisiklik">Değişiklik iste</button>
+                  <button type="submit" class="chip chip--dolu" data-islem="onayla">${o.islem === 'sil' ? 'Onayla ve kaldır' : 'Onayla ve yayınla'}</button>` : ''}
+              </div>
+              ${inceleyen ? '<small>Değişiklik isterken neyin değişmesi gerektiğini yaz. Onaylarken not eklemek isteğe bağlı.</small>' : ''}
+            </form>` : ''}
+        </aside>
+      </div>
+    </div>`);
+  const kap = $('[data-onizleme-kap]');
+  if (kap && onizleme) onizlemeKur(kap, onizleme);
+  const liste = $('.pn-yorumlar');
+  if (liste) liste.scrollTop = liste.scrollHeight;
+}
+
+function yorumHtml(y: Yorum) {
+  const kim = e(y.ad);
+  const zaman = zamanMetni(y.zaman);
+  if (y.tur === 'olay') return `<p class="pn-olay"><b>${kim}</b> ${e(y.metin)} · ${zaman}</p>`;
+  if (y.tur === 'onay') {
+    const not = y.metin.replace(/^onayladı ve yayınladı:?\s*/, '');
+    return `<p class="pn-olay pn-olay--onay"><b>${kim}</b> onayladı ve yayınladı · ${zaman}</p>${not ? balon(y, not, '') : ''}`;
+  }
+  return balon(y, y.metin, y.tur === 'degisiklik' ? 'Değişiklik istedi' : '');
+}
+
+function balon(y: Yorum, metin: string, etiket: string) {
+  const ben = y.eposta === durum.ben?.eposta;
+  return `
+    <div class="pn-yorum${ben ? ' pn-yorum--ben' : ''}${etiket ? ' pn-yorum--degisiklik' : ''}">
+      ${ben ? '' : av(kisiBul(y.ad, kisiler()))}
+      <div class="pn-yorum__ic">
+        <small>${ben ? 'sen' : e(y.ad)} · ${zamanMetni(y.zaman)}</small>
+        <p class="pn-yorum__b">${etiket ? `<b>${etiket}</b>` : ''}${e(metin).replace(/\n/g, '<br>')}</p>
+      </div>
+    </div>`;
+}
+
+// Onaylanan öneri yayına çıkınca paneldeki içerik de güncellenir
+async function yayinaIsle(o: OneriTam) {
+  const yeni = o.islem === 'kaydet' && o.metin ? { yol: o.yol, sha: await blobSha(o.metin), metin: o.metin } : null;
+  if (o.tur === 'yazi') {
+    durum.yazilar = durum.yazilar.filter((y) => y.yol !== o.yol);
+    if (yeni) durum.yazilar.push(yaziOku(yeni));
+  } else {
+    durum.sayilar = durum.sayilar.filter((s) => s.yol !== o.yol);
+    if (yeni) durum.sayilar.push(sayiOku(yeni));
+  }
+}
+
+function siteAdresi(o: OneriTam): string | undefined {
+  if (o.islem === 'sil' || !o.metin) return undefined;
+  if (o.tur === 'sayi') {
+    const v = sayiOku({ yol: o.yol, sha: '', metin: o.metin }).veri;
+    return v.taslak ? undefined : `/sayi/${v.sayi}/`;
+  }
+  const v = yaziOku({ yol: o.yol, sha: '', metin: o.metin }).veri;
+  const s = sayiBul(v.sayi);
+  return !v.taslak && s && !s.veri.taslak ? `/yazi/${adOf(o.yol)}/` : undefined;
+}
+
+async function yorumGonder(f: HTMLFormElement, islem: string) {
+  const o = sayfaOnerisi;
+  if (!o || o.id !== Number(f.dataset.id)) return;
+  const alan = $<HTMLTextAreaElement>('[name="metin"]', f)!;
+  const metin = alan.value.trim();
+  if (islem === 'yorum' && !metin) return void alan.focus();
+  if (islem === 'degisiklik' && !metin) { toast('Neyin değişmesi gerektiğini yaz.'); return void alan.focus(); }
+  if (islem === 'onayla' && !confirm(o.islem === 'sil'
+    ? `“${o.baslik}” siteden kaldırılsın mı?`
+    : `“${o.baslik}” yayına çıksın mı? Sitede 1–2 dakika içinde görünür.`)) return;
+  const dugmeler = $$<HTMLButtonElement>('button', f);
+  for (const d of dugmeler) d.disabled = true;
+  try {
+    if (islem === 'onayla') {
+      const oncesi = await surum();
+      const j = await api<{ commit: string }>('oneri/onayla', { id: o.id, metin, surum: o.surum });
+      sonOncesi = oncesi;
+      await yayinaIsle(o);
+      bekleyenEkle(j.commit, o.baslik, siteAdresi(o));
+      toast(o.islem === 'sil' ? 'Onaylandı. 1–2 dakika içinde siteden kalkar.' : 'Onaylandı. Sitede 1–2 dakika içinde görünür.', 4000);
+    } else {
+      await api(islem === 'degisiklik' ? 'oneri/degisiklik' : 'oneri/yorum', { id: o.id, metin });
+    }
+    durum.kirli = false;
+  } catch (err) {
+    toast((err as Error).message, 6000);
+    if ((err as ApiHatasi).status !== 409) {
+      for (const d of dugmeler) d.disabled = false;
+      return;
+    }
+  }
+  await onerileriYukle().catch(() => {});
+  await oneriSayfasi(o.id);
+}
+
+async function geriCek() {
+  const o = sayfaOnerisi;
+  if (!o || !confirm(benim(o) ? 'Öneri geri çekilsin mi? Yayına çıkmaz; istersen sonra yenisini açarsın.' : 'Öneri kapatılsın mı? Yayına çıkmaz; yazan isterse yenisini açar.')) return;
+  try {
+    await api('oneri/kapat', { id: o.id });
+    await onerileriYukle().catch(() => {});
+    toast('Öneri geri çekildi.');
+    oneriSayfasi(o.id);
+  } catch (err) { toast((err as Error).message); }
+}
+
+async function incelemeyeGonder() {
+  const o = sayfaOnerisi;
+  if (!o) return;
+  try {
+    await api('oneri', { id: o.id, tur: o.tur, islem: o.islem, yol: o.yol, temel: o.temel, metin: o.metin, baslik: o.baslik, gonder: true });
+    await onerileriYukle().catch(() => {});
+    toast('İncelemeye gönderildi. Ekipten biri onaylayınca yayına çıkar.', 3800);
+    oneriSayfasi(o.id);
+  } catch (err) { toast((err as Error).message, 5000); }
+}
+
+async function silmeOner(f: HTMLFormElement) {
+  const kayit = f.dataset.form === 'yazi'
+    ? durum.yazilar.find((y) => adOf(y.yol) === f.dataset.slug)
+    : durum.sayilar.find((s) => s.yol === f.dataset.yol);
+  if (!kayit) return;
+  const baslik = f.dataset.form === 'yazi' ? kayit.veri.baslik : `Sayı ${pad((kayit.veri as SayiVeri).sayi)} · ${kayit.veri.baslik}`;
+  if (!confirm(`“${baslik}” için silme önerisi açılsın mı? Ekipten biri onaylarsa siteden kalkar.`)) return;
+  await oneriKaydet(f, { tur: f.dataset.form, islem: 'sil', yol: kayit.yol, temel: kayit.sha, baslik }, true);
+}
+
+// Formdaki hâlin önizlemesi (henüz kaydedilmemiş olabilir)
+function formOnizle(f: HTMLFormElement) {
+  const govde = $<HTMLTextAreaElement>('[name="govde"]', f)!.value;
+  let html: string;
+  if (f.dataset.form === 'yazi') {
+    const oneri = formOnerisi(f);
+    const v = yaziOkuForm(f);
+    const ad = f.dataset.slug === 'yeni' ? (deger(f, 'adres') || adres(v.baslik) || 'yeni-yazi') : f.dataset.slug!;
+    const url = yeniGorsel && v.gorsel === siteYolu(yeniGorsel.yol) ? yeniGorsel.url
+      : oneri?.gorsel_yol && v.gorsel === siteYolu(oneri.gorsel_yol) ? `/api/panel/gorsel?id=${oneri.id}` : undefined;
+    html = yaziOnizleme({ yol: `src/content/yazilar/${ad}.md`, veri: v, govde }, baglam(), url);
+  } else {
+    html = sayiOnizleme(sayiOkuForm(f), govde, baglam());
+  }
+  const d = document.createElement('dialog');
+  d.className = 'pn-modal';
+  d.innerHTML = `
+    <div class="pn-modal__ust">
+      <p><b>Önizleme</b><small>okurun göreceği hâl · henüz kaydedilmedi</small></p>
+      <button type="button" class="chip" data-kapat>Kapat</button>
+    </div>
+    <div class="pn-modal__alan" data-onizleme-kap></div>`;
+  document.body.append(d);
+  d.addEventListener('close', () => d.remove());
+  d.addEventListener('click', (ev) => { if (ev.target === d || (ev.target as Element).closest('[data-kapat]')) d.close(); });
+  d.showModal();
+  onizlemeKur($('[data-onizleme-kap]', d)!, html);
+}
+
 // ------------------------------------------------------------------ kaydetme ve yayın durumu
 
-function hataGoster(f: HTMLFormElement, hatalar: string[]): boolean {
+function hataGoster(f: HTMLFormElement, hatalar: string[], baglanti?: string): boolean {
   const kutu = $('[data-hatalar]', f)!;
   kutu.hidden = !hatalar.length;
-  kutu.innerHTML = hatalar.length ? `<b>Kaydetmeden önce:</b><ul>${hatalar.map((h) => `<li>${e(h)}</li>`).join('')}</ul>` : '';
+  kutu.innerHTML = hatalar.length ? `<b>Kaydetmeden önce:</b><ul>${hatalar.map((h) => `<li>${e(h)}</li>`).join('')}</ul>${baglanti ? `<a href="${e(baglanti)}">Öneriyi aç →</a>` : ''}` : '';
   if (hatalar.length) kutu.scrollIntoView({ behavior: 'smooth', block: 'center' });
   return hatalar.length > 0;
 }
@@ -684,23 +1106,42 @@ async function gorselHazirla(dosya: File, ad: string): Promise<{ yol: string; ba
   c.width = Math.round(bmp.width * olcek);
   c.height = Math.round(bmp.height * olcek);
   c.getContext('2d')!.drawImage(bmp, 0, 0, c.width, c.height);
-  const blob = await new Promise<Blob>((ok, hayir) => c.toBlob((b) => (b ? ok(b) : hayir(new Error('Görsel işlenemedi.'))), 'image/jpeg', 0.84));
-  const base64 = await new Promise<string>((ok) => {
-    const r = new FileReader();
-    r.onload = () => ok(String(r.result).split(',')[1]);
-    r.readAsDataURL(blob);
-  });
+  // Öneriyle birlikte saklanabilsin diye ~1 MB'ın altına inene kadar sıkıştırılır
+  let blob: Blob, base64: string;
+  for (let kalite = 0.84; ; kalite -= 0.12) {
+    blob = await new Promise<Blob>((ok, hayir) => c.toBlob((b) => (b ? ok(b) : hayir(new Error('Görsel işlenemedi.'))), 'image/jpeg', kalite));
+    base64 = await new Promise<string>((ok) => {
+      const r = new FileReader();
+      r.onload = () => ok(String(r.result).split(',')[1]);
+      r.readAsDataURL(blob);
+    });
+    if (base64.length <= 1_400_000 || kalite < 0.4) break;
+  }
   const ek = Math.random().toString(36).slice(2, 6);
   return { yol: `public/gorseller/${(ad || 'gorsel').slice(0, 50)}-${ek}.jpg`, base64, url: URL.createObjectURL(blob) };
 }
 
 // ------------------------------------------------------------------ yönlendirme
 
+// Kendi önerini düzenlemek: önerinin türüne göre yazı ya da sayı formu, önerideki hâliyle
+async function oneriDuzenle(id: number) {
+  if (!durum.yuklendi) return iskelet('inceleme', yukleniyor());
+  // Önerinin son hâliyle açılsın (bu arada değişiklik istenmiş olabilir)
+  await onerileriYukle().catch(() => {});
+  if (location.hash !== `#/oneri/${id}/duzenle`) return;
+  const o = durum.oneriler.acik.find((x) => x.id === id);
+  if (!o) return void location.replace(`#/oneri/${id}`);
+  return o.tur === 'yazi' ? yaziFormu('', id) : sayiFormu('', id);
+}
+
 function ciz() {
   if (!durum.ben) return girisSayfasi();
   if (durum.ben.degistirmeli) return parolaSayfasi(true);
-  const [sayfa, arg] = location.hash.replace(/^#\/?/, '').split('/');
+  const [sayfa, arg, alt] = location.hash.replace(/^#\/?/, '').split('/');
+  if (sayfa !== 'oneri') sayfaOnerisi = null;
   switch (sayfa) {
+    case 'inceleme': return incelemeSayfasi();
+    case 'oneri': return alt === 'duzenle' ? oneriDuzenle(Number(arg)) : oneriSayfasi(Number(arg));
     case 'yazi': return yaziFormu(arg || 'yeni');
     case 'sayilar': return sayilarSayfasi();
     case 'sayi': return sayiFormu(arg || 'yeni');
@@ -727,18 +1168,14 @@ addEventListener('beforeunload', (ev) => { if (durum.kirli) ev.preventDefault();
 
 kok.addEventListener('input', (ev) => {
   const t = ev.target as HTMLInputElement;
-  const f = t.closest<HTMLFormElement>('form[data-form="yazi"], form[data-form="sayi"], form[data-form="ekip"]');
-  if (f) durum.kirli = true;
+  const f = t.closest<HTMLFormElement>('form[data-form="yazi"], form[data-form="sayi"], form[data-form="ekip"], form[data-form="yorum"]');
+  if (f) durum.kirli = f.dataset.form !== 'yorum' || !!t.value.trim();
   // Yeni yazıda adres başlıktan oluşur (okur elle değiştirmediyse)
   if (t.name === 'baslik' && f?.dataset.form === 'yazi') {
     const a = $<HTMLInputElement>('[name="adres"]', f);
     if (a && a.dataset.adresElle !== '1') a.value = adres(t.value);
   }
   if (t.name === 'adres') t.dataset.adresElle = '1';
-  if (t.name === 'taslak') {
-    const d = $('[data-kaydet]', f!);
-    if (d) d.textContent = t.checked ? 'Taslağı kaydet' : 'Kaydet ve yayınla';
-  }
   if (t.name === 'yayin' && f?.dataset.form === 'sayi' && /^\d{4}-\d{2}-\d{2}$/.test(t.value)) {
     $<HTMLInputElement>('[name="baslangic"]', f)!.value = gunEkle(t.value, -6);
     $<HTMLInputElement>('[name="bitis"]', f)!.value = t.value;
@@ -751,6 +1188,12 @@ kok.addEventListener('input', (ev) => {
     av.textContent = (deger(r, 'kKisa') || kisaltma(deger(r, 'kAd'))).toLocaleUpperCase('tr');
     av.style.setProperty('--av', deger(r, 'kRenk'));
   }
+});
+
+// Bir alanda Enter'a basmak formu göndermesin (yanlışlıkla incelemeye gitmesin)
+kok.addEventListener('keydown', (ev) => {
+  const t = ev.target as HTMLElement;
+  if (ev.key === 'Enter' && t instanceof HTMLInputElement && t.closest('form[data-form="yazi"], form[data-form="sayi"], form[data-form="ekip"]')) ev.preventDefault();
 });
 
 kok.addEventListener('change', async (ev) => {
@@ -802,20 +1245,16 @@ kok.addEventListener('click', async (ev) => {
 
   const bicim = t.closest<HTMLElement>('[data-bicim]');
   if (bicim && f) return bicimUygula($<HTMLTextAreaElement>('[name="govde"]', f)!, bicim.dataset.bicim!);
-  const onizle = t.closest<HTMLButtonElement>('[data-onizle]');
-  if (onizle && f) {
-    const acik = onizle.getAttribute('aria-pressed') !== 'true';
-    onizle.setAttribute('aria-pressed', String(acik));
-    onizle.textContent = acik ? 'Düzenle' : 'Önizle';
-    const alan = $<HTMLTextAreaElement>('[name="govde"]', f)!;
-    const on = $('[data-onizleme]', f)!;
-    on.innerHTML = acik ? await marked.parse(alan.value) : '';
-    on.hidden = !acik;
-    alan.hidden = acik;
+  if (t.closest('[data-onizle]') && f) return formOnizle(f);
+  if (t.closest('[data-sil]') && f) return silmeOner(f);
+  if (t.closest('[data-geri-cek]')) return geriCek();
+  if (t.closest('[data-gonder-oneri]')) return incelemeyeGonder();
+  const sekme = t.closest<HTMLElement>('[data-sekme]');
+  if (sekme) {
+    for (const b of $$('[data-sekme]')) b.setAttribute('aria-selected', String(b === sekme));
+    for (const a of $$('[data-sekme-alan]')) a.hidden = a.dataset.sekmeAlan !== sekme.dataset.sekme;
     return;
   }
-
-  if (t.closest('[data-sil]') && f) return silmeIste(f);
 
   const kopya = t.closest<HTMLElement>('[data-kopyala]');
   if (kopya) {
@@ -861,28 +1300,6 @@ function bicimUygula(alan: HTMLTextAreaElement, tur: string) {
   if (tur === 'h2') alan.setSelectionRange(imlec, imlec);
   alan.focus();
   alan.dispatchEvent(new Event('input', { bubbles: true }));
-}
-
-async function silmeIste(f: HTMLFormElement) {
-  if (f.dataset.form === 'yazi') {
-    const kayit = durum.yazilar.find((y) => adOf(y.yol) === f.dataset.slug);
-    if (!kayit || !confirm(`“${kayit.veri.baslik}” silinsin mi? Bu geri alınamaz.`)) return;
-    await kaydet(f, { mesaj: `Yazı silindi: ${kayit.veri.baslik}`, dosyalar: [], sil: [kayit.yol], beklenen: { [kayit.yol]: kayit.sha } }, async (commit) => {
-      durum.yazilar = durum.yazilar.filter((y) => y !== kayit);
-      bekleyenEkle(commit, `Silindi: ${kayit.veri.baslik}`);
-      toast('Yazı silindi.');
-      location.hash = '#/yazilar';
-    });
-  } else if (f.dataset.form === 'sayi') {
-    const kayit = sayiBul(Number(f.dataset.no));
-    if (!kayit || !confirm(`Sayı ${pad(kayit.veri.sayi)} silinsin mi? Bu geri alınamaz.`)) return;
-    await kaydet(f, { mesaj: `Sayı silindi: ${pad(kayit.veri.sayi)}`, dosyalar: [], sil: [kayit.yol], beklenen: { [kayit.yol]: kayit.sha } }, async (commit) => {
-      durum.sayilar = durum.sayilar.filter((s) => s !== kayit);
-      bekleyenEkle(commit, `Silindi: Sayı ${pad(kayit.veri.sayi)}`);
-      toast('Sayı silindi.');
-      location.hash = '#/sayilar';
-    });
-  }
 }
 
 kok.addEventListener('submit', async (ev) => {
@@ -932,8 +1349,10 @@ kok.addEventListener('submit', async (ev) => {
     } catch (err) { toast((err as Error).message); }
     return;
   }
-  if (tur === 'yazi') return yaziKaydet(f);
-  if (tur === 'sayi') return sayiKaydet(f);
+  const gonder = (ev as SubmitEvent).submitter?.dataset.gonder === '1';
+  if (tur === 'yazi') return yaziKaydet(f, gonder);
+  if (tur === 'sayi') return sayiKaydet(f, gonder);
+  if (tur === 'yorum') return yorumGonder(f, (ev as SubmitEvent).submitter?.dataset.islem ?? 'yorum');
   if (tur === 'ekip') return ekipKaydet(f);
 });
 
