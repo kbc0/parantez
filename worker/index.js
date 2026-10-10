@@ -4,6 +4,9 @@
 //   POST /api/abone  — e-posta aboneliği (KV: ABONELER)
 //   GET  /api/tepki  — bir sayfadaki tepki sayıları (D1: DB)
 //   POST /api/tepki  — tepki ver / geri al
+//   /api/panel/*     — yazı paneli (/admin): giriş, hesaplar, içerik (worker/panel.js)
+
+import { panel } from './panel.js';
 
 const EPOSTA = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const EMOJI = ['❤️', '😂', '😮', '😢', '🔥'];
@@ -17,6 +20,7 @@ export default {
     const yol = url.pathname.replace(/\/$/, '');
     if (yol === '/api/abone') return abone(request, env);
     if (yol === '/api/tepki') return tepki(request, env, url);
+    if (yol === '/api/panel' || yol.startsWith('/api/panel/')) return panel(request, env, url);
     return env.ASSETS.fetch(request);
   },
 };

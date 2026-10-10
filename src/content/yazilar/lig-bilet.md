@@ -7,6 +7,7 @@ yazar: "Deniz Kaya"
 spot: "Tribüne gitmek her sezon biraz daha pahalı. Kâğıt üstünde kombine kârlı görünüyor; ama kaç maça gerçekten gideceğini dürüstçe hesapladın mı?"
 gorsel: "https://picsum.photos/seed/prz-stad/1600/1000"
 gorselAlt: "Bir stadyumun tribünleri"
+gorselKaynak: "Fotoğraf: Picsum"
 neden: "Maça gitmek, birçok genç için en önemli sosyal etkinliklerden biri ve bütçede giderek daha büyük bir yer kaplıyor."
 kisaca: ["Kombine fiyatı ÷ tek maç = gitmen gereken maç sayısı.", "Sınav ve deplasman dönemlerini hesaba kat.", "Öğrenci indirimlerini sor."]
 ---

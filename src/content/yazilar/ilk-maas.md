@@ -7,6 +7,7 @@ yazar: "Deniz Kaya"
 spot: "İlk maaşın yarısı kiraya, kalanı… nereye gitti? Yeni mezunlarla konuştuk; ortak nokta, ilk aylarda bütçe yapmayanların ay sonunu kredi kartıyla getirmesi."
 gorsel: "https://picsum.photos/seed/prz-maas/1600/1000"
 gorselAlt: "Bir masada not defteri ve kalem"
+gorselKaynak: "Fotoğraf: Picsum"
 neden: "İlk maaşla kurulan alışkanlıklar uzun süre değişmiyor. İlk üç ay, sonraki üç yılın provası."
 kisaca: ["Bütçeyi ilk aydan kur.", "50/30/20 kuralı basit ama işe yarıyor.", "Acil durum fonu, ilk birikim hedefin olsun."]
 ---

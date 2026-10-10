@@ -7,6 +7,7 @@ yazar: "Mert Yalın"
 spot: "Okurumuz soruyor: “Hiç kredi çekmedim, borcum da yok. Kredi notum neden düşük?” Cevap, sandığından daha basit."
 gorsel: "https://picsum.photos/seed/prz-kredi/1600/1000"
 gorselAlt: "Bir el ve banka kartı"
+gorselKaynak: "Fotoğraf: Picsum"
 neden: "Ev kiralarken, telefon hattı alırken, hatta bazı iş başvurularında bile kredi notu sorulmaya başlandı."
 kisaca: ["Kredi notu, geçmiş ödeme davranışına bakılarak hesaplanıyor.", "Hiç geçmişin yoksa notun düşük görünebilir.", "Küçük limitli bir kartı düzenli ödemek en basit başlangıç."]
 ---

@@ -1,4 +1,5 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
+import ekip from '../data/ekip.json';
 
 export type Sayi = CollectionEntry<'sayilar'>;
 export type Yazi = CollectionEntry<'yazilar'>;
@@ -15,8 +16,11 @@ export async function sayilar(): Promise<Sayi[]> {
   return all.sort((a, b) => b.data.sayi - a.data.sayi);
 }
 
+// Yazı, kendisi ve sayısı yayındaysa görünür. Böylece bir sayı taslakken
+// yazıları da hazırlanabilir; sayı yayına alınınca hepsi birlikte çıkar.
 export async function yazilar(): Promise<Yazi[]> {
-  const all = await getCollection('yazilar', (y) => !y.data.taslak);
+  const yayinda = new Set((await sayilar()).map((s) => s.data.sayi));
+  const all = await getCollection('yazilar', (y) => !y.data.taslak && yayinda.has(y.data.sayi));
   return all.sort((a, b) => b.data.sayi - a.data.sayi || a.data.sira - b.data.sira);
 }
 
@@ -52,18 +56,15 @@ export function okumaSuresi(y: Yazi): number {
   return Math.max(1, Math.ceil(kelime / 180));
 }
 
-// picsum.photos geçici görselleri istenen boyuta çevirir; gerçek görsellere dokunmaz.
+// picsum.photos geçici görselleri istenen boyuta çevirir; panelden yüklenen
+// görsellere (/gorseller/…) ve diğer adreslere dokunmaz.
 export function gorsel(src: string, w: number, h: number): string {
   return src.replace(/^(https:\/\/picsum\.photos\/seed\/[^/]+)\/\d+\/\d+$/, `$1/${w}/${h}`);
 }
 
-// Sohbette avatar olarak görünen kişiler
+// Sohbette avatar olarak görünen kişiler. Liste src/data/ekip.json'da; panelden düzenlenir.
 export type Kisi = { ad: string; kisa: string; renk: string; rol: string };
-const KISILER: Record<string, Kisi> = {
-  'Ece Arslan': { ad: 'Ece Arslan', kisa: 'EA', renk: '#ff4a24', rol: 'yayın yönetmeni' },
-  'Deniz Kaya': { ad: 'Deniz Kaya', kisa: 'DK', renk: '#2a35ff', rol: 'editör' },
-  'Mert Yalın': { ad: 'Mert Yalın', kisa: 'MY', renk: '#111111', rol: 'editör' },
-};
+const KISILER: Record<string, Kisi> = Object.fromEntries((ekip as Kisi[]).map((k) => [k.ad, k]));
 export const PARANTEZ: Kisi = { ad: '(parantez)', kisa: '(p)', renk: '#111111', rol: 'bülten' };
 export function kisi(ad: string): Kisi {
   if (KISILER[ad]) return KISILER[ad];

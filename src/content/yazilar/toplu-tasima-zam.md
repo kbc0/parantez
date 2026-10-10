@@ -7,6 +7,7 @@ yazar: "Mert Yalın"
 spot: "Ay başında gelen zamla birlikte öğrenci abonmanı da pahalandı. Şehirden şehre fark büyük; ama düzenli kullanan herkes için hesap aynı."
 gorsel: "https://picsum.photos/seed/prz-metro/1600/1000"
 gorselAlt: "Bir metro istasyonunda bekleyen yolcular"
+gorselKaynak: "Fotoğraf: Picsum"
 neden: "Ulaşım, gençlerin zorunlu harcamaları arasında kiradan sonra genellikle ikinci sırada geliyor."
 kisaca: ["Zam ay başında yürürlüğe girdi.", "Aylık abonman düzenli kullanıcı için hâlâ en ucuz yol.", "Aktarma indirimlerini bilmek ciddi fark yaratıyor."]
 ---

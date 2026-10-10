@@ -18,5 +18,8 @@
   "kv_namespaces": [{ "binding": "ABONELER" }],
   // Mesaj tepkileri. İlk deploy'da Cloudflare otomatik oluşturur; tablo ilk istekte kurulur.
   "d1_databases": [{ "binding": "DB", "database_name": "parantez-tepkiler" }],
+  // Yazı paneli içerikleri bu depoya commit eder. GITHUB_TOKEN, YONETICI_EPOSTA ve
+  // YONETICI_PAROLA Cloudflare panelinde gizli değişken (secret) olarak tanımlanır.
+  "vars": { "GITHUB_REPO": "kbc0/parantez", "GITHUB_DAL": "main" },
   "observability": { "enabled": true }
 }

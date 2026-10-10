@@ -58,7 +58,7 @@ const foto = (y: Yazi) => gorsel(y.data.gorsel, 1200, 632);
 
     <figure class="yz__foto">
       <span class="yz__g"><img src={foto(yazi)} alt={d.gorselAlt} width="1200" height="632" fetchpriority="high" style={`view-transition-name: foto-${yazi.id}`}></span>
-      <figcaption>{d.gorselKaynak}</figcaption>
+      {d.gorselKaynak && <figcaption>{d.gorselKaynak}</figcaption>}
     </figure>
 
     <aside class="not" aria-label="Kısaca">

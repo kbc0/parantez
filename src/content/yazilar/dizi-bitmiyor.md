@@ -7,6 +7,7 @@ yazar: "Deniz Kaya"
 spot: "Platformlar sezonları bölerek yayınlıyor; “final” artık üç parçalı bir kavram. İzleme süresi artıyor, izleyicinin sabrı azalıyor."
 gorsel: "https://picsum.photos/seed/prz-dizi/1600/1000"
 gorselAlt: "Karanlık bir odada parlayan bir ekran"
+gorselKaynak: "Fotoğraf: Picsum"
 neden: "Abonelik ücretleri artarken platformların izleyiciyi daha uzun süre tutma stratejileri doğrudan bütçeyi etkiliyor."
 kisaca: ["Sezonlar giderek daha fazla bölünüyor.", "Platformlar için amaç: abonelik süresini uzatmak.", "Abonelikleri dönüşümlü kullanmak ciddi tasarruf sağlıyor."]
 ---

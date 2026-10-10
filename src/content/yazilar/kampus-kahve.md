@@ -7,6 +7,7 @@ yazar: "Deniz Kaya"
 spot: "Bir fincan kahvenin fiyatına kira, kur, süt ve personel giriyor. Kampüs içindeki işletmelerin ise bir de ihale bedeli var."
 gorsel: "https://picsum.photos/seed/prz-kafe/1600/1000"
 gorselAlt: "Bir kafede kahve fincanı"
+gorselKaynak: "Fotoğraf: Picsum"
 neden: "Küçük günlük harcamalar ay sonunda büyük bir kalem oluyor. Günde bir kahve, ayda bir faturaya denk gelebiliyor."
 kisaca: ["Kahve fiyatının büyük kısmı kira ve personel.", "Kampüs işletmeleri ihale bedeli ödüyor.", "Termos taşımak hâlâ en ucuz çözüm."]
 ---

@@ -7,6 +7,7 @@ yazar: "Mert Yalın"
 spot: "Okurlarımızdan ekran süresi raporlarını paylaşmalarını istedik. Yüzlerce rapor geldi. Sonuç: hepimiz aynı gemideyiz."
 gorsel: "https://picsum.photos/seed/prz-ekran/1600/1000"
 gorselAlt: "Elinde akıllı telefon tutan biri"
+gorselKaynak: "Fotoğraf: Picsum"
 neden: "Dikkat süresi, en kıt kaynağımız. Nereye gittiğini bilmek, geri almanın ilk adımı."
 kisaca: ["Okur raporlarında günlük ortalama 5 saate yakın.", "Sürenin büyük kısmı üç uygulamada geçiyor.", "Bildirimleri kısmak en etkili tek ayar."]
 ---

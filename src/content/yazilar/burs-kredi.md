@@ -7,6 +7,7 @@ yazar: "Ece Arslan"
 spot: "Öğrenciyken para bulmanın üç temel yolu var ve hiçbiri bedava değil. Hangisinin sana uygun olduğu, ne kadar zamana ve riske dayanabildiğine bağlı."
 gorsel: "https://picsum.photos/seed/prz-burs/1600/1000"
 gorselAlt: "Kütüphanede ders çalışan öğrenciler"
+gorselKaynak: "Fotoğraf: Picsum"
 neden: "Öğrencilikte verilen finansal kararlar mezuniyetten sonra yıllarca sürüyor."
 kisaca: ["Burs: geri ödemesiz ama şartlı.", "Kredi: kolay ama uzun vadeli yük.", "Part-time: zaman maliyeti var, deneyim kazandırıyor."]
 ---

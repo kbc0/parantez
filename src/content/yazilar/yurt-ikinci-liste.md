@@ -7,6 +7,7 @@ yazar: "Ece Arslan"
 spot: "İlk listede adı çıkmayanlar için ikinci tur sonuçları açıklandı. Hâlâ yerleşemediysen seçenekler tükenmiş değil."
 gorsel: "https://picsum.photos/seed/prz-yurt/1600/1000"
 gorselAlt: "Bir öğrenci odasında masa ve lamba"
+gorselKaynak: "Fotoğraf: Picsum"
 neden: "Barınma sorunu, öğrencilerin okulu bırakma ya da başka şehre geçme kararlarında giderek daha belirleyici oluyor."
 kisaca: ["İkinci liste açıklandı.", "Üniversite ve belediye yurtlarının takvimi farklı.", "Özel yurtta iptal koşullarını oku."]
 ---

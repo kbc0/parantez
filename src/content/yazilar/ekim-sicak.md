@@ -7,6 +7,7 @@ yazar: "Mert Yalın"
 spot: "Ekim geldi, montlar hâlâ dolapta. Mevsim normallerinin üzerindeki sıcaklıklar artık bir istisna değil, yeni bir düzenin parçası gibi görünüyor."
 gorsel: "https://picsum.photos/seed/prz-iklim/1600/1000"
 gorselAlt: "Güneşli bir sahil"
+gorselKaynak: "Fotoğraf: Picsum"
 neden: "Sıcaklık eğilimleri su, gıda fiyatları ve enerji faturaları üzerinden doğrudan bütçeye yansıyor."
 kisaca: ["Ekimin ilk haftası mevsim normallerinin üzerinde geçti.", "Tek hafta değil, uzun dönem eğilim önemli.", "Kuraklık ve su tasarrufu gündeme erken gelebilir."]
 ---

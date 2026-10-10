@@ -7,6 +7,7 @@ yazar: "Ece Arslan"
 spot: "Yaz bitti ama vize randevusu sıkıntısı bitmedi. Aracı firmalar randevuları toplu kapatıyor, şikâyetler büyüyor, Avrupa tarafı “inceliyoruz” diyor."
 gorsel: "https://picsum.photos/seed/prz-vize/1600/1000"
 gorselAlt: "Bir havalimanında kalkış tabelası"
+gorselKaynak: "Fotoğraf: Picsum"
 neden: "Erasmus, staj ve yurt dışı eğitim planları vize randevusuna takıldığında, aylarca hazırlanılan fırsatlar kaçabiliyor."
 kisaca: ["Randevu bulmak bu sonbahar da zor.", "Başvuruyu 6 ay öncesinden açabilirsin.", "Ücretli randevu satıcılarından uzak dur."]
 ---

@@ -53,9 +53,9 @@ const yazilar = defineCollection({
     konu: z.enum(konuKeys),
     yazar: z.string(),
     spot: z.string(),
-    gorsel: z.string(),
+    gorsel: z.string(), // tam adres ya da panelden yüklenen /gorseller/… dosyası
     gorselAlt: z.string().default(''),
-    gorselKaynak: z.string().default('Fotoğraf: Picsum'),
+    gorselKaynak: z.string().default(''),
     neden: z.string(),
     kisaca: z.array(z.string()).min(1).max(4),
     podcast: z.string().optional(),

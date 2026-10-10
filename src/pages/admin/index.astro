@@ -1,0 +1,30 @@
+---
+// Yazı paneli. Ekip buradan giriş yapar; sayı, yazı ve ekip bilgilerini düzenler.
+// Kaydedilen her şey GitHub'a gider, site 1–2 dakikada kendini günceller.
+// Arayüz tamamen src/scripts/panel.ts'de; sunucu tarafı worker/panel.js.
+import '@fontsource-variable/hanken-grotesk';
+import '../../styles/global.css';
+import '../../styles/panel.css';
+---
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Panel — (parantez)</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <meta name="theme-color" content="#ffffff">
+  <script is:inline>document.documentElement.classList.add('js');</script>
+</head>
+<body class="pn">
+  <div id="panel" class="pn-kok" aria-live="polite">
+    <div class="pn-yukleniyor">(parantez) panel yükleniyor…</div>
+  </div>
+  <noscript><p class="pn-yukleniyor">Panel için JavaScript açık olmalı.</p></noscript>
+  <div class="toast" data-toast hidden role="status"></div>
+  <script>
+    import '../../scripts/panel';
+  </script>
+</body>
+</html>

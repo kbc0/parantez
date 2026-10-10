@@ -7,6 +7,7 @@ yazar: "Mert Yalın"
 spot: "Şirketler giriş seviyesi ilanlarını azaltıyor ama “yapay zekâ araçlarını kullanabilen” aday arayan ilan sayısı artıyor. Kapı kapanmıyor; şekil değiştiriyor."
 gorsel: "https://picsum.photos/seed/prz-staj/1600/1000"
 gorselAlt: "Bir ofiste dizüstü bilgisayarla çalışan biri"
+gorselKaynak: "Fotoğraf: Picsum"
 neden: "İlk iş deneyimi kariyerin geri kalanını şekillendiriyor. Giriş kapısı daralırken, oraya hangi becerilerle gidileceği değişiyor."
 kisaca: ["Giriş seviyesi ilan sayısı düşüyor.", "Yapay zekâ becerisi isteyen ilanlar artıyor.", "Sertifika değil, somut proje göster."]
 ---

@@ -7,6 +7,7 @@ yazar: "Deniz Kaya"
 spot: "Büyükşehirlerde “oda kiralık” ilanları bir yılda neredeyse iki katına çıktı. Öğrenciler ve yeni mezunlar için yeni normal: üç kişi, bir banyo, ortak bir buzdolabı rafı."
 gorsel: "https://picsum.photos/seed/prz-kira/1600/1000"
 gorselAlt: "Bir apartmanın pencereleri"
+gorselKaynak: "Fotoğraf: Picsum"
 neden: "Barınma, gençlerin gelirinden en büyük payı alan kalem. Paylaşımlı yaşam artık geçici bir çözüm değil, birçok kişi için kalıcı bir düzen."
 kisaca: ["Oda kiralık ilanları bir yılda kabaca ikiye katlandı.", "Sözleşmede adın yoksa hakların da zayıf.", "Depozito ve fatura paylaşımını yazılı hâle getir."]
 ---

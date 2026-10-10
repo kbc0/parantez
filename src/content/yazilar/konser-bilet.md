@@ -7,6 +7,7 @@ yazar: "Ece Arslan"
 spot: "Satış saatinde hazırdın, sayfayı yeniledin, sıraya girdin. Önünde 40 bin kişi vardı. Birkaç dakika sonra ikinci el sitelerde bilet üç katı fiyata satıştaydı."
 gorsel: "https://picsum.photos/seed/prz-konser/1600/1000"
 gorselAlt: "Bir konserde sahne ışıkları"
+gorselKaynak: "Fotoğraf: Picsum"
 neden: "Konser ve festival, gençlerin en büyük kültür harcaması. Bilet karaborsası bu deneyimi giderek daha az erişilebilir kılıyor."
 kisaca: ["Talep kapasitenin çok üzerinde.", "Botlar ve toplu alımlar ikinci el piyasasını besliyor.", "Ön satış ve resmi devir platformlarını takip et."]
 ---
