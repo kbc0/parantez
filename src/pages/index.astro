@@ -4,7 +4,7 @@
 // sağdan açılan bir çekmece olur (popover): üstteki "Arşiv" açar.
 import App from '../layouts/App.astro';
 import Av from '../components/Av.astro';
-import { sayilar, yazilar, sayininYazilari, sayiUrl, yaziUrl, pad, tarihKisa, tarihUzun, gunAdi, aralik, okumaSuresi, ilkAd, kisi, PARANTEZ, SITE } from '../lib/site';
+import { sayilar, yazilar, sayininYazilari, sayiUrl, yaziUrl, pad, tarihKisa, tarihUzun, gunAdi, aralik, okumaSuresi, ilkAd, kisi, arastirmalar, ayYil, PARANTEZ, SITE } from '../lib/site';
 import { KONULAR, konuAdi, konuRenk } from '../lib/konular';
 
 const liste = await sayilar();
@@ -18,6 +18,7 @@ const gDk = gYazilar.reduce((t, y) => t + okumaSuresi(y), 0);
 // Sayının ilk paragrafı kapakta özet olur
 const ozet = (g?.body ?? '').trim().split(/\n\s*\n/)[0]?.replace(/[*_`#>]/g, '').trim();
 const editor = g ? kisi(g.data.imza.split(',')[0].trim()) : PARANTEZ;
+const [sonArastirma] = await arastirmalar();
 ---
 <App composer={false} ana
   bar={{ baslik: '(parantez)', alt: `her pazartesi 07:30 · ${liste.length} sayı`, kok: true }}>
@@ -44,6 +45,7 @@ const editor = g ? kisi(g.data.imza.split(',')[0].trim()) : PARANTEZ;
     </nav>
 
     <nav class="liste__alt" aria-label="Diğer">
+      <a class="ci ci--yalin" href="/arastirma/"><span class="av av--o av--ar" aria-hidden="true">%</span><span class="ci__t"><b>Araştırma</b><span>{sonArastirma ? `${ayYil(sonArastirma.data.yayin)}: ${sonArastirma.data.baslik}` : 'Ayda bir konu, sonuna kadar'}</span></span><span aria-hidden="true">›</span></a>
       <a class="ci ci--yalin" href="/abone/" data-abone-ac="hizli-abone" data-abone-gizle><span class="av av--o" style="--av:#ff4a24" aria-hidden="true">@</span><span class="ci__t"><b>Abone ol</b><span>Her pazartesi 07:30 gelen kutunda</span></span><span aria-hidden="true">›</span></a>
       <a class="ci ci--yalin" href="/hakkinda/"><span class="av av--o av--i" style="--av:#111" aria-hidden="true">i</span><span class="ci__t"><b>Hakkında</b><span>{SITE.slogan}</span></span><span aria-hidden="true">›</span></a>
     </nav>
@@ -55,6 +57,7 @@ const editor = g ? kisi(g.data.imza.split(',')[0].trim()) : PARANTEZ;
       <button type="button" popovertarget="liste">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg>Arşiv
       </button>
+      <a href="/arastirma/">Araştırma</a>
       <a href="/hakkinda/">Hakkında</a>
     </nav>
   </header>

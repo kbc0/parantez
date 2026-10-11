@@ -17,13 +17,14 @@ const CEREZ = 'p_panel';
 const DENEME_SINIRI = 10; // 15 dakikada bir IP'den hatalı giriş
 
 // Panelin yazabileceği dosyalar. Başka hiçbir yere dokunamaz.
-const YAZILABILIR = [
+const ICERIK = [
   /^src\/content\/sayilar\/\d{1,4}\.md$/,
   /^src\/content\/yazilar\/[a-z0-9]+(?:-[a-z0-9]+)*\.md$/,
-  /^src\/data\/ekip\.json$/,
-  /^public\/gorseller\/[a-z0-9]+(?:-[a-z0-9]+)*\.(?:jpe?g|png|webp)$/,
+  /^src\/content\/arastirmalar\/[a-z0-9]+(?:-[a-z0-9]+)*\.md$/,
 ];
-const SILINEBILIR = YAZILABILIR.slice(0, 2);
+const OKUNABILIR = [...ICERIK, /^src\/data\/ekip\.json$/];
+const YAZILABILIR = [...OKUNABILIR, /^public\/gorseller\/[a-z0-9]+(?:-[a-z0-9]+)*\.(?:jpe?g|png|webp)$/];
+const SILINEBILIR = ICERIK;
 const GORSEL_SINIRI = 3 * 1024 * 1024;
 
 const json = (veri, status = 200, ek = {}) =>
@@ -273,13 +274,13 @@ async function icerik(yol, yontem, veri, ben, env, url) {
     if (yol === 'dosyalar' && yontem === 'POST') {
       const liste = Array.isArray(veri.liste) ? veri.liste : [];
       if (!liste.length || liste.length > 40) return hata(400, 'En fazla 40 dosya istenebilir.');
-      if (liste.some((d) => !YAZILABILIR.slice(0, 3).some((r) => r.test(d?.yol)) || !/^[0-9a-f]{40}$/.test(d?.sha))) return hata(400, 'Geçersiz dosya.');
+      if (liste.some((d) => !OKUNABILIR.some((r) => r.test(d?.yol)) || !/^[0-9a-f]{40}$/.test(d?.sha))) return hata(400, 'Geçersiz dosya.');
       return json({ dosyalar: await gh.bloblar(liste) });
     }
 
     if (yol === 'dosya' && yontem === 'GET') {
       const dosyaYolu = url.searchParams.get('yol') || '';
-      if (!YAZILABILIR.slice(0, 3).some((r) => r.test(dosyaYolu))) return hata(400, 'Geçersiz dosya.');
+      if (!OKUNABILIR.some((r) => r.test(dosyaYolu))) return hata(400, 'Geçersiz dosya.');
       return json(await gh.dosya(dosyaYolu));
     }
 
@@ -288,8 +289,8 @@ async function icerik(yol, yontem, veri, ben, env, url) {
       const sil = Array.isArray(veri.sil) ? veri.sil : [];
       const beklenen = veri.beklenen && typeof veri.beklenen === 'object' ? veri.beklenen : {};
       if (!dosyalar.length && !sil.length) return hata(400, 'Kaydedilecek bir şey yok.');
-      // Sayı ve yazılar yalnızca akran incelemesiyle yayına çıkar (worker/inceleme.js)
-      if (sil.length || dosyalar.some((d) => d?.yol !== 'src/data/ekip.json')) return hata(403, 'Sayı ve yazılar inceleme ile yayınlanır.');
+      // Sayı, yazı ve araştırmalar yalnızca akran incelemesiyle yayına çıkar (worker/inceleme.js)
+      if (sil.length || dosyalar.some((d) => d?.yol !== 'src/data/ekip.json')) return hata(403, 'Sayı, yazı ve araştırmalar inceleme ile yayınlanır.');
       if (dosyalar.length > 6 || sil.length > 6) return hata(400, 'Tek seferde çok fazla dosya.');
 
       for (const d of dosyalar) {

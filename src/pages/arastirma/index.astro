@@ -1,0 +1,78 @@
+---
+// (parantez) araştırma: ayda bir yayımlanan raporların vitrini. Sohbet değil, sade bir okuma odası.
+// En yeni rapor üstte bulgularıyla durur, öncekiler altında tek satır.
+import App from '../../layouts/App.astro';
+import Av from '../../components/Av.astro';
+import { arastirmalar, arastirmaSuresi, arastirmaUrl, pad, ayYil, kisi, PARANTEZ, SITE } from '../../lib/site';
+import { konuAdi, konuRenk } from '../../lib/konular';
+
+const liste = await arastirmalar();
+const [son, ...onceki] = liste;
+const adlar = (l: string[]) => (l.length < 2 ? l[0] : `${l.slice(0, -1).join(', ')} ve ${l[l.length - 1]}`);
+---
+<App
+  title="Araştırma"
+  description="(parantez) araştırma: ayda bir, gençleri ilgilendiren bir konuyu uzun uzun kurcalıyoruz. Ne bulduk, nasıl bulduk, nerede yanılıyor olabiliriz."
+  sayfa="arastirma"
+  aktif="arastirma"
+  bar={{ baslik: 'Araştırma', alt: liste.length ? `ayda bir · ${liste.length} rapor` : 'ayda bir', geri: '/' }}
+  composer={false}
+  okuma
+>
+  <div class="arv">
+    <header class="arv__bas">
+      <p class="yz__ust"><span class="ar__etiket">(parantez) araştırma</span></p>
+      <h1 class="arv__baslik">Ayda bir konu, sonuna kadar.</h1>
+      <p class="arv__spot">Bültende haftayı kısaltıyoruz. Burada uzatıyoruz: Gençleri ilgilendiren bir soruyu bir ay boyunca soruyor, okuyor, sayıyoruz. Ne bulduğumuzu, nasıl bulduğumuzu ve nerede yanılıyor olabileceğimizi açıkça yazıyoruz.</p>
+    </header>
+
+    {son ? (
+      <article class="arv-son" style={`--c:${konuRenk(son.data.konu)}`}>
+        <div class="arv-son__sol">
+          <p class="arv-son__ust">Son rapor · No. {pad(son.data.no)} · {ayYil(son.data.yayin)}</p>
+          <h2 class="arv-son__baslik"><a href={arastirmaUrl(son)}>{son.data.baslik}</a></h2>
+          <p class="arv-son__ozet">{son.data.ozet}</p>
+          <div class="ar__imza">
+            <span class="ar__avlar">{son.data.yazarlar.map((ad) => <Av k={kisi(ad)} />)}</span>
+            <span><b>{adlar(son.data.yazarlar)}</b><small>{arastirmaSuresi(son)} dk okuma · {konuAdi(son.data.konu)}</small></span>
+          </div>
+          <a class="chip chip--dolu" href={arastirmaUrl(son)}>Raporu oku</a>
+        </div>
+        <section class="arv-son__bulgular" aria-label="Öne çıkanlar">
+          <h3 class="ar__h">Öne çıkanlar</h3>
+          <ol>
+            {son.data.bulgular.slice(0, 3).map((b) => (
+              <li>{b.rakam && <b class="ar__rakam">{b.rakam}</b>}<p>{b.metin}</p></li>
+            ))}
+          </ol>
+        </section>
+      </article>
+    ) : (
+      <p class="arv__bos">İlk raporumuz hazırlanıyor. Yayımlanınca bültende haber vereceğiz.</p>
+    )}
+
+    {onceki.length > 0 && (
+      <section class="arv-arsiv" aria-labelledby="onceki">
+        <h2 class="ar__h" id="onceki">Önceki raporlar</h2>
+        <ol>
+          {onceki.map((a) => (
+            <li>
+              <a href={arastirmaUrl(a)} style={`--c:${konuRenk(a.data.konu)}`}>
+                <span class="arv-arsiv__no">No. {pad(a.data.no)}</span>
+                <span class="arv-arsiv__t">
+                  <b>{a.data.baslik}</b>
+                  <small><i aria-hidden="true"></i>{ayYil(a.data.yayin)} · {konuAdi(a.data.konu)} · {arastirmaSuresi(a)} dk</small>
+                </span>
+              </a>
+            </li>
+          ))}
+        </ol>
+      </section>
+    )}
+
+    <aside class="not arv__not">
+      <Av k={PARANTEZ} />
+      <div class="not__b"><p>her raporun sonunda yöntemimizi yazıyoruz: kimlere sorduk, ne zaman, neyi ölçemedik. bir hata görürsen <a href={`mailto:${SITE.eposta}`}>{SITE.eposta}</a> adresine yaz, düzeltelim.</p></div>
+    </aside>
+  </div>
+</App>

@@ -299,3 +299,16 @@
   .pn-konusma { position: static; max-height: 70vh; }
 }
 .pn .chip--dolu::after { content: none; }
+
+/* araştırma formu */
+.pn-satir--kunye input[name="kAd"] { flex: none; width: 160px; font-weight: 700; }
+.pn-satir--bulgu input[name="bRakam"] { flex: none; width: 110px; font-weight: 800; }
+.pn-secimler { display: flex; flex-wrap: wrap; gap: 8px; }
+.pn-secim { display: inline-flex; align-items: center; gap: 7px; padding: 8px 13px; border: 1px solid var(--line); border-radius: 99px; font-size: 15px; font-weight: 700; cursor: pointer; }
+.pn-secim input { width: 16px; height: 16px; accent-color: var(--me); }
+.pn-secim:has(input:checked) { border-color: #cdd1ff; background: var(--me-soft); color: var(--me); }
+@media (max-width: 760px) {
+  .pn-satir--kunye, .pn-satir--bulgu { flex-wrap: wrap; }
+  .pn-satir--kunye input[name="kAd"], .pn-satir--bulgu input[name="bRakam"] { width: calc(100% - 44px); }
+  .pn-satir--kunye input[name="kDeger"], .pn-satir--bulgu input[name="bMetin"] { order: 3; width: 100%; }
+}

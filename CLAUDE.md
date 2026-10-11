@@ -19,6 +19,11 @@ Site sahibi bu çizgiyi çok seviyor; yeni işler bu çizgide kalsın:
   - Logo sol üstte durur. Sağ üstte tek "Arşiv" düğmesi var; tüm sayılar ve konular sağdan açılan çekmecede.
   - "Abone ol" yerinde açılır.
 - **Mobil ana sayfa sohbet listesidir.**
+- **Araştırma (`/arastirma/`) ciddi bir okuma odasıdır, mesaj değildir.** Ayda bir uzun rapor.
+  - Yazı sayfasının sakin düzeni; raporun kendi parçaları: künye, temel bulgular, içindekiler,
+    numaralı bölümler, grafik, tablo, dipnot, yöntem notu.
+  - Rengi fosfor: rakamların altından işaretleyici kalem gibi geçer, "(parantez) araştırma" etiketi.
+  - Sitenin geri kalanıyla bağ: aynı üst bar, yazar avatarları, sondaki tek (parantez) balonu.
 - **Geri düğmesi** okuru geldiği yere götürür. Sohbete dönen okur kaldığı yerden devam eder.
 
 Kaçınılacaklar:
@@ -42,25 +47,28 @@ Yazı tipi: Hanken Grotesk.
 
 ## Kod
 
-- İçerik: `src/content/sayilar/*.md`, `src/content/yazilar/*.md` (şema `src/content.config.ts`).
+- İçerik: `src/content/sayilar/*.md`, `src/content/yazilar/*.md`, `src/content/arastirmalar/*.md` (şema `src/content.config.ts`).
+- Markdown: Astro'nun Sätteri işlemcisi (`astro.config.mjs`).
+  - ` ```grafik ` blokları çubuk grafiğe dönüşür (`src/lib/grafik.js`; panel önizlemesi de bunu kullanır).
+  - `[^1]` dipnotları "Kaynaklar ve notlar" başlığıyla sonda toplanır.
 - Sayfalar: `src/pages/`. Ortak iskelet: `src/layouts/App.astro`.
   - `okuma` prop'u yazı düzenini açar.
   - `ana` prop'u ana sayfa düzenini açar.
 - Betikler (`src/scripts/`):
   - `ortak.ts`: her sayfa; geri düğmesi, sayfa içi abonelik, paylaş.
   - `sohbet.ts`: sohbet sayfaları.
-  - `okuma.ts`: yazı sayfası.
+  - `okuma.ts`: yazı ve araştırma raporu sayfası (`.yz` varsa yüklenir).
 - Yazı paneli: `/admin` (bkz. `PANEL.md`).
   - Arayüz `src/pages/admin/index.astro`, `src/scripts/panel.ts`, `src/scripts/panel-icerik.ts`.
   - Sunucu `worker/panel.js`, `worker/inceleme.js` ve `worker/github.js`.
-  - Akran incelemesi: sayı ve yazılar öneri olarak D1'de bekler.
+  - Akran incelemesi: sayı, yazı ve araştırmalar öneri olarak D1'de bekler.
     Yazandan başka bir ekip üyesi onaylayınca GitHub'a commit edilir. Hesaplar da D1'de.
   - Ekip listesi `src/data/ekip.json`, görseller `public/gorseller/` altında.
   - İçerik şeması değişirse `panel-icerik.ts`'teki denetim de güncellenmeli.
-  - Önizleme `src/scripts/panel-onizleme.ts`: yazı sayfası, sohbet ve üst barın kopyası.
+  - Önizleme `src/scripts/panel-onizleme.ts`: yazı sayfası, araştırma raporu, sohbet ve üst barın kopyası.
     Bu şablonlar değişirse önizleme de güncellenmeli.
 - Worker: `worker/index.js`.
   - `/api/abone`: abonelik; KV `ABONELER`.
-  - `/api/tepki`: tepkiler; D1 `parantez-tepkiler`.
+  - `/api/tepki`: tepkiler; D1 `parantez-tepkiler`. Yeni bir sayfa türü tepki alacaksa `SAYFA` kalıbına eklenmeli.
 - Her şey JavaScript olmadan da çalışmalı. Formlar doğrudan `/api/abone`'ye gider.
 - Yerelde deneme: `npx wrangler dev`. Derlemeyi kendisi yapar.

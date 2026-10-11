@@ -63,4 +63,26 @@ const yazilar = defineCollection({
   }),
 });
 
-export const collections = { sayilar, yazilar };
+// Araştırma: ayda bir, uzun ve kaynaklı rapor. Gövdesi (markdown) raporun kendisi;
+// ```grafik blokları çubuk grafik, [^1] dipnot olur.
+const arastirmalar = defineCollection({
+  loader: glob({ pattern: '*.md', base: './src/content/arastirmalar' }),
+  schema: z.object({
+    no: z.number().int().positive(), // "Araştırma 01"
+    baslik: z.string(),
+    yayin: z.coerce.date(),
+    ozet: z.string(), // başlığın altındaki birkaç cümle
+    yazarlar: z.array(z.string()).min(1).max(6),
+    konu: z.enum(konuKeys),
+    bulgular: z.array(z.object({ rakam: z.string().optional(), metin: z.string() })).min(1).max(5),
+    kunye: z.array(z.object({ ad: z.string(), deger: z.string() })).max(6).default([]), // ör. Örneklem: 1.240 kişi
+    yontem: z.string(), // raporun sonundaki "Yöntem" notu
+    gorsel: z.string().default(''),
+    gorselAlt: z.string().default(''),
+    gorselKaynak: z.string().default(''),
+    pdf: z.url().optional(),
+    taslak: z.boolean().default(false),
+  }),
+});
+
+export const collections = { sayilar, yazilar, arastirmalar };

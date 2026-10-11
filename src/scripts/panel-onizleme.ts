@@ -1,21 +1,45 @@
 // Panel: okurun göreceği hâliyle önizleme ve iki sürüm arasındaki farklar.
-// Şablonlar sitedekilerin aynısı olmalı: src/pages/yazi/[slug].astro,
+// Şablonlar sitedekilerin aynısı olmalı: src/pages/yazi/[slug].astro, src/pages/arastirma/[slug].astro,
 // src/components/IssueChat.astro (Grp, LinkCard, Av) ve src/layouts/App.astro'nun üst barı.
 // Biri değişirse buradaki karşılığı da güncellenmeli.
 import { marked } from 'marked';
 import { KONULAR, KONU_RENK } from '../lib/konular';
-import { FIILLER, type Kayit, type Kisi, type SayiVeri, type YaziVeri } from './panel-icerik';
+import { grafikHtml } from '../lib/grafik.js';
+import { FIILLER, type ArastirmaVeri, type Kayit, type Kisi, type SayiVeri, type YaziVeri } from './panel-icerik';
 
-// Ham HTML gösterilmez (yalnızca Markdown)
-marked.use({ renderer: { html: () => '' } });
-export const metinHtml = (md: string) => marked.parse(md, { async: false }) as string;
+// Ham HTML gösterilmez (yalnızca Markdown). ```grafik blokları sitedeki gibi çubuk grafik olur.
+marked.use({
+  renderer: {
+    html: () => '',
+    code({ text, lang }) { return lang === 'grafik' ? grafikHtml(text) : false; },
+  },
+});
+
+// Dipnotlar ([^1]) sitedeki gibi: metinde üst simge, sonda "Kaynaklar ve notlar"
+const IM = ['\uE000', '\uE001'];
+export function metinHtml(md: string): string {
+  const tanimlar = new Map<string, string>();
+  const govde = md.replace(/^\[\^([^\]\s]+)\]:[ \t]*(.*)$/gm, (_, k: string, t: string) => { tanimlar.set(k, t); return ''; });
+  const sira: string[] = [];
+  const isaretli = govde.replace(/\[\^([^\]\s]+)\]/g, (m, k: string) => {
+    if (!tanimlar.has(k)) return m;
+    if (!sira.includes(k)) sira.push(k);
+    return `${IM[0]}${sira.indexOf(k) + 1}${IM[1]}`;
+  });
+  let html = marked.parse(isaretli, { async: false }) as string;
+  html = html.replace(new RegExp(`${IM[0]}(\\d+)${IM[1]}`, 'g'), '<sup><a href="#" data-footnote-ref>$1</a></sup>');
+  if (sira.length) {
+    html += `<section class="footnotes"><h2>Kaynaklar ve notlar</h2><ol>${sira.map((k) => `<li><p>${marked.parseInline(tanimlar.get(k)!, { async: false })}</p></li>`).join('')}</ol></section>`;
+  }
+  return html;
+}
 
 const e = (s: unknown) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
 const pad = (n: number) => String(n).padStart(2, '0');
 const konuAdi = (k: string) => KONULAR[k] ?? k;
 const konuRenk = (k: string) => KONU_RENK[k] ?? '#8b8b86';
 
-export type Baglam = { sayilar: Kayit<SayiVeri>[]; yazilar: Kayit<YaziVeri>[]; ekip: Kisi[] };
+export type Baglam = { sayilar: Kayit<SayiVeri>[]; yazilar: Kayit<YaziVeri>[]; arastirmalar: Kayit<ArastirmaVeri>[]; ekip: Kisi[] };
 type YaziTaslak = { yol: string; veri: YaziVeri; govde: string };
 
 const PARANTEZ: Kisi = { ad: '(parantez)', kisa: '(p)', renk: '#111111', rol: 'bülten' };
@@ -192,6 +216,65 @@ export function sayiOnizleme(v: SayiVeri, govde: string, b: Baglam): string {
   </div></div>`;
 }
 
+// ------------------------------------------------------------------ araştırma raporu
+
+type ArastirmaTaslak = { yol: string; veri: ArastirmaVeri; govde: string };
+
+export function arastirmaSuresi(v: ArastirmaVeri, govde: string): number {
+  const metin = [v.ozet, govde, v.yontem, ...v.bulgular.map((b) => b.metin)].join(' ');
+  return Math.max(1, Math.ceil(metin.replace(/[#>*_`|]/g, ' ').split(/\s+/).filter(Boolean).length / 180));
+}
+const ayYil = (t: string) => { const d = tarih(t); return `${AYLAR[d.getUTCMonth()]} ${d.getUTCFullYear()}`; };
+const adlar = (l: string[]) => (l.length < 2 ? l[0] ?? '' : `${l.slice(0, -1).join(', ')} ve ${l[l.length - 1]}`);
+
+export function arastirmaOnizleme(a: ArastirmaTaslak, b: Baglam, gorselUrl?: string): string {
+  const v = a.veri;
+  const yazarlar = (v.yazarlar.length ? v.yazarlar : ['(yazar yok)']).map((ad) => kisiBul(ad, b.ekip));
+  const dk = arastirmaSuresi(v, a.govde);
+  const onceki = b.arastirmalar.filter((x) => x.yol !== a.yol && !x.veri.taslak && x.veri.no < v.no).sort((x, y) => y.veri.no - x.veri.no)[0];
+  // İçindekiler: kod blokları dışındaki "## " satırları
+  const bolumler = a.govde.replace(/^```[\s\S]*?^```/gm, '').split('\n').filter((l) => /^##\s/.test(l)).map((l) => l.replace(/^##\s+/, '').trim());
+  const foto = gorselUrl ?? (v.gorsel ? gorsel(v.gorsel, 1200, 632) : '');
+  const konu = konuAdi(v.konu).toLocaleLowerCase('tr');
+
+  return `<div class="app"><div class="main">
+    ${bar(`Araştırma ${pad(v.no)}`, `${ayYil(v.yayin).toLocaleLowerCase('tr')} · ${konu}`, `<button type="button" class="ib" title="Paylaş" aria-label="Paylaş">${SVG_PAYLAS}</button>`)}
+    <main class="oku">
+      <article class="yz ar" style="--c:${konuRenk(v.konu)}">
+        <header class="yz__bas">
+          <p class="yz__ust"><a class="ar__etiket" href="#">(parantez) araştırma</a><span>No. ${pad(v.no)} · ${ayYil(v.yayin)}</span></p>
+          <h1 class="yz__baslik">${e(v.baslik)}</h1>
+          <p class="yz__spot">${e(v.ozet)}</p>
+          <div class="ar__imza">
+            <span class="ar__avlar">${yazarlar.map(av).join('')}</span>
+            <span><b>${e(adlar(yazarlar.map((k) => k.ad)))}</b><small>${tarihUzun(v.yayin)} · ${dk} dk okuma · ${e(konuAdi(v.konu))}</small></span>
+          </div>
+          ${v.kunye.length ? `<dl class="ar__kunye">${v.kunye.map((k) => `<div><dt>${e(k.ad)}</dt><dd>${e(k.deger)}</dd></div>`).join('')}</dl>` : ''}
+        </header>
+        ${foto ? `<figure class="yz__foto"><span class="yz__g"><img src="${e(foto)}" alt="${e(v.gorselAlt)}" width="1200" height="632"></span>${v.gorselKaynak ? `<figcaption>${e(v.gorselKaynak)}</figcaption>` : ''}</figure>` : ''}
+        <section class="ar__bulgular">
+          <h2 class="ar__h">Temel bulgular</h2>
+          <ol>${v.bulgular.map((x) => `<li>${x.rakam ? `<b class="ar__rakam">${e(x.rakam)}</b>` : ''}<p>${e(x.metin)}</p></li>`).join('')}</ol>
+        </section>
+        ${bolumler.length > 1 ? `<nav class="ar__icindekiler"><h2 class="ar__h">Bu raporda</h2><ol>${bolumler.map((h) => `<li><a href="#">${e(h)}</a></li>`).join('')}</ol></nav>` : ''}
+        <div class="yz__metin ar__metin">${metinHtml(a.govde)}</div>
+        <aside class="ar__yontem"><h2 class="ar__h">Yöntem</h2><p>${e(v.yontem)}</p>${v.pdf ? '<a class="chip" href="#">Raporun tamamı (PDF)</a>' : ''}</aside>
+        <footer class="yz__son">
+          <p class="bitti"><span>(son)</span></p>
+          <div class="yz-tepki"><p>bu araştırma nasıldı?</p><div>${['❤️', '😂', '😮', '😢', '🔥'].map((x) => `<button type="button">${x}<span></span></button>`).join('')}</div></div>
+          <a class="sonraki sonraki--son" href="#"><span class="sonraki__t">${onceki
+            ? `<small>Önceki araştırma · No. ${pad(onceki.veri.no)}</small><b>${e(onceki.veri.baslik)}</b><span>${ayYil(onceki.veri.yayin)} · ${arastirmaSuresi(onceki.veri, onceki.govde)} dk</span>`
+            : '<small>Bütün araştırmalar</small><b>Ayda bir, bir konuyu sonuna kadar</b><span>(parantez) araştırma</span>'}</span></a>
+          <section class="yz-abone" aria-label="Abone ol">
+            <div class="not">${av(PARANTEZ)}<div class="not__b"><p>yeni araştırmaları her pazartesi 07:30’da gelen bültende duyuruyoruz. sana da gelsin mi?</p></div></div>
+            <form class="yz-abone__form"><input name="eposta" type="email" placeholder="e-posta adresin"><button class="send" type="button" aria-label="Abone ol">${SVG_GONDER}</button></form>
+          </section>
+        </footer>
+      </article>
+    </main>
+  </div></div>`;
+}
+
 // ------------------------------------------------------------------ çerçeve
 
 const CIHAZ = { telefon: { w: 390, h: 760 }, masaustu: { w: 1280, h: 800 } } as const;
@@ -362,6 +445,20 @@ export function yaziFarki(eski: YaziTaslak, yeni: YaziTaslak, gorselUrl?: string
 export function sayiFarki(eski: { veri: SayiVeri; govde: string }, yeni: { veri: SayiVeri; govde: string }): string {
   const alanlar = alanlarFarki(sayiAlanlari(eski.veri), sayiAlanlari(yeni.veri));
   const metin = eski.govde.trim() === yeni.govde.trim() ? '' : `<section class="pn-fark__alan"><h3>Haftanın özeti</h3>${bloklarFarki(paragraflar(eski.govde), paragraflar(yeni.govde))}</section>`;
+  return alanlar + metin || '<p class="pn-bos">Yayındaki hâliyle aynı; değişiklik yok.</p>';
+}
+
+const arastirmaAlanlari = (v: ArastirmaVeri): Alan[] => [
+  ['Başlık', v.baslik], ['No', String(v.no)], ['Yayın', v.yayin], ['Konu', konuAdi(v.konu)], ['Yazarlar', v.yazarlar],
+  ['Özet', v.ozet], ['Künye', v.kunye.map((k) => `${k.ad}: ${k.deger}`)],
+  ['Temel bulgular', v.bulgular.map((b) => (b.rakam ? `${b.rakam} — ${b.metin}` : b.metin))],
+  ['Görsel', v.gorsel, 'gorsel'], ['Görselde ne var?', v.gorselAlt], ['Görsel kaynağı', v.gorselKaynak],
+  ['Yöntem', v.yontem], ['PDF', v.pdf ?? ''], ['Sitede gizli', v.taslak ? 'evet' : 'hayır'],
+];
+
+export function arastirmaFarki(eski: ArastirmaTaslak, yeni: ArastirmaTaslak, gorselUrl?: string): string {
+  const alanlar = alanlarFarki(arastirmaAlanlari(eski.veri), arastirmaAlanlari(yeni.veri), gorselUrl);
+  const metin = eski.govde.trim() === yeni.govde.trim() ? '' : `<section class="pn-fark__alan"><h3>Metin</h3>${bloklarFarki(paragraflar(eski.govde), paragraflar(yeni.govde))}</section>`;
   return alanlar + metin || '<p class="pn-bos">Yayındaki hâliyle aynı; değişiklik yok.</p>';
 }
 

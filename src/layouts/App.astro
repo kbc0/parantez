@@ -80,7 +80,7 @@ const guncel = liste[0]?.data.sayi;
         {Object.entries(KONULAR).map(([k, ad]) => <a class:list={['tag', { on: aktif === `konu-${k}` }]} href={`/konu/${k}/`}>#{ad.toLocaleLowerCase('tr')}</a>)}
       </nav>
       <nav class="side__foot">
-        <a href="/hakkinda/">Hakkında</a><a href="/abone/">Abone ol</a><a href="/">Tüm sayılar</a><a href="/rss.xml">RSS</a>
+        <a href="/arastirma/">Araştırma</a><a href="/hakkinda/">Hakkında</a><a href="/abone/">Abone ol</a><a href="/">Tüm sayılar</a><a href="/rss.xml">RSS</a>
       </nav>
     </aside>
 
@@ -138,8 +138,9 @@ const guncel = liste[0]?.data.sayi;
 
   <script>
     import '../scripts/ortak';
-    if (document.querySelector('.oku')) import('../scripts/okuma');
-    else import('../scripts/sohbet');
+    // Yazı ve araştırma raporu: okuma; araştırma ana sayfası yalnızca ortak betikle
+    if (document.querySelector('.yz')) import('../scripts/okuma');
+    else if (!document.querySelector('.oku')) import('../scripts/sohbet');
   </script>
 </body>
 </html>

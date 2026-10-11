@@ -1,4 +1,4 @@
-// (parantez) — akran incelemesi. Sayı ve yazılar doğrudan yayınlanmaz:
+// (parantez) — akran incelemesi. Sayı, yazı ve araştırmalar doğrudan yayınlanmaz:
 // yazan bir öneri hazırlar, başka bir ekip üyesi önizleyip onaylayınca yayına çıkar.
 // GitHub'daki "pull request" mantığı, ama panelin içinde ve GitHub hesabı gerektirmeden.
 //
@@ -17,6 +17,7 @@ const ACIK = ['taslak', 'inceleme', 'degisiklik'];
 const YOLLAR = {
   yazi: /^src\/content\/yazilar\/[a-z0-9]+(?:-[a-z0-9]+)*\.md$/,
   sayi: /^src\/content\/sayilar\/\d{1,4}\.md$/,
+  arastirma: /^src\/content\/arastirmalar\/[a-z0-9]+(?:-[a-z0-9]+)*\.md$/,
 };
 const GORSEL_YOLU = /^public\/gorseller\/[a-z0-9]+(?:-[a-z0-9]+)*\.(?:jpe?g|png|webp)$/;
 const GORSEL_SINIRI = 1_400_000; // base64 uzunluğu (~1 MB görsel); D1 satır sınırının altında
@@ -100,7 +101,7 @@ export async function inceleme(yol, yontem, veri, ben, env, url) {
     let gorselYol, gorsel;
     if (veri.gorsel === null) { gorselYol = null; gorsel = null; }
     else if (veri.gorsel) {
-      if (tur !== 'yazi' || !GORSEL_YOLU.test(veri.gorsel.yol) || typeof veri.gorsel.base64 !== 'string') return hata(400, 'Geçersiz görsel.');
+      if (tur === 'sayi' || !GORSEL_YOLU.test(veri.gorsel.yol) || typeof veri.gorsel.base64 !== 'string') return hata(400, 'Geçersiz görsel.');
       if (veri.gorsel.base64.length > GORSEL_SINIRI) return hata(400, 'Görsel çok büyük; daha küçük bir fotoğraf dene.');
       gorselYol = veri.gorsel.yol;
       gorsel = veri.gorsel.base64;
@@ -179,7 +180,7 @@ export async function inceleme(yol, yontem, veri, ben, env, url) {
     const dosyalar = o.islem === 'kaydet'
       ? [{ yol: o.yol, metin: o.metin }, ...(o.gorsel && o.gorsel_yol ? [{ yol: o.gorsel_yol, base64: o.gorsel }] : [])]
       : [];
-    const tanim = { yazi: 'Yazı', sayi: 'Sayı' }[o.tur];
+    const tanim = { yazi: 'Yazı', sayi: 'Sayı', arastirma: 'Araştırma' }[o.tur];
     const eylem = o.islem === 'sil' ? 'silindi' : o.temel ? 'güncellendi' : 'eklendi';
     const mesaj = `${tanim} ${eylem}: ${o.baslik}\n\nÖneren: ${o.yazan_ad} <${o.yazan}>\nOnaylayan: ${ben.ad} <${ben.eposta}>`;
     let commit;

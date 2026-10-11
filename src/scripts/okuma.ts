@@ -4,7 +4,8 @@
 import { EMOJI, $, $$, toast, kimlik, okunduEkle, okunduIsaretle } from './ortak';
 
 const sayfa = document.body.dataset.sayfa ?? '';
-const slug = sayfa.replace(/^yazi-/, '');
+// Yazılarda okundu işareti yazının adresiyle tutulur; araştırmalarda sayfanın adıyla
+const slug = sayfa.startsWith('yazi-') ? sayfa.slice(5) : sayfa;
 const bar = $('.bar')!;
 const yz = $('.yz')!;
 const baslik = $('.yz__baslik');

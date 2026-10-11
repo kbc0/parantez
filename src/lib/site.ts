@@ -3,6 +3,7 @@ import ekip from '../data/ekip.json';
 
 export type Sayi = CollectionEntry<'sayilar'>;
 export type Yazi = CollectionEntry<'yazilar'>;
+export type Arastirma = CollectionEntry<'arastirmalar'>;
 
 export const SITE = {
   ad: '(parantez)',
@@ -26,6 +27,11 @@ export async function yazilar(): Promise<Yazi[]> {
 
 export async function sayininYazilari(no: number): Promise<Yazi[]> {
   return (await yazilar()).filter((y) => y.data.sayi === no);
+}
+
+export async function arastirmalar(): Promise<Arastirma[]> {
+  const all = await getCollection('arastirmalar', (a) => !a.data.taslak);
+  return all.sort((a, b) => b.data.no - a.data.no);
 }
 
 export async function guncelUrl(): Promise<string> {
@@ -56,6 +62,15 @@ export function okumaSuresi(y: Yazi): number {
   return Math.max(1, Math.ceil(kelime / 180));
 }
 
+// Araştırmalar uzun: özet, gövde, bulgular ve yöntem birlikte
+export function arastirmaSuresi(a: Arastirma): number {
+  const metin = [a.data.ozet, a.body ?? '', a.data.yontem, ...a.data.bulgular.map((b) => b.metin)].join(' ');
+  const kelime = metin.replace(/[#>*_`|]/g, ' ').split(/\s+/).filter(Boolean).length;
+  return Math.max(1, Math.ceil(kelime / 180));
+}
+
+export const ayYil = (d: Date) => { const t = tr(d); return `${AYLAR[t.getUTCMonth()]} ${t.getUTCFullYear()}`; };
+
 // picsum.photos geçici görselleri istenen boyuta çevirir; panelden yüklenen
 // görsellere (/gorseller/…) ve diğer adreslere dokunmaz.
 export function gorsel(src: string, w: number, h: number): string {
@@ -76,3 +91,4 @@ export const ilkAd = (ad: string) => ad.split(/\s+/)[0];
 export const yaziUrl = (y: Yazi) => `/yazi/${y.id}/`;
 export const sayiUrl = (no: number) => `/sayi/${no}/`;
 export const konuUrl = (k: string) => `/konu/${k}/`;
+export const arastirmaUrl = (a: Arastirma) => `/arastirma/${a.id}/`;

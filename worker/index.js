@@ -10,7 +10,7 @@ import { panel } from './panel.js';
 
 const EPOSTA = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const EMOJI = ['❤️', '😂', '😮', '😢', '🔥'];
-const SAYFA = /^(sayi-\d{1,4}|yazi-[a-z0-9-]{1,90}|hakkinda)$/;
+const SAYFA = /^(sayi-\d{1,4}|yazi-[a-z0-9-]{1,90}|arastirma-[a-z0-9-]{1,90}|hakkinda)$/;
 const MESAJ = /^[a-z0-9-]{1,40}$/;
 const KIMLIK = /^[a-z0-9-]{8,64}$/;
 

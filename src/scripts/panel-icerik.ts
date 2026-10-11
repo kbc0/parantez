@@ -3,6 +3,7 @@
 // derlenmesini durdurur (site eski hâliyle yayında kalır).
 import { parse, stringify } from 'yaml';
 import { KONULAR } from '../lib/konular';
+import { grafikOku } from '../lib/grafik.js';
 
 export type Kisi = { ad: string; kisa: string; renk: string; rol: string };
 export type Oneri = { baslik: string; kimden: string; tur: string; not: string; link?: string; linkMetni?: string };
@@ -19,6 +20,11 @@ export type SayiVeri = {
   oneriler?: Partial<Record<'dinle' | 'izle' | 'oku', Oneri>>;
   etkinlikler?: Etkinlik[];
   taslak?: boolean;
+};
+export type ArastirmaVeri = {
+  no: number; baslik: string; yayin: string; ozet: string; yazarlar: string[]; konu: string;
+  bulgular: { rakam?: string; metin: string }[]; kunye: { ad: string; deger: string }[]; yontem: string;
+  gorsel: string; gorselAlt: string; gorselKaynak: string; pdf?: string; taslak?: boolean;
 };
 export type Kayit<T> = { yol: string; sha: string; veri: T; govde: string };
 
@@ -87,6 +93,22 @@ export function sayiOku(d: { yol: string; sha: string; metin: string }): Kayit<S
   };
 }
 
+export function arastirmaOku(d: { yol: string; sha: string; metin: string }): Kayit<ArastirmaVeri> {
+  const { veri, govde } = ayir(d.metin);
+  const v = veri as Partial<ArastirmaVeri>;
+  return {
+    yol: d.yol, sha: d.sha, govde,
+    veri: {
+      no: Number(v.no ?? 0), baslik: String(v.baslik ?? ''), yayin: tarihMetni(v.yayin), ozet: String(v.ozet ?? ''),
+      yazarlar: Array.isArray(v.yazarlar) ? v.yazarlar.map(String) : [], konu: String(v.konu ?? ''),
+      bulgular: Array.isArray(v.bulgular) ? v.bulgular.map((b) => ({ rakam: b.rakam ? String(b.rakam) : undefined, metin: String(b.metin ?? '') })) : [],
+      kunye: Array.isArray(v.kunye) ? v.kunye.map((k) => ({ ad: String(k.ad ?? ''), deger: String(k.deger ?? '') })) : [],
+      yontem: String(v.yontem ?? ''), gorsel: String(v.gorsel ?? ''), gorselAlt: String(v.gorselAlt ?? ''),
+      gorselKaynak: String(v.gorselKaynak ?? ''), pdf: v.pdf ? String(v.pdf) : undefined, taslak: !!v.taslak,
+    },
+  };
+}
+
 export function yaziMetni(v: YaziVeri, govde: string): string {
   return birlestir({
     baslik: v.baslik, sayi: v.sayi, sira: v.sira, konu: v.konu, yazar: v.yazar, spot: v.spot,
@@ -99,6 +121,14 @@ export function sayiMetni(v: SayiVeri, govde: string): string {
   return birlestir({
     sayi: v.sayi, baslik: v.baslik, yayin: v.yayin, baslangic: v.baslangic, bitis: v.bitis, imza: v.imza,
     kisaKisa: v.kisaKisa, oneriler: v.oneriler, etkinlikler: v.etkinlikler, taslak: v.taslak,
+  }, govde);
+}
+
+export function arastirmaMetni(v: ArastirmaVeri, govde: string): string {
+  return birlestir({
+    no: v.no, baslik: v.baslik, yayin: v.yayin, ozet: v.ozet, yazarlar: v.yazarlar, konu: v.konu,
+    bulgular: v.bulgular, kunye: v.kunye, yontem: v.yontem, gorsel: v.gorsel, gorselAlt: v.gorselAlt,
+    gorselKaynak: v.gorselKaynak, pdf: v.pdf, taslak: v.taslak,
   }, govde);
 }
 
@@ -150,6 +180,29 @@ export function sayiDenetle(v: SayiVeri): string[] {
     if (e.saat && !/^\d{2}:\d{2}$/.test(e.saat)) h.push(`${i + 1}. etkinliğin saati SS:DD biçiminde olmalı.`);
     if (e.link && !URL_GECERLI(e.link)) h.push(`${i + 1}. etkinliğin bağlantısı geçerli bir adres değil.`);
   });
+  return h;
+}
+
+export function arastirmaDenetle(v: ArastirmaVeri, govde: string): string[] {
+  const h: string[] = [];
+  if (!v.baslik.trim()) h.push('Başlık boş.');
+  if (!(v.no > 0)) h.push('Araştırma numarası geçersiz.');
+  if (!TARIH.test(v.yayin)) h.push('Yayın tarihi eksik.');
+  if (!v.ozet.trim()) h.push('Özet boş.');
+  if (v.yazarlar.length < 1 || v.yazarlar.length > 6) h.push('1 ile 6 arasında yazar seçilmeli.');
+  if (!KONULAR[v.konu]) h.push('Konu seçilmedi.');
+  const bulgular = v.bulgular.filter((b) => b.metin.trim());
+  if (bulgular.length < 1 || bulgular.length > 5) h.push('"Temel bulgular" 1 ile 5 madde arasında olmalı.');
+  if (v.bulgular.some((b) => b.rakam && !b.metin.trim())) h.push('Rakamı yazılan her bulgunun bir cümlesi olmalı.');
+  if (v.kunye.length > 6) h.push('Künyede en fazla 6 satır olabilir.');
+  if (v.kunye.some((k) => !k.ad.trim() || !k.deger.trim())) h.push('Künyedeki her satırın hem adı hem değeri dolu olmalı.');
+  if (!v.yontem.trim()) h.push('"Yöntem" notu boş.');
+  if (v.pdf && !URL_GECERLI(v.pdf)) h.push('PDF bağlantısı geçerli bir adres değil.');
+  if (!govde.trim()) h.push('Raporun metni boş.');
+  // ```grafik blokları en az bir "etiket: sayı" satırı içermeli
+  for (const [i, blok] of [...govde.matchAll(/^```grafik[^\n]*\n([\s\S]*?)^```/gm)].entries()) {
+    if (!grafikOku(blok[1]).satirlar.length) h.push(`${i + 1}. grafikte çubuk yok. Satırlar "etiket: sayı" biçiminde olmalı.`);
+  }
   return h;
 }
 

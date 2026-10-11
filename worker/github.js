@@ -9,6 +9,7 @@
 
 const SAYILAR = 'src/content/sayilar';
 const YAZILAR = 'src/content/yazilar';
+const ARASTIRMALAR = 'src/content/arastirmalar';
 const EKIP = 'src/data/ekip.json';
 
 export class GithubHatasi extends Error {
@@ -57,19 +58,20 @@ export function github(env, f = fetch) {
     }
   }
 
-  // Tüm içerik tek GraphQL isteğiyle (sayılar, yazılar, ekip). Olmazsa REST'e düşer.
+  // Tüm içerik tek GraphQL isteğiyle (sayılar, yazılar, araştırmalar, ekip). Olmazsa REST'e düşer.
   async function icerikGraphql() {
     const parca = `entries { name oid object { ... on Blob { text } } }`;
-    const query = `query($o: String!, $r: String!, $s: String!, $y: String!, $e: String!) {
+    const query = `query($o: String!, $r: String!, $s: String!, $y: String!, $a: String!, $e: String!) {
       repository(owner: $o, name: $r) {
         s: object(expression: $s) { ... on Tree { ${parca} } }
         y: object(expression: $y) { ... on Tree { ${parca} } }
+        a: object(expression: $a) { ... on Tree { ${parca} } }
         e: object(expression: $e) { ... on Blob { oid text } }
       }
     }`;
     const j = await istek('/graphql', {
       method: 'POST',
-      govde: { query, variables: { o: sahip, r: depo, s: `${dal}:${SAYILAR}`, y: `${dal}:${YAZILAR}`, e: `${dal}:${EKIP}` } },
+      govde: { query, variables: { o: sahip, r: depo, s: `${dal}:${SAYILAR}`, y: `${dal}:${YAZILAR}`, a: `${dal}:${ARASTIRMALAR}`, e: `${dal}:${EKIP}` } },
     });
     if (j.errors?.length || !j.data?.repository) throw new GithubHatasi(502, `GraphQL: ${(j.errors ?? []).map((e) => e.message).join('; ')}`);
     const r = j.data.repository;
@@ -79,6 +81,7 @@ export function github(env, f = fetch) {
     return {
       sayilar: liste(r.s, SAYILAR),
       yazilar: liste(r.y, YAZILAR),
+      arastirmalar: liste(r.a, ARASTIRMALAR),
       ekip: r.e ? { yol: EKIP, sha: r.e.oid, metin: r.e.text ?? '[]' } : null,
     };
   }
@@ -93,7 +96,7 @@ export function github(env, f = fetch) {
     async agac() {
       const a = await istek(`${kok}/git/trees/${dal}?recursive=1`);
       return a.tree
-        .filter((d) => d.type === 'blob' && ((d.path.startsWith(`${SAYILAR}/`) || d.path.startsWith(`${YAZILAR}/`)) && d.path.endsWith('.md') || d.path === EKIP))
+        .filter((d) => d.type === 'blob' && ([SAYILAR, YAZILAR, ARASTIRMALAR].some((k) => d.path.startsWith(`${k}/`)) && d.path.endsWith('.md') || d.path === EKIP))
         .map((d) => ({ yol: d.path, sha: d.sha }));
     },
 

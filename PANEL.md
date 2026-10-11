@@ -1,9 +1,9 @@
 # Yazı paneli: kurulum ve kullanım
 
 Panel `parantezbulten.com/admin` adresinde. Ekip buradan e-posta ve parolayla girer;
-sayı, yazı ve ekip bilgilerini düzenler. GitHub hesabı gerekmez.
+sayı, yazı, araştırma ve ekip bilgilerini düzenler. GitHub hesabı gerekmez.
 
-Sayı ve yazılar **akran incelemesiyle** yayınlanır, GitHub'daki pull request gibi:
+Sayı, yazı ve araştırmalar **akran incelemesiyle** yayınlanır, GitHub'daki pull request gibi:
 yazan değişikliğini incelemeye gönderir, ekipten **başka biri** okurun göreceği hâliyle
 önizleyip onaylar. Kimse kendi önerisini onaylayamaz; yani bir şeyin yayına çıkması için
 en az iki kişi gerekir. Yönetici de bu kurala tabidir.
@@ -86,6 +86,34 @@ Kaydedin (**Deploy**). Başka bir şey gerekmez. Hesaplar mevcut D1 veritabanın
 - Sohbetteki her şey (haftanın cümlesi, editörün notu, kısa kısa, dinle/izle/oku önerileri, etkinlikler) sayı formundadır.
   Önizleme, sayının sohbet hâlini gösterir.
 
+### Araştırmalar
+
+- **Araştırmalar** → **+ Yeni araştırma**. Sitede `/arastirma/` sayfasında durur; en yenisi üstte, bulgularıyla.
+- Formda:
+  - **Künye:** başlığın altındaki kısa bilgiler (Yöntem, Örneklem, Saha…).
+  - **Temel bulgular:** 1–5 madde. Rakam kısa olsun (`%41`, `3'te 1`) ya da boş kalsın.
+  - **Rapor metni:** `## ` ile başlayan satırlar numaralı bölüm olur ve "Bu raporda" listesine girer.
+  - **Yöntem:** raporun sonundaki not. Kimlere, ne zaman, nasıl sorduk; neyi ölçemedik.
+- **Grafik** düğmesi metne örnek bir blok koyar. Değerleri değiştirin:
+
+  ````
+  ```grafik
+  Kiranın gelire oranı
+  birim: %
+  Yarısından fazlası: 41 *
+  Üçte biri ile yarısı arası: 33
+  Üçte birinden azı: 26
+  kaynak: (parantez) anketi, Eylül 2026
+  ```
+  ````
+
+  İlk satır başlık; her "etiket: sayı" satırı bir çubuk. Sonuna `*` konan satır mavi, diğerleri gri olur.
+  Sayılar Türkçe yazılır (`1.240`, `12,5`).
+- **Dipnot** düğmesi metne `[^1]` koyar ve notu en alta açar. Notlar sitede "Kaynaklar ve notlar" başlığıyla toplanır.
+- **Tablo** için Markdown tablosu yazılabilir (`| Durum | Oran |` satırları).
+- Sitedeki "Örnek rapor" yalnızca tasarımı göstermek için var. İlk gerçek rapor yayımlanınca
+  ondan **Silinmesini öner** deyin.
+
 ### Aynı şeyi iki kişi düzenlerse
 
 - Bir yazı ya da sayı için aynı anda tek bir açık öneri olabilir. Başkası öneri açmışsa düzenle dediğinizde o öneriye gidersiniz;
@@ -106,7 +134,7 @@ Kaydedin (**Deploy**). Başka bir şey gerekmez. Hesaplar mevcut D1 veritabanın
 
 - Arayüz: `src/pages/admin/index.astro`, `src/scripts/panel.ts`, `src/scripts/panel-icerik.ts`, `src/styles/panel.css`.
 - Önizleme ve farklar: `src/scripts/panel-onizleme.ts`. Şablonları sitedekilerin kopyası:
-  `src/pages/yazi/[slug].astro`, `src/components/IssueChat.astro` (ve Grp, LinkCard, Av), `src/layouts/App.astro`'daki üst bar.
+  `src/pages/yazi/[slug].astro`, `src/pages/arastirma/[slug].astro`, `src/components/IssueChat.astro` (ve Grp, LinkCard, Av), `src/layouts/App.astro`'daki üst bar.
   Bunlardan biri değişirse önizlemedeki karşılığı da güncellenmeli.
 - Sunucu: `worker/panel.js` (giriş, hesaplar, içerik), `worker/inceleme.js` (öneriler, yorumlar, onay)
   ve `worker/github.js` (GitHub REST/GraphQL).
@@ -114,8 +142,8 @@ Kaydedin (**Deploy**). Başka bir şey gerekmez. Hesaplar mevcut D1 veritabanın
   önerinin görseli de onaya kadar D1'de durur (en fazla ~1 MB).
 - Sunucu kuralları: sayı ve yazı yalnızca onayla yazılır (`/api/panel/kaydet` yalnızca ekip listesine yazar);
   öneren kendi önerisini onaylayamaz; onay, önerinin hazırlandığı sürüm hâlâ yayındaysa commit edilir.
-- Panel yalnızca `src/content/sayilar/*.md`, `src/content/yazilar/*.md`, `src/data/ekip.json` ve
-  `public/gorseller/*` dosyalarına yazabilir.
+- Panel yalnızca `src/content/sayilar/*.md`, `src/content/yazilar/*.md`, `src/content/arastirmalar/*.md`,
+  `src/data/ekip.json` ve `public/gorseller/*` dosyalarına yazabilir.
 - Parolalar PBKDF2 ile saklanır. Oturum çerezi `HttpOnly`, `Secure`, `SameSite=Strict`.
   15 dakikada 10 hatalı denemeden sonra giriş durur.
 - Yerelde denemek için `.dev.vars` dosyasına üç değişkeni yazın, `npx wrangler dev` çalıştırın.
