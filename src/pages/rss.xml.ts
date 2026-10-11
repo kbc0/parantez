@@ -23,7 +23,7 @@ export async function GET(context: APIContext) {
         link: arastirmaUrl(a),
         pubDate: a.data.yayin,
         author: a.data.yazarlar.join(', '),
-        categories: ['arastirma', a.data.konu],
+        categories: ['arastirma'],
       })),
     ],
     customData: '<language>tr-TR</language>',

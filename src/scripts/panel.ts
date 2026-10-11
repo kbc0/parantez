@@ -2,7 +2,7 @@
 // Sunucu: worker/panel.js (/api/panel/*). Dosya biçimi ve denetim: panel-icerik.ts.
 import { KONULAR } from '../lib/konular';
 import {
-  FIILLER, KONU_LISTESI, YAYIN_TURLERI, adres, arastirmaDenetle, arastirmaMetni, arastirmaOku, blobSha, gunEkle, kisaltma,
+  FIILLER, KONU_LISTESI, adres, arastirmaDenetle, arastirmaMetni, arastirmaOku, blobSha, gunEkle, kisaltma,
   sayiDenetle, sayiMetni, sayiOku, sonrakiPazartesi, yaziDenetle, yaziMetni, yaziOku,
   type ArastirmaVeri, type Etkinlik, type Kayit, type Kisi, type Oneri, type SayiVeri, type YaziVeri,
 } from './panel-icerik';
@@ -683,30 +683,15 @@ function arastirmalarSayfasi() {
       <h1>Araştırmalar</h1>
       <a class="chip chip--dolu" href="#/arastirma/yeni">+ Yeni araştırma</a>
     </div>
-    <p class="pn-not pn-not--ust">Raporlar, politika notları ve veri notları. Sitede <b>/arastirma</b> sayfasında, yıllara göre listelenir.</p>
     <section class="pn-grup">
       ${satirlar.map(({ kayit: a, oneri: o }) => `
         <a class="pn-satir-link" href="${o ? `#/oneri/${o.id}` : `#/arastirma/${e(adOf(a.yol))}`}">
           <span class="pn-no">${pad(a.veri.no)}</span>
-          <span class="pn-satir-t"><b>${e(a.veri.baslik || 'Başlıksız')}</b><small>${e(YAYIN_TURLERI.find(([k]) => k === a.veri.tur)?.[1] ?? 'Rapor')} · ${e(a.veri.yayin)} · ${e(KONULAR[a.veri.konu] ?? (a.veri.konu || 'konu yok'))} · ${e(a.veri.yazarlar.join(', '))}${o ? ` · öneren ${e(o.yazan_ad)}` : ''}</small></span>
+          <span class="pn-satir-t"><b>${e(a.veri.baslik || 'Başlıksız')}</b><small>${e(a.veri.yayin)} · ${e(a.veri.yazarlar.join(', '))}${o ? ` · öneren ${e(o.yazan_ad)}` : ''}</small></span>
           ${o ? rozet(o) : a.veri.taslak ? '<em class="pn-rozet">gizli</em>' : ''}
         </a>`).join('') || '<p class="pn-bos">Henüz araştırma yok.</p>'}
     </section>`);
 }
-
-const kunyeSatiri = (k: { ad: string; deger: string }) => `
-  <div class="pn-satir pn-satir--kunye">
-    <input name="kAd" value="${e(k.ad)}" maxlength="24" placeholder="Örneklem">
-    <input name="kDeger" value="${e(k.deger)}" maxlength="80" placeholder="18–27 yaş, 1.240 kişi">
-    <button type="button" class="pn-x" data-sil-satir aria-label="Satırı sil">×</button>
-  </div>`;
-
-const bulguSatiri = (b: { rakam?: string; metin: string }) => `
-  <div class="pn-satir pn-satir--bulgu">
-    <input name="bRakam" value="${e(b.rakam)}" maxlength="12" placeholder="%41">
-    <input name="bMetin" value="${e(b.metin)}" maxlength="240" placeholder="Bir cümlelik bulgu">
-    <button type="button" class="pn-x" data-sil-satir aria-label="Bulguyu sil">×</button>
-  </div>`;
 
 function arastirmaFormu(slug: string, oneriId?: number) {
   if (!durum.github) return iskelet('arastirmalar', githubYok());
@@ -727,10 +712,8 @@ function arastirmaFormu(slug: string, oneriId?: number) {
   const enBuyuk = Math.max(0, ...[...durum.arastirmalar, ...yeniArastirmalar().map((x) => x.kayit)].map((a) => a.veri.no));
   const benKisi = kisiler().find((k) => k.ad === durum.ben?.ad)?.ad;
   const v: ArastirmaVeri = kaynak?.veri ?? {
-    no: enBuyuk + 1, tur: 'rapor', baslik: '', yayin: sonrakiPazartesi(), ozet: '', yazarlar: benKisi ? [benKisi] : [], konu: '',
-    bulgular: [{ rakam: '', metin: '' }, { rakam: '', metin: '' }, { rakam: '', metin: '' }],
-    kunye: [{ ad: 'Yöntem', deger: '' }, { ad: 'Örneklem', deger: '' }, { ad: 'Saha', deger: '' }],
-    yontem: '', gorsel: '', gorselAlt: '', gorselKaynak: '',
+    no: enBuyuk + 1, baslik: '', yayin: sonrakiPazartesi(), yazarlar: benKisi ? [benKisi] : [], ozet: '',
+    gorsel: '', gorselAlt: '', gorselKaynak: '',
   };
   const govde = kaynak?.govde ?? '';
   const adaylar = [...new Set([...kisiler().map((k) => k.ad), ...v.yazarlar])];
@@ -740,10 +723,10 @@ function arastirmaFormu(slug: string, oneriId?: number) {
   iskelet('arastirmalar', `
     <form class="pn-form" data-form="arastirma" data-slug="${e(ad)}" data-oneri="${oneri?.id ?? ''}" novalidate>
       <div class="pn-bas">
-        <h1>${oneri ? 'Önerini düzenle' : kayit ? 'Yayını düzenle' : 'Yeni araştırma yayını'}</h1>
+        <h1>${oneri ? 'Önerini düzenle' : kayit ? 'Araştırmayı düzenle' : 'Yeni araştırma'}</h1>
         ${kayit && !kayit.veri.taslak ? `<a class="pn-dis" href="/arastirma/${e(ad)}/" target="_blank" rel="noopener">Yayındaki hâli ↗</a>` : ''}
       </div>
-      ${eskimis ? '<p class="pn-uyari">Sen bu öneriyi hazırladıktan sonra raporun yayındaki hâli değişti. Kaydettiğinde önerin yayındaki son hâlin üzerine kurulur; araya girmiş bir düzeltmeyi geri almadığına bak.</p>' : ''}
+      ${eskimis ? '<p class="pn-uyari">Sen bu öneriyi hazırladıktan sonra yayındaki hâli değişti. Kaydettiğinde önerin yayındaki son hâlin üzerine kurulur; araya girmiş bir düzeltmeyi geri almadığına bak.</p>' : ''}
       <div class="pn-hatalar" data-hatalar hidden></div>
 
       <label class="pn-alan"><span>Başlık</span><input name="baslik" value="${e(v.baslik)}" maxlength="160" required></label>
@@ -753,10 +736,8 @@ function arastirmaFormu(slug: string, oneriId?: number) {
             <div class="pn-adres-gir"><span>parantezbulten.com/arastirma/</span><input name="adres" pattern="[a-z0-9-]+" maxlength="60" data-adres-elle="0"><span>/</span></div></label>`}
 
       <div class="pn-izgara">
-        <label class="pn-alan"><span>Tür</span><select name="tur">${YAYIN_TURLERI.map(([k, ad]) => `<option value="${k}"${k === v.tur ? ' selected' : ''}>${ad}</option>`).join('')}</select></label>
         <label class="pn-alan"><span>No</span><input name="no" type="number" min="1" value="${v.no}"></label>
         <label class="pn-alan"><span>Yayın tarihi</span><input name="yayin" type="date" value="${e(v.yayin)}"></label>
-        <label class="pn-alan"><span>Konu</span><select name="konu"><option value="">Seç</option>${KONU_LISTESI.map(([k, ad]) => `<option value="${k}"${k === v.konu ? ' selected' : ''}>${ad}</option>`).join('')}</select></label>
       </div>
 
       <fieldset class="pn-kutu">
@@ -764,36 +745,20 @@ function arastirmaFormu(slug: string, oneriId?: number) {
         <div class="pn-secimler">${adaylar.map((a) => `<label class="pn-secim"><input type="checkbox" name="yazarlar" value="${e(a)}"${v.yazarlar.includes(a) ? ' checked' : ''}> ${e(a)}</label>`).join('')}</div>
       </fieldset>
 
-      <label class="pn-alan"><span>Özet <small>başlığın altındaki birkaç cümle; araştırma sayfasında da görünür</small></span><textarea name="ozet" rows="4">${e(v.ozet)}</textarea></label>
-
-      <fieldset class="pn-kutu" data-liste="kunye">
-        <legend>Künye <small>başlığın altındaki kısa bilgiler; en fazla 6</small></legend>
-        <div data-satirlar>${v.kunye.map(kunyeSatiri).join('')}</div>
-        <button type="button" class="pn-ekle" data-ekle="kunye">+ satır ekle</button>
-      </fieldset>
-
-      <fieldset class="pn-kutu" data-liste="bulgu">
-        <legend>Temel bulgular <small>1–5 madde; rakam kısa olsun (%41, 3'te 1) ya da boş kalsın</small></legend>
-        <div data-satirlar>${(v.bulgular.length ? v.bulgular : [{ metin: '' }]).map(bulguSatiri).join('')}</div>
-        <button type="button" class="pn-ekle" data-ekle="bulgu">+ bulgu ekle</button>
-      </fieldset>
+      <label class="pn-alan"><span>Kısa açıklama <small>sayfada görünmez; paylaşılınca ve aramalarda çıkar</small></span><textarea name="ozet" rows="2">${e(v.ozet)}</textarea></label>
 
       <fieldset class="pn-kutu pn-gorsel">
-        <legend>Görsel <small>isteğe bağlı</small></legend>
+        <legend>Görsel <small>isteğe bağlı; sitede gri tonlu görünür</small></legend>
         <div class="pn-gorsel__on" data-gorsel-on>${gorselSrc ? `<img src="${e(gorselSrc)}" alt="">` : '<span>Görsel yok</span>'}</div>
         <div class="pn-gorsel__alan">
           <label class="chip pn-dosya">Görsel seç<input type="file" name="gorselDosya" accept="image/*"></label>
-          <small>Yatay bir fotoğraf iyi durur. Büyükse küçültülür.</small>
           <input type="hidden" name="gorsel" value="${e(v.gorsel)}">
           <label class="pn-alan"><span>Görselde ne var? <small>görme engelli okurlar için</small></span><input name="gorselAlt" value="${e(v.gorselAlt)}"></label>
           <label class="pn-alan"><span>Kaynak</span><input name="gorselKaynak" value="${e(v.gorselKaynak)}" placeholder="Fotoğraf: Ad Soyad"></label>
         </div>
       </fieldset>
 
-      ${metinAlani(govde, 'Rapor', '“## ” ile başlayan satırlar numaralı bölüm olur ve içindekilere girer. Grafik: başlık, “birim: %”, sonra “etiket: sayı” satırları; vurgulanacak satırın sonuna * koy. Dipnot düğmesi metne [^1] koyar, notu en alta yazarsın.', true)}
-
-      <label class="pn-alan"><span>Yöntem <small>raporun sonundaki not: kimlere, ne zaman, nasıl; neyi ölçemedik</small></span><textarea name="yontem" rows="4">${e(v.yontem)}</textarea></label>
-      <label class="pn-alan"><span>PDF bağlantısı <small>isteğe bağlı</small></span><input name="pdf" type="url" value="${e(v.pdf)}" placeholder="https://"></label>
+      ${metinAlani(govde, 'Metin', 'Makale gibi yaz. “## ” ile başlayan satır ara başlık olur. Grafik: başlık, “birim: %”, sonra “etiket: sayı” satırları; vurgulanacak satırın sonuna * koy. Dipnot düğmesi metne [^1] koyar, notu en alta yazarsın.', true)}
 
       ${v.taslak ? '<label class="pn-onay"><input type="checkbox" name="taslak" checked> Sitede gizli kalsın <small>onaylansa da görünmez</small></label>' : ''}
 
@@ -803,13 +768,9 @@ function arastirmaFormu(slug: string, oneriId?: number) {
 
 function arastirmaOkuForm(f: HTMLFormElement): ArastirmaVeri {
   return {
-    no: Number(deger(f, 'no')), tur: deger(f, 'tur'), baslik: deger(f, 'baslik'), yayin: deger(f, 'yayin'), ozet: deger(f, 'ozet'),
-    yazarlar: $$<HTMLInputElement>('[name="yazarlar"]:checked', f).map((i) => i.value),
-    konu: deger(f, 'konu'),
-    bulgular: $$('.pn-satir--bulgu', f).map((r) => ({ rakam: deger(r, 'bRakam') || undefined, metin: deger(r, 'bMetin') })).filter((b) => b.metin || b.rakam),
-    kunye: $$('.pn-satir--kunye', f).map((r) => ({ ad: deger(r, 'kAd'), deger: deger(r, 'kDeger') })).filter((k) => k.ad || k.deger),
-    yontem: deger(f, 'yontem'), gorsel: deger(f, 'gorsel'), gorselAlt: deger(f, 'gorselAlt'), gorselKaynak: deger(f, 'gorselKaynak'),
-    pdf: deger(f, 'pdf') || undefined,
+    no: Number(deger(f, 'no')), baslik: deger(f, 'baslik'), yayin: deger(f, 'yayin'),
+    yazarlar: $$<HTMLInputElement>('[name="yazarlar"]:checked', f).map((i) => i.value), ozet: deger(f, 'ozet'),
+    gorsel: deger(f, 'gorsel'), gorselAlt: deger(f, 'gorselAlt'), gorselKaynak: deger(f, 'gorselKaynak'),
     taslak: !!$<HTMLInputElement>('[name="taslak"]', f)?.checked,
   };
 }
@@ -1432,11 +1393,10 @@ kok.addEventListener('click', async (ev) => {
     const tur = ekle.dataset.ekle!;
     const satirlar = $('[data-satirlar]', ekle.closest('[data-liste]')!)!;
     const n = satirlar.children.length;
-    const sinir: Record<string, number> = { kisaca: 4, kisaKisa: 5, etkinlik: 6, ekip: 20, kunye: 6, bulgu: 5 };
+    const sinir: Record<string, number> = { kisaca: 4, kisaKisa: 5, etkinlik: 6, ekip: 20 };
     if (n >= sinir[tur]) return toast(`En fazla ${sinir[tur]} tane.`);
     const html = tur === 'kisaca' ? kisacaSatiri('') : tur === 'kisaKisa' ? kisaKisaSatiri({ konu: '', metin: '' })
-      : tur === 'etkinlik' ? etkinlikSatiri({}) : tur === 'kunye' ? kunyeSatiri({ ad: '', deger: '' })
-        : tur === 'bulgu' ? bulguSatiri({ metin: '' }) : ekipSatiri({ renk: '#111111' }, true);
+      : tur === 'etkinlik' ? etkinlikSatiri({}) : ekipSatiri({ renk: '#111111' }, true);
     satirlar.insertAdjacentHTML('beforeend', html);
     $<HTMLInputElement>('input', satirlar.lastElementChild!)?.focus();
     durum.kirli = true;

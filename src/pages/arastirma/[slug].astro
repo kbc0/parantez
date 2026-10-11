@@ -1,101 +1,34 @@
 ---
-// Araştırma yayını: rapor gibi okunur. Künye, temel bulgular, içindekiler, numaralı bölümler,
-// grafik, tablo, dipnot, yöntem ve atıf. Renk yok; mürekkep, beyaz, griler.
+// Araştırma yazısı: makale gibi. Numara, başlık, yazarlar ve tarih; ardından metin.
+// Metnin içinde ara başlık, tablo, ```grafik ve dipnot olabilir. Renk yok.
 import { render } from 'astro:content';
 import Arastirma from '../../layouts/Arastirma.astro';
-import { arastirmalar, arastirmaSuresi, arastirmaUrl, atifMetni, gorsel, pad, tarihUzun, ayYil, YAYIN_TURU, type Arastirma as Yayin } from '../../lib/site';
-import { konuAdi } from '../../lib/konular';
+import { arastirmalar, gorsel, pad, tarihUzun, type Arastirma as Yayin } from '../../lib/site';
 
 export async function getStaticPaths() {
-  const liste = await arastirmalar();
-  return liste.map((a) => ({ params: { slug: a.id }, props: { a, digerleri: liste.filter((x) => x.id !== a.id).slice(0, 3) } }));
+  return (await arastirmalar()).map((a) => ({ params: { slug: a.id }, props: { a } }));
 }
 
-const { a, digerleri } = Astro.props as { a: Yayin; digerleri: Yayin[] };
+const { a } = Astro.props as { a: Yayin };
 const d = a.data;
-const { Content, headings } = await render(a);
-const dk = arastirmaSuresi(a);
-const bolumler = headings.filter((h) => h.depth === 2 && h.slug !== 'footnote-label');
+const { Content } = await render(a);
 const adlar = (l: string[]) => (l.length < 2 ? l[0] : `${l.slice(0, -1).join(', ')} ve ${l[l.length - 1]}`);
-const atif = atifMetni(a, Astro.site!);
-const tur = YAYIN_TURU[d.tur];
 ---
 <Arastirma title={d.baslik} description={d.ozet} image={d.gorsel ? gorsel(d.gorsel, 1200, 630) : undefined} type="article">
-  <article class="ar-yayin">
-    <header class="ar-kap ar-yayin__bas">
-      <p class="ar-etiket">{tur} · No. {pad(d.no)}</p>
-      <h1>{d.baslik}</h1>
-      <p class="ar-yayin__ozet">{d.ozet}</p>
-      <p class="ar-yayin__yazar">{adlar(d.yazarlar)}</p>
-      <div class="ar-dugmeler">
-        {d.pdf && <a class="ar-dugme ar-dugme--dolu" href={d.pdf} target="_blank" rel="noopener">PDF indir</a>}
-        <a class="ar-dugme" href="#atif">Atıf</a>
-        <button type="button" class="ar-dugme" data-paylas>Paylaş</button>
-      </div>
-      <dl class="ar-kunye">
-        <div><dt>Yayın tarihi</dt><dd>{tarihUzun(d.yayin)}</dd></div>
-        <div><dt>Konu</dt><dd>{konuAdi(d.konu)}</dd></div>
-        {d.kunye.map((k) => <div><dt>{k.ad}</dt><dd>{k.deger}</dd></div>)}
-        <div><dt>Okuma</dt><dd>{dk} dakika</dd></div>
-      </dl>
+  <article class="ar-yazi">
+    <header>
+      <p class="ar-no">No. {pad(d.no)}</p>
+      <h1 class="ar-baslik">{d.baslik}</h1>
+      <p class="ar-imza">{adlar(d.yazarlar)} · <time datetime={d.yayin.toISOString().slice(0, 10)}>{tarihUzun(d.yayin)}</time></p>
     </header>
-
     {d.gorsel && (
-      <figure class="ar-kap ar-gorsel">
-        <img src={gorsel(d.gorsel, 1200, 632)} alt={d.gorselAlt} width="1200" height="632" fetchpriority="high">
+      <figure class="ar-gorsel">
+        <img src={gorsel(d.gorsel, 1200, 632)} alt={d.gorselAlt} width="1200" height="632">
         {d.gorselKaynak && <figcaption>{d.gorselKaynak}</figcaption>}
       </figure>
     )}
-
-    <div class="ar-kap ar-yayin__ic">
-      <section class="ar-bulgular" aria-labelledby="bulgular">
-        <h2 id="bulgular">Temel bulgular</h2>
-        <ol>
-          {d.bulgular.map((b) => (
-            <li>{b.rakam && <b class="ar-bulgular__rakam">{b.rakam}</b>}<p>{b.metin}</p></li>
-          ))}
-        </ol>
-      </section>
-
-      {bolumler.length > 1 && (
-        <nav class="ar-icindekiler" aria-labelledby="icindekiler">
-          <h2 id="icindekiler">İçindekiler</h2>
-          <ol>{bolumler.map((h) => <li><a href={`#${h.slug}`}>{h.text}</a></li>)}</ol>
-        </nav>
-      )}
-
-      <div class="ar-metin">
-        <Content />
-      </div>
-
-      <section class="ar-ek" aria-labelledby="yontem">
-        <h2 id="yontem">Yöntem</h2>
-        <p>{d.yontem}</p>
-      </section>
-
-      <section class="ar-ek" id="atif" aria-labelledby="atif-baslik">
-        <h2 id="atif-baslik">Atıf</h2>
-        <p class="ar-atif" data-atif-metin>{atif}</p>
-        <button type="button" class="ar-dugme ar-dugme--kucuk" data-atif-kopyala>Kopyala</button>
-      </section>
+    <div class="ar-metin">
+      <Content />
     </div>
-
-    {digerleri.length > 0 && (
-      <section class="ar-kap ar-diger" aria-labelledby="diger">
-        <h2 id="diger">Diğer yayınlar</h2>
-        <ol class="ar-liste">
-          {digerleri.map((x) => (
-            <li class="ar-oge">
-              <p class="ar-oge__ust"><span>{YAYIN_TURU[x.data.tur]} · No. {pad(x.data.no)}</span><span>{ayYil(x.data.yayin)}</span></p>
-              <div class="ar-oge__govde">
-                <p class="ar-oge__konu">{konuAdi(x.data.konu)}</p>
-                <h3><a href={arastirmaUrl(x)}>{x.data.baslik}</a></h3>
-                <p class="ar-oge__alt">{adlar(x.data.yazarlar)} · {arastirmaSuresi(x)} dk okuma</p>
-              </div>
-            </li>
-          ))}
-        </ol>
-      </section>
-    )}
   </article>
 </Arastirma>

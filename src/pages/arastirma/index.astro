@@ -1,87 +1,17 @@
 ---
-// Araştırma: yayın listesi. En yeni üstte, yıllara göre. Konu ve türe göre süzülür
-// (JavaScript yoksa hepsi görünür). Altta ilkelerimiz.
+// Araştırma: yalnızca başlık ve yayınların listesi (numara ve başlık).
 import Arastirma from '../../layouts/Arastirma.astro';
-import { arastirmalar, arastirmaSuresi, arastirmaUrl, pad, ayYil, YAYIN_TURU, SITE } from '../../lib/site';
-import { konuAdi } from '../../lib/konular';
+import { arastirmalar, arastirmaUrl, pad } from '../../lib/site';
 
 const liste = await arastirmalar();
-const yil = (d: Date) => new Date(d.getTime() + 3 * 3600e3).getUTCFullYear();
-const yillar = [...new Set(liste.map((a) => yil(a.data.yayin)))];
-const konular = [...new Set(liste.map((a) => a.data.konu))];
-const turler = [...new Set(liste.map((a) => a.data.tur))];
-const adlar = (l: string[]) => (l.length < 2 ? l[0] : `${l.slice(0, -1).join(', ')} ve ${l[l.length - 1]}`);
 ---
-<Arastirma
-  title="Yayınlar"
-  description="(parantez) araştırma: gençleri ilgilendiren konularda ayda bir yayımlanan raporlar, politika notları ve veri notları."
->
-  <div class="ar-kap">
-    <header class="ar-giris">
-      <p class="ar-etiket">Araştırma</p>
-      <h1>Gençleri ilgilendiren konularda araştırma ve analiz</h1>
-      <p class="ar-giris__spot">Ayda bir yayımlanan raporlar. Her birinde verinin nereden geldiğini, kimlere ulaşıldığını ve neyin ölçülemediğini açıkça yazıyoruz.</p>
-    </header>
-
-    {liste.length > 1 && (
-      <div class="ar-suz" data-suz aria-label="Süz">
-        <div class="ar-suz__grup" role="group" aria-label="Konu">
-          <span>Konu</span>
-          <button type="button" data-suz-konu="" aria-pressed="true">Tümü</button>
-          {konular.map((k) => <button type="button" data-suz-konu={k} aria-pressed="false">{konuAdi(k)}</button>)}
-        </div>
-        {turler.length > 1 && (
-          <div class="ar-suz__grup" role="group" aria-label="Tür">
-            <span>Tür</span>
-            <button type="button" data-suz-tur="" aria-pressed="true">Tümü</button>
-            {turler.map((t) => <button type="button" data-suz-tur={t} aria-pressed="false">{YAYIN_TURU[t]}</button>)}
-          </div>
-        )}
-        <p class="ar-suz__sayi" data-suz-sayi aria-live="polite">{liste.length} yayın</p>
-      </div>
-    )}
-
-    {liste.length ? yillar.map((y) => (
-      <section class="ar-yil" data-yil>
-        <h2 class="ar-yil__baslik">{y}</h2>
-        <ol class="ar-liste">
-          {liste.filter((a) => yil(a.data.yayin) === y).map((a) => (
-            <li class="ar-oge" data-konu={a.data.konu} data-tur={a.data.tur}>
-              <p class="ar-oge__ust">
-                <span>{YAYIN_TURU[a.data.tur]} · No. {pad(a.data.no)}</span>
-                <span>{ayYil(a.data.yayin)}</span>
-              </p>
-              <div class="ar-oge__govde">
-                <p class="ar-oge__konu">{konuAdi(a.data.konu)}</p>
-                <h3><a href={arastirmaUrl(a)}>{a.data.baslik}</a></h3>
-                <p class="ar-oge__ozet">{a.data.ozet}</p>
-                <p class="ar-oge__alt">{adlar(a.data.yazarlar)} · {arastirmaSuresi(a)} dk okuma{a.data.pdf && <> · <a href={a.data.pdf} target="_blank" rel="noopener">PDF</a></>}</p>
-              </div>
-            </li>
-          ))}
-        </ol>
-      </section>
-    )) : (
-      <p class="ar-bos">İlk yayınımız hazırlanıyor.</p>
-    )}
-    <p class="ar-bos" data-suz-bos hidden>Bu seçimle eşleşen yayın yok.</p>
-
-    <section class="ar-ilkeler" id="ilkeler" aria-labelledby="ilkeler-baslik">
-      <h2 id="ilkeler-baslik">İlkelerimiz</h2>
-      <dl>
-        <div>
-          <dt>Açıklık</dt>
-          <dd>Her yayının sonunda yöntem notu var: verinin kaynağı, kimlere ve ne zaman ulaşıldığı, örneklemin dışarıda bıraktıkları.</dd>
-        </div>
-        <div>
-          <dt>Gözden geçirme</dt>
-          <dd>Hiçbir yayın tek kişinin onayıyla çıkmaz. Her metni yazarı dışında en az bir ekip üyesi okur ve onaylar.</dd>
-        </div>
-        <div>
-          <dt>Düzeltme</dt>
-          <dd>Bir hata görürseniz <a href={`mailto:${SITE.eposta}`}>{SITE.eposta}</a> adresine yazın. Düzeltmeyi yapar ve yayında belirtiriz.</dd>
-        </div>
-      </dl>
-    </section>
-  </div>
+<Arastirma title="Araştırma" description="(parantez) araştırma: ayda bir yayımlanan araştırmalar.">
+  <h1 class="ar-baslik">Araştırma</h1>
+  {liste.length ? (
+    <ol class="ar-liste">
+      {liste.map((a) => (
+        <li><a href={arastirmaUrl(a)}><span class="ar-no">No. {pad(a.data.no)}</span><span class="ar-liste__t">{a.data.baslik}</span></a></li>
+      ))}
+    </ol>
+  ) : <p class="ar-bos">Henüz yayın yok.</p>}
 </Arastirma>

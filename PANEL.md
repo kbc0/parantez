@@ -88,14 +88,11 @@ Kaydedin (**Deploy**). Başka bir şey gerekmez. Hesaplar mevcut D1 veritabanın
 
 ### Araştırmalar
 
-- **Araştırmalar** → **+ Yeni araştırma**. Sitede `/arastirma/` sayfasında yıllara göre listelenir;
-  okur konuya ve türe göre süzebilir.
-- **Tür:** Rapor, Politika notu ya da Veri notu. Numara (No.) türlerden bağımsız, sırayla artar.
-- Formda:
-  - **Künye:** başlığın altındaki kısa bilgiler (Yöntem, Örneklem, Saha…).
-  - **Temel bulgular:** 1–5 madde. Rakam kısa olsun (`%41`, `3'te 1`) ya da boş kalsın.
-  - **Rapor metni:** `## ` ile başlayan satırlar numaralı bölüm olur ve "Bu raporda" listesine girer.
-  - **Yöntem:** raporun sonundaki not. Kimlere, ne zaman, nasıl sorduk; neyi ölçemedik.
+- **Araştırmalar** → **+ Yeni araştırma**. Sitede `/arastirma/` sayfasında numarası ve başlığıyla listelenir.
+- Sayfası makale gibidir: numara, başlık, yazarlar ve tarih; ardından metin. Başka kutu yoktur.
+- Formda: başlık, numara (No.), yayın tarihi, yazarlar, kısa açıklama (sayfada görünmez; paylaşılınca
+  ve aramalarda çıkar), isteğe bağlı görsel (sitede gri tonlu) ve metin.
+- Metinde `## ` ile başlayan satır ara başlık olur. Yöntem, kaynaklar gibi bölümleri de böyle yazın.
 - **Grafik** düğmesi metne örnek bir blok koyar. Değerleri değiştirin:
 
   ````
@@ -110,12 +107,10 @@ Kaydedin (**Deploy**). Başka bir şey gerekmez. Hesaplar mevcut D1 veritabanın
   ````
 
   İlk satır başlık; her "etiket: sayı" satırı bir çubuk. Sonuna `*` konan satır koyu, diğerleri açık gri olur
-  (yazılarda vurgu mavidir).
-  Sayılar Türkçe yazılır (`1.240`, `12,5`).
+  (yazılarda vurgu mavidir). Sayılar Türkçe yazılır (`1.240`, `12,5`).
 - **Dipnot** düğmesi metne `[^1]` koyar ve notu en alta açar. Notlar sitede "Kaynaklar ve notlar" başlığıyla toplanır.
 - **Tablo** için Markdown tablosu yazılabilir (`| Durum | Oran |` satırları).
-- Sayfadaki **Atıf** metni yazarlardan, yıldan, başlıktan ve adresten kendiliğinden oluşur.
-- Sitedeki "Örnek rapor" yalnızca tasarımı göstermek için var. İlk gerçek rapor yayımlanınca
+- Sitedeki "Örnek" araştırma yalnızca tasarımı göstermek için var. İlk gerçek araştırma yayımlanınca
   ondan **Silinmesini öner** deyin.
 
 ### Aynı şeyi iki kişi düzenlerse

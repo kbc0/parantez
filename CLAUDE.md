@@ -19,12 +19,12 @@ Site sahibi bu çizgiyi çok seviyor; yeni işler bu çizgide kalsın:
   - Logo sol üstte durur. Sağ üstte tek "Arşiv" düğmesi var; tüm sayılar ve konular sağdan açılan çekmecede.
   - "Abone ol" yerinde açılır.
 - **Mobil ana sayfa sohbet listesidir.**
-- **Araştırma (`/arastirma/`) bir düşünce kuruluşunun yayın sayfası gibidir: ciddi ve renksiz.**
-  - Kendi iskeleti var (`src/layouts/Arastirma.astro`, `src/styles/arastirma.css`): sohbet listesi, üst bar,
-    balon, emoji tepki ve renk yok. Mürekkep, beyaz, griler ve ince çizgiler; başlıklar 650 ağırlıkta.
-  - Giriş sayfası bir yayın listesidir: yıllara göre, konu ve türe göre süzülür; altta "İlkelerimiz".
-  - Yayın sayfası: tür ve no, başlık, özet, yazarlar, PDF/Atıf/Paylaş, künye ızgarası, temel bulgular,
-    içindekiler, numaralı bölümler, grafik (mürekkep ve gri), tablo, dipnot, yöntem, atıf, diğer yayınlar.
+- **Araştırma (`/arastirma/`) sade ve renksizdir; makale gibi okunur.** Site sahibi kalabalık istemiyor.
+  - Kendi iskeleti var (`src/layouts/Arastirma.astro`, `src/styles/arastirma.css`): üstte yalnızca logo ve
+    "Araştırma"; sohbet listesi, bar, balon, tepki, düğme ve renk yok. Mürekkep, beyaz, griler.
+  - Liste sayfası yalnızca başlık ve yayınlar (No. ve başlık). Tanıtım metni, süzgeç, özet yok.
+  - Yazı sayfası: No., başlık, yazarlar ve tarih; sonra metin. Künye, bulgu kutusu, içindekiler, atıf gibi
+    ayrı parçalar eklenmez; gereken her şey metnin içinde (ara başlık, tablo, grafik, dipnot).
   - Görseller gri tonlu.
 - **Geri düğmesi** okuru geldiği yere götürür. Sohbete dönen okur kaldığı yerden devam eder.
 
@@ -60,7 +60,6 @@ Yazı tipi: Hanken Grotesk.
   - `ortak.ts`: her sayfa; geri düğmesi, sayfa içi abonelik, paylaş.
   - `sohbet.ts`: sohbet sayfaları.
   - `okuma.ts`: yazı sayfası.
-  - `arastirma.ts`: araştırma sayfaları; listeyi süzme, atıfı kopyalama.
 - Yazı paneli: `/admin` (bkz. `PANEL.md`).
   - Arayüz `src/pages/admin/index.astro`, `src/scripts/panel.ts`, `src/scripts/panel-icerik.ts`.
   - Sunucu `worker/panel.js`, `worker/inceleme.js` ve `worker/github.js`.
