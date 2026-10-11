@@ -1,130 +1,101 @@
 ---
-// Araştırma raporu: ayda bir yayımlanan uzun, kaynaklı yazı. Mesaj değil, rapor gibi okunur;
-// sitenin geri kalanıyla bağı aynı üst bar, yazarların avatarları ve sondaki sade kapanış.
+// Araştırma yayını: rapor gibi okunur. Künye, temel bulgular, içindekiler, numaralı bölümler,
+// grafik, tablo, dipnot, yöntem ve atıf. Renk yok; mürekkep, beyaz, griler.
 import { render } from 'astro:content';
-import App from '../../layouts/App.astro';
-import Av from '../../components/Av.astro';
-import { arastirmalar, arastirmaSuresi, arastirmaUrl, gorsel, pad, tarihUzun, ayYil, kisi, ilkAd, PARANTEZ, type Arastirma } from '../../lib/site';
-import { konuAdi, konuRenk } from '../../lib/konular';
+import Arastirma from '../../layouts/Arastirma.astro';
+import { arastirmalar, arastirmaSuresi, arastirmaUrl, atifMetni, gorsel, pad, tarihUzun, ayYil, YAYIN_TURU, type Arastirma as Yayin } from '../../lib/site';
+import { konuAdi } from '../../lib/konular';
 
 export async function getStaticPaths() {
   const liste = await arastirmalar();
-  return liste.map((a, i) => ({ params: { slug: a.id }, props: { a, onceki: liste[i + 1] } }));
+  return liste.map((a) => ({ params: { slug: a.id }, props: { a, digerleri: liste.filter((x) => x.id !== a.id).slice(0, 3) } }));
 }
 
-const { a, onceki } = Astro.props as { a: Arastirma; onceki?: Arastirma };
+const { a, digerleri } = Astro.props as { a: Yayin; digerleri: Yayin[] };
 const d = a.data;
 const { Content, headings } = await render(a);
 const dk = arastirmaSuresi(a);
-const yazarlar = d.yazarlar.map(kisi);
 const bolumler = headings.filter((h) => h.depth === 2 && h.slug !== 'footnote-label');
-const EMOJI = ['❤️', '😂', '😮', '😢', '🔥'];
 const adlar = (l: string[]) => (l.length < 2 ? l[0] : `${l.slice(0, -1).join(', ')} ve ${l[l.length - 1]}`);
+const atif = atifMetni(a, Astro.site!);
+const tur = YAYIN_TURU[d.tur];
 ---
-<App
-  title={d.baslik}
-  description={d.ozet}
-  image={d.gorsel ? gorsel(d.gorsel, 1200, 630) : undefined}
-  type="article"
-  sayfa={`arastirma-${a.id}`}
-  aktif="arastirma"
-  bar={{
-    baslik: `Araştırma ${pad(d.no)}`,
-    alt: `${ayYil(d.yayin).toLocaleLowerCase('tr')} · ${konuAdi(d.konu).toLocaleLowerCase('tr')}`,
-    geri: '/arastirma/',
-    ikinci: { kisi: yazarlar[0], baslik: d.baslik, alt: `${ilkAd(yazarlar[0].ad)}${yazarlar.length > 1 ? ` +${yazarlar.length - 1}` : ''} · {kalan}` },
-    paylas: true,
-  }}
-  composer={false}
-  okuma
->
-  <article class="yz ar" data-dk={dk} style={`--c:${konuRenk(d.konu)}`}>
-    <header class="yz__bas">
-      <p class="yz__ust">
-        <a class="ar__etiket" href="/arastirma/">(parantez) araştırma</a>
-        <span>No. {pad(d.no)} · {ayYil(d.yayin)}</span>
-      </p>
-      <h1 class="yz__baslik">{d.baslik}</h1>
-      <p class="yz__spot">{d.ozet}</p>
-      <div class="ar__imza">
-        <span class="ar__avlar">{yazarlar.map((k) => <Av k={k} />)}</span>
-        <span><b>{adlar(yazarlar.map((k) => k.ad))}</b><small>{tarihUzun(d.yayin)} · {dk} dk okuma · {konuAdi(d.konu)}</small></span>
+<Arastirma title={d.baslik} description={d.ozet} image={d.gorsel ? gorsel(d.gorsel, 1200, 630) : undefined} type="article">
+  <article class="ar-yayin">
+    <header class="ar-kap ar-yayin__bas">
+      <p class="ar-etiket">{tur} · No. {pad(d.no)}</p>
+      <h1>{d.baslik}</h1>
+      <p class="ar-yayin__ozet">{d.ozet}</p>
+      <p class="ar-yayin__yazar">{adlar(d.yazarlar)}</p>
+      <div class="ar-dugmeler">
+        {d.pdf && <a class="ar-dugme ar-dugme--dolu" href={d.pdf} target="_blank" rel="noopener">PDF indir</a>}
+        <a class="ar-dugme" href="#atif">Atıf</a>
+        <button type="button" class="ar-dugme" data-paylas>Paylaş</button>
       </div>
-      {d.kunye.length > 0 && (
-        <dl class="ar__kunye">
-          {d.kunye.map((k) => <div><dt>{k.ad}</dt><dd>{k.deger}</dd></div>)}
-        </dl>
-      )}
+      <dl class="ar-kunye">
+        <div><dt>Yayın tarihi</dt><dd>{tarihUzun(d.yayin)}</dd></div>
+        <div><dt>Konu</dt><dd>{konuAdi(d.konu)}</dd></div>
+        {d.kunye.map((k) => <div><dt>{k.ad}</dt><dd>{k.deger}</dd></div>)}
+        <div><dt>Okuma</dt><dd>{dk} dakika</dd></div>
+      </dl>
     </header>
 
     {d.gorsel && (
-      <figure class="yz__foto">
-        <span class="yz__g"><img src={gorsel(d.gorsel, 1200, 632)} alt={d.gorselAlt} width="1200" height="632" fetchpriority="high"></span>
+      <figure class="ar-kap ar-gorsel">
+        <img src={gorsel(d.gorsel, 1200, 632)} alt={d.gorselAlt} width="1200" height="632" fetchpriority="high">
         {d.gorselKaynak && <figcaption>{d.gorselKaynak}</figcaption>}
       </figure>
     )}
 
-    <section class="ar__bulgular" aria-labelledby="bulgular">
-      <h2 class="ar__h" id="bulgular">Temel bulgular</h2>
-      <ol>
-        {d.bulgular.map((b) => (
-          <li class:list={{ 'ar__bulgu--rakamsiz': !b.rakam }}>
-            {b.rakam && <b class="ar__rakam">{b.rakam}</b>}
-            <p>{b.metin}</p>
-          </li>
-        ))}
-      </ol>
-    </section>
+    <div class="ar-kap ar-yayin__ic">
+      <section class="ar-bulgular" aria-labelledby="bulgular">
+        <h2 id="bulgular">Temel bulgular</h2>
+        <ol>
+          {d.bulgular.map((b) => (
+            <li>{b.rakam && <b class="ar-bulgular__rakam">{b.rakam}</b>}<p>{b.metin}</p></li>
+          ))}
+        </ol>
+      </section>
 
-    {bolumler.length > 1 && (
-      <nav class="ar__icindekiler" aria-labelledby="icindekiler">
-        <h2 class="ar__h" id="icindekiler">Bu raporda</h2>
-        <ol>{bolumler.map((h) => <li><a href={`#${h.slug}`}>{h.text}</a></li>)}</ol>
-      </nav>
-    )}
+      {bolumler.length > 1 && (
+        <nav class="ar-icindekiler" aria-labelledby="icindekiler">
+          <h2 id="icindekiler">İçindekiler</h2>
+          <ol>{bolumler.map((h) => <li><a href={`#${h.slug}`}>{h.text}</a></li>)}</ol>
+        </nav>
+      )}
 
-    <div class="yz__metin ar__metin">
-      <Content />
-    </div>
-
-    <aside class="ar__yontem" aria-labelledby="yontem">
-      <h2 class="ar__h" id="yontem">Yöntem</h2>
-      <p>{d.yontem}</p>
-      {d.pdf && <a class="chip" href={d.pdf} target="_blank" rel="noopener">Raporun tamamı (PDF)</a>}
-    </aside>
-
-    <footer class="yz__son">
-      <p class="bitti" data-son><span>(son)</span><span class="bitti__ok">okundu ✓✓</span></p>
-
-      <div class="yz-tepki" data-yazi-tepki hidden>
-        <p>bu araştırma nasıldı?</p>
-        <div>{EMOJI.map((e) => <button type="button" data-e={e} aria-pressed="false">{e}<span></span></button>)}</div>
+      <div class="ar-metin">
+        <Content />
       </div>
 
-      <a class="sonraki sonraki--son" href={onceki ? arastirmaUrl(onceki) : '/arastirma/'}>
-        <span class="sonraki__t">
-          {onceki
-            ? <><small>Önceki araştırma · No. {pad(onceki.data.no)}</small><b>{onceki.data.baslik}</b><span>{ayYil(onceki.data.yayin)} · {arastirmaSuresi(onceki)} dk</span></>
-            : <><small>Bütün araştırmalar</small><b>Ayda bir, bir konuyu sonuna kadar</b><span>(parantez) araştırma</span></>}
-        </span>
-      </a>
-
-      <section class="yz-abone" data-abone-kutu data-abone-gizle aria-label="Abone ol">
-        <div class="not">
-          <Av k={PARANTEZ} />
-          <div class="not__b"><p>yeni araştırmaları her pazartesi 07:30’da gelen bültende duyuruyoruz. sana da gelsin mi?</p></div>
-        </div>
-        <form class="yz-abone__form" action="/api/abone" method="post">
-          <input type="hidden" name="kaynak" value={`arastirma-${a.id}`}>
-          <input class="hp" type="text" name="web" tabindex="-1" autocomplete="off" aria-hidden="true">
-          <label class="sr" for="ar-eposta">E-posta adresin</label>
-          <input id="ar-eposta" name="eposta" type="email" inputmode="email" autocomplete="email" enterkeyhint="send" autocapitalize="off" spellcheck="false" placeholder="e-posta adresin" required>
-          <button class="send" type="submit" aria-label="Abone ol">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
-          </button>
-        </form>
-        <p class="yz-abone__uyari" data-uyari hidden role="status"></p>
+      <section class="ar-ek" aria-labelledby="yontem">
+        <h2 id="yontem">Yöntem</h2>
+        <p>{d.yontem}</p>
       </section>
-    </footer>
+
+      <section class="ar-ek" id="atif" aria-labelledby="atif-baslik">
+        <h2 id="atif-baslik">Atıf</h2>
+        <p class="ar-atif" data-atif-metin>{atif}</p>
+        <button type="button" class="ar-dugme ar-dugme--kucuk" data-atif-kopyala>Kopyala</button>
+      </section>
+    </div>
+
+    {digerleri.length > 0 && (
+      <section class="ar-kap ar-diger" aria-labelledby="diger">
+        <h2 id="diger">Diğer yayınlar</h2>
+        <ol class="ar-liste">
+          {digerleri.map((x) => (
+            <li class="ar-oge">
+              <p class="ar-oge__ust"><span>{YAYIN_TURU[x.data.tur]} · No. {pad(x.data.no)}</span><span>{ayYil(x.data.yayin)}</span></p>
+              <div class="ar-oge__govde">
+                <p class="ar-oge__konu">{konuAdi(x.data.konu)}</p>
+                <h3><a href={arastirmaUrl(x)}>{x.data.baslik}</a></h3>
+                <p class="ar-oge__alt">{adlar(x.data.yazarlar)} · {arastirmaSuresi(x)} dk okuma</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </section>
+    )}
   </article>
-</App>
+</Arastirma>

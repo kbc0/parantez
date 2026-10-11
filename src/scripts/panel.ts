@@ -2,7 +2,7 @@
 // Sunucu: worker/panel.js (/api/panel/*). Dosya biçimi ve denetim: panel-icerik.ts.
 import { KONULAR } from '../lib/konular';
 import {
-  FIILLER, KONU_LISTESI, adres, arastirmaDenetle, arastirmaMetni, arastirmaOku, blobSha, gunEkle, kisaltma,
+  FIILLER, KONU_LISTESI, YAYIN_TURLERI, adres, arastirmaDenetle, arastirmaMetni, arastirmaOku, blobSha, gunEkle, kisaltma,
   sayiDenetle, sayiMetni, sayiOku, sonrakiPazartesi, yaziDenetle, yaziMetni, yaziOku,
   type ArastirmaVeri, type Etkinlik, type Kayit, type Kisi, type Oneri, type SayiVeri, type YaziVeri,
 } from './panel-icerik';
@@ -683,12 +683,12 @@ function arastirmalarSayfasi() {
       <h1>Araştırmalar</h1>
       <a class="chip chip--dolu" href="#/arastirma/yeni">+ Yeni araştırma</a>
     </div>
-    <p class="pn-not pn-not--ust">Ayda bir yayımlanan uzun raporlar. Sitede <b>/arastirma</b> sayfasında durur; en yenisi üstte, bulgularıyla.</p>
+    <p class="pn-not pn-not--ust">Raporlar, politika notları ve veri notları. Sitede <b>/arastirma</b> sayfasında, yıllara göre listelenir.</p>
     <section class="pn-grup">
       ${satirlar.map(({ kayit: a, oneri: o }) => `
         <a class="pn-satir-link" href="${o ? `#/oneri/${o.id}` : `#/arastirma/${e(adOf(a.yol))}`}">
           <span class="pn-no">${pad(a.veri.no)}</span>
-          <span class="pn-satir-t"><b>${e(a.veri.baslik || 'Başlıksız')}</b><small>${e(a.veri.yayin)} · ${e(KONULAR[a.veri.konu] ?? (a.veri.konu || 'konu yok'))} · ${e(a.veri.yazarlar.join(', '))}${o ? ` · öneren ${e(o.yazan_ad)}` : ''}</small></span>
+          <span class="pn-satir-t"><b>${e(a.veri.baslik || 'Başlıksız')}</b><small>${e(YAYIN_TURLERI.find(([k]) => k === a.veri.tur)?.[1] ?? 'Rapor')} · ${e(a.veri.yayin)} · ${e(KONULAR[a.veri.konu] ?? (a.veri.konu || 'konu yok'))} · ${e(a.veri.yazarlar.join(', '))}${o ? ` · öneren ${e(o.yazan_ad)}` : ''}</small></span>
           ${o ? rozet(o) : a.veri.taslak ? '<em class="pn-rozet">gizli</em>' : ''}
         </a>`).join('') || '<p class="pn-bos">Henüz araştırma yok.</p>'}
     </section>`);
@@ -727,7 +727,7 @@ function arastirmaFormu(slug: string, oneriId?: number) {
   const enBuyuk = Math.max(0, ...[...durum.arastirmalar, ...yeniArastirmalar().map((x) => x.kayit)].map((a) => a.veri.no));
   const benKisi = kisiler().find((k) => k.ad === durum.ben?.ad)?.ad;
   const v: ArastirmaVeri = kaynak?.veri ?? {
-    no: enBuyuk + 1, baslik: '', yayin: sonrakiPazartesi(), ozet: '', yazarlar: benKisi ? [benKisi] : [], konu: '',
+    no: enBuyuk + 1, tur: 'rapor', baslik: '', yayin: sonrakiPazartesi(), ozet: '', yazarlar: benKisi ? [benKisi] : [], konu: '',
     bulgular: [{ rakam: '', metin: '' }, { rakam: '', metin: '' }, { rakam: '', metin: '' }],
     kunye: [{ ad: 'Yöntem', deger: '' }, { ad: 'Örneklem', deger: '' }, { ad: 'Saha', deger: '' }],
     yontem: '', gorsel: '', gorselAlt: '', gorselKaynak: '',
@@ -740,7 +740,7 @@ function arastirmaFormu(slug: string, oneriId?: number) {
   iskelet('arastirmalar', `
     <form class="pn-form" data-form="arastirma" data-slug="${e(ad)}" data-oneri="${oneri?.id ?? ''}" novalidate>
       <div class="pn-bas">
-        <h1>${oneri ? 'Önerini düzenle' : kayit ? 'Araştırmayı düzenle' : 'Yeni araştırma'}</h1>
+        <h1>${oneri ? 'Önerini düzenle' : kayit ? 'Yayını düzenle' : 'Yeni araştırma yayını'}</h1>
         ${kayit && !kayit.veri.taslak ? `<a class="pn-dis" href="/arastirma/${e(ad)}/" target="_blank" rel="noopener">Yayındaki hâli ↗</a>` : ''}
       </div>
       ${eskimis ? '<p class="pn-uyari">Sen bu öneriyi hazırladıktan sonra raporun yayındaki hâli değişti. Kaydettiğinde önerin yayındaki son hâlin üzerine kurulur; araya girmiş bir düzeltmeyi geri almadığına bak.</p>' : ''}
@@ -753,6 +753,7 @@ function arastirmaFormu(slug: string, oneriId?: number) {
             <div class="pn-adres-gir"><span>parantezbulten.com/arastirma/</span><input name="adres" pattern="[a-z0-9-]+" maxlength="60" data-adres-elle="0"><span>/</span></div></label>`}
 
       <div class="pn-izgara">
+        <label class="pn-alan"><span>Tür</span><select name="tur">${YAYIN_TURLERI.map(([k, ad]) => `<option value="${k}"${k === v.tur ? ' selected' : ''}>${ad}</option>`).join('')}</select></label>
         <label class="pn-alan"><span>No</span><input name="no" type="number" min="1" value="${v.no}"></label>
         <label class="pn-alan"><span>Yayın tarihi</span><input name="yayin" type="date" value="${e(v.yayin)}"></label>
         <label class="pn-alan"><span>Konu</span><select name="konu"><option value="">Seç</option>${KONU_LISTESI.map(([k, ad]) => `<option value="${k}"${k === v.konu ? ' selected' : ''}>${ad}</option>`).join('')}</select></label>
@@ -802,7 +803,7 @@ function arastirmaFormu(slug: string, oneriId?: number) {
 
 function arastirmaOkuForm(f: HTMLFormElement): ArastirmaVeri {
   return {
-    no: Number(deger(f, 'no')), baslik: deger(f, 'baslik'), yayin: deger(f, 'yayin'), ozet: deger(f, 'ozet'),
+    no: Number(deger(f, 'no')), tur: deger(f, 'tur'), baslik: deger(f, 'baslik'), yayin: deger(f, 'yayin'), ozet: deger(f, 'ozet'),
     yazarlar: $$<HTMLInputElement>('[name="yazarlar"]:checked', f).map((i) => i.value),
     konu: deger(f, 'konu'),
     bulgular: $$('.pn-satir--bulgu', f).map((r) => ({ rakam: deger(r, 'bRakam') || undefined, metin: deger(r, 'bMetin') })).filter((b) => b.metin || b.rakam),

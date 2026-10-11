@@ -88,7 +88,9 @@ Kaydedin (**Deploy**). Başka bir şey gerekmez. Hesaplar mevcut D1 veritabanın
 
 ### Araştırmalar
 
-- **Araştırmalar** → **+ Yeni araştırma**. Sitede `/arastirma/` sayfasında durur; en yenisi üstte, bulgularıyla.
+- **Araştırmalar** → **+ Yeni araştırma**. Sitede `/arastirma/` sayfasında yıllara göre listelenir;
+  okur konuya ve türe göre süzebilir.
+- **Tür:** Rapor, Politika notu ya da Veri notu. Numara (No.) türlerden bağımsız, sırayla artar.
 - Formda:
   - **Künye:** başlığın altındaki kısa bilgiler (Yöntem, Örneklem, Saha…).
   - **Temel bulgular:** 1–5 madde. Rakam kısa olsun (`%41`, `3'te 1`) ya da boş kalsın.
@@ -107,10 +109,12 @@ Kaydedin (**Deploy**). Başka bir şey gerekmez. Hesaplar mevcut D1 veritabanın
   ```
   ````
 
-  İlk satır başlık; her "etiket: sayı" satırı bir çubuk. Sonuna `*` konan satır mavi, diğerleri gri olur.
+  İlk satır başlık; her "etiket: sayı" satırı bir çubuk. Sonuna `*` konan satır koyu, diğerleri açık gri olur
+  (yazılarda vurgu mavidir).
   Sayılar Türkçe yazılır (`1.240`, `12,5`).
 - **Dipnot** düğmesi metne `[^1]` koyar ve notu en alta açar. Notlar sitede "Kaynaklar ve notlar" başlığıyla toplanır.
 - **Tablo** için Markdown tablosu yazılabilir (`| Durum | Oran |` satırları).
+- Sayfadaki **Atıf** metni yazarlardan, yıldan, başlıktan ve adresten kendiliğinden oluşur.
 - Sitedeki "Örnek rapor" yalnızca tasarımı göstermek için var. İlk gerçek rapor yayımlanınca
   ondan **Silinmesini öner** deyin.
 

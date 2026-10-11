@@ -63,12 +63,13 @@ const yazilar = defineCollection({
   }),
 });
 
-// Araştırma: ayda bir, uzun ve kaynaklı rapor. Gövdesi (markdown) raporun kendisi;
+// Araştırma: ayda bir yayımlanan rapor, politika notu ya da veri notu. Gövdesi (markdown) yayının kendisi;
 // ```grafik blokları çubuk grafik, [^1] dipnot olur.
 const arastirmalar = defineCollection({
   loader: glob({ pattern: '*.md', base: './src/content/arastirmalar' }),
   schema: z.object({
-    no: z.number().int().positive(), // "Araştırma 01"
+    no: z.number().int().positive(), // "No. 01"
+    tur: z.enum(['rapor', 'politika-notu', 'veri-notu']).default('rapor'), // yayın türü
     baslik: z.string(),
     yayin: z.coerce.date(),
     ozet: z.string(), // başlığın altındaki birkaç cümle

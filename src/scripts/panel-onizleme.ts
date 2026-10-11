@@ -227,52 +227,66 @@ export function arastirmaSuresi(v: ArastirmaVeri, govde: string): number {
 const ayYil = (t: string) => { const d = tarih(t); return `${AYLAR[d.getUTCMonth()]} ${d.getUTCFullYear()}`; };
 const adlar = (l: string[]) => (l.length < 2 ? l[0] ?? '' : `${l.slice(0, -1).join(', ')} ve ${l[l.length - 1]}`);
 
+const YAYIN_TURU: Record<string, string> = { rapor: 'Rapor', 'politika-notu': 'Politika notu', 'veri-notu': 'Veri notu' };
+const atif = (v: ArastirmaVeri, yol: string) => {
+  const k = v.yazarlar.map((ad) => { const p = ad.trim().split(/\s+/); const s = p.pop() ?? ''; return p.length ? `${s}, ${p.map((x) => `${x[0]}.`).join(' ')}` : s; });
+  const yazarlar = k.length < 2 ? k[0] ?? '' : `${k.slice(0, -1).join(', ')} ve ${k[k.length - 1]}`;
+  const baslik = /[.?!]$/.test(v.baslik) ? v.baslik : `${v.baslik}.`;
+  return `${yazarlar} (${tarih(v.yayin).getUTCFullYear()}). ${baslik} (parantez) Araştırma, ${YAYIN_TURU[v.tur] ?? 'Rapor'} No. ${pad(v.no)}. https://parantezbulten.com/arastirma/${adOf(yol)}/`;
+};
+
+// src/layouts/Arastirma.astro + src/pages/arastirma/[slug].astro
 export function arastirmaOnizleme(a: ArastirmaTaslak, b: Baglam, gorselUrl?: string): string {
   const v = a.veri;
-  const yazarlar = (v.yazarlar.length ? v.yazarlar : ['(yazar yok)']).map((ad) => kisiBul(ad, b.ekip));
   const dk = arastirmaSuresi(v, a.govde);
-  const onceki = b.arastirmalar.filter((x) => x.yol !== a.yol && !x.veri.taslak && x.veri.no < v.no).sort((x, y) => y.veri.no - x.veri.no)[0];
+  const tur = YAYIN_TURU[v.tur] ?? 'Rapor';
+  const digerleri = b.arastirmalar.filter((x) => x.yol !== a.yol && !x.veri.taslak).sort((x, y) => y.veri.no - x.veri.no).slice(0, 3);
   // İçindekiler: kod blokları dışındaki "## " satırları
   const bolumler = a.govde.replace(/^```[\s\S]*?^```/gm, '').split('\n').filter((l) => /^##\s/.test(l)).map((l) => l.replace(/^##\s+/, '').trim());
   const foto = gorselUrl ?? (v.gorsel ? gorsel(v.gorsel, 1200, 632) : '');
-  const konu = konuAdi(v.konu).toLocaleLowerCase('tr');
+  const oge = (x: Kayit<ArastirmaVeri>) => `
+    <li class="ar-oge">
+      <p class="ar-oge__ust"><span>${e(YAYIN_TURU[x.veri.tur] ?? 'Rapor')} · No. ${pad(x.veri.no)}</span><span>${ayYil(x.veri.yayin)}</span></p>
+      <div class="ar-oge__govde"><p class="ar-oge__konu">${e(konuAdi(x.veri.konu))}</p><h3><a href="#">${e(x.veri.baslik)}</a></h3>
+      <p class="ar-oge__alt">${e(adlar(x.veri.yazarlar))} · ${arastirmaSuresi(x.veri, x.govde)} dk okuma</p></div>
+    </li>`;
 
-  return `<div class="app"><div class="main">
-    ${bar(`Araştırma ${pad(v.no)}`, `${ayYil(v.yayin).toLocaleLowerCase('tr')} · ${konu}`, `<button type="button" class="ib" title="Paylaş" aria-label="Paylaş">${SVG_PAYLAS}</button>`)}
-    <main class="oku">
-      <article class="yz ar" style="--c:${konuRenk(v.konu)}">
-        <header class="yz__bas">
-          <p class="yz__ust"><a class="ar__etiket" href="#">(parantez) araştırma</a><span>No. ${pad(v.no)} · ${ayYil(v.yayin)}</span></p>
-          <h1 class="yz__baslik">${e(v.baslik)}</h1>
-          <p class="yz__spot">${e(v.ozet)}</p>
-          <div class="ar__imza">
-            <span class="ar__avlar">${yazarlar.map(av).join('')}</span>
-            <span><b>${e(adlar(yazarlar.map((k) => k.ad)))}</b><small>${tarihUzun(v.yayin)} · ${dk} dk okuma · ${e(konuAdi(v.konu))}</small></span>
-          </div>
-          ${v.kunye.length ? `<dl class="ar__kunye">${v.kunye.map((k) => `<div><dt>${e(k.ad)}</dt><dd>${e(k.deger)}</dd></div>`).join('')}</dl>` : ''}
-        </header>
-        ${foto ? `<figure class="yz__foto"><span class="yz__g"><img src="${e(foto)}" alt="${e(v.gorselAlt)}" width="1200" height="632"></span>${v.gorselKaynak ? `<figcaption>${e(v.gorselKaynak)}</figcaption>` : ''}</figure>` : ''}
-        <section class="ar__bulgular">
-          <h2 class="ar__h">Temel bulgular</h2>
-          <ol>${v.bulgular.map((x) => `<li>${x.rakam ? `<b class="ar__rakam">${e(x.rakam)}</b>` : ''}<p>${e(x.metin)}</p></li>`).join('')}</ol>
+  return `<div class="ar-sayfa">
+    <header class="ar-ust"><div class="ar-kap ar-ust__ic">
+      <a class="ar-ust__marka" href="#"><b>(parantez)</b><span>Araştırma</span></a>
+      <nav class="ar-ust__nav"><a href="#">İlkelerimiz</a><a href="#">Bülten</a></nav>
+    </div></header>
+    <main class="ar-ana"><article class="ar-yayin">
+      <header class="ar-kap ar-yayin__bas">
+        <p class="ar-etiket">${e(tur)} · No. ${pad(v.no)}</p>
+        <h1>${e(v.baslik)}</h1>
+        <p class="ar-yayin__ozet">${e(v.ozet)}</p>
+        <p class="ar-yayin__yazar">${e(adlar(v.yazarlar))}</p>
+        <div class="ar-dugmeler">${v.pdf ? '<a class="ar-dugme ar-dugme--dolu" href="#">PDF indir</a>' : ''}<a class="ar-dugme" href="#">Atıf</a><button type="button" class="ar-dugme">Paylaş</button></div>
+        <dl class="ar-kunye">
+          <div><dt>Yayın tarihi</dt><dd>${tarihUzun(v.yayin)}</dd></div>
+          <div><dt>Konu</dt><dd>${e(konuAdi(v.konu))}</dd></div>
+          ${v.kunye.map((k) => `<div><dt>${e(k.ad)}</dt><dd>${e(k.deger)}</dd></div>`).join('')}
+          <div><dt>Okuma</dt><dd>${dk} dakika</dd></div>
+        </dl>
+      </header>
+      ${foto ? `<figure class="ar-kap ar-gorsel"><img src="${e(foto)}" alt="${e(v.gorselAlt)}" width="1200" height="632">${v.gorselKaynak ? `<figcaption>${e(v.gorselKaynak)}</figcaption>` : ''}</figure>` : ''}
+      <div class="ar-kap ar-yayin__ic">
+        <section class="ar-bulgular"><h2>Temel bulgular</h2>
+          <ol>${v.bulgular.map((x) => `<li>${x.rakam ? `<b class="ar-bulgular__rakam">${e(x.rakam)}</b>` : ''}<p>${e(x.metin)}</p></li>`).join('')}</ol>
         </section>
-        ${bolumler.length > 1 ? `<nav class="ar__icindekiler"><h2 class="ar__h">Bu raporda</h2><ol>${bolumler.map((h) => `<li><a href="#">${e(h)}</a></li>`).join('')}</ol></nav>` : ''}
-        <div class="yz__metin ar__metin">${metinHtml(a.govde)}</div>
-        <aside class="ar__yontem"><h2 class="ar__h">Yöntem</h2><p>${e(v.yontem)}</p>${v.pdf ? '<a class="chip" href="#">Raporun tamamı (PDF)</a>' : ''}</aside>
-        <footer class="yz__son">
-          <p class="bitti"><span>(son)</span></p>
-          <div class="yz-tepki"><p>bu araştırma nasıldı?</p><div>${['❤️', '😂', '😮', '😢', '🔥'].map((x) => `<button type="button">${x}<span></span></button>`).join('')}</div></div>
-          <a class="sonraki sonraki--son" href="#"><span class="sonraki__t">${onceki
-            ? `<small>Önceki araştırma · No. ${pad(onceki.veri.no)}</small><b>${e(onceki.veri.baslik)}</b><span>${ayYil(onceki.veri.yayin)} · ${arastirmaSuresi(onceki.veri, onceki.govde)} dk</span>`
-            : '<small>Bütün araştırmalar</small><b>Ayda bir, bir konuyu sonuna kadar</b><span>(parantez) araştırma</span>'}</span></a>
-          <section class="yz-abone" aria-label="Abone ol">
-            <div class="not">${av(PARANTEZ)}<div class="not__b"><p>yeni araştırmaları her pazartesi 07:30’da gelen bültende duyuruyoruz. sana da gelsin mi?</p></div></div>
-            <form class="yz-abone__form"><input name="eposta" type="email" placeholder="e-posta adresin"><button class="send" type="button" aria-label="Abone ol">${SVG_GONDER}</button></form>
-          </section>
-        </footer>
-      </article>
-    </main>
-  </div></div>`;
+        ${bolumler.length > 1 ? `<nav class="ar-icindekiler"><h2>İçindekiler</h2><ol>${bolumler.map((h) => `<li><a href="#">${e(h)}</a></li>`).join('')}</ol></nav>` : ''}
+        <div class="ar-metin">${metinHtml(a.govde)}</div>
+        <section class="ar-ek"><h2>Yöntem</h2><p>${e(v.yontem)}</p></section>
+        <section class="ar-ek"><h2>Atıf</h2><p class="ar-atif">${e(atif(v, a.yol))}</p><button type="button" class="ar-dugme ar-dugme--kucuk">Kopyala</button></section>
+      </div>
+      ${digerleri.length ? `<section class="ar-kap ar-diger"><h2>Diğer yayınlar</h2><ol class="ar-liste">${digerleri.map(oge).join('')}</ol></section>` : ''}
+    </article></main>
+    <footer class="ar-alt"><div class="ar-kap ar-alt__ic">
+      <p><b>(parantez) araştırma</b><br>Gençleri ilgilendiren konularda ayda bir yayımlanan raporlar. (parantez) bülteninin bir parçasıdır.</p>
+      <nav><a href="#">Bülten</a><a href="#">Abone ol</a><a href="#">Hakkında</a><a href="#">İletişim</a><a href="#">RSS</a></nav>
+    </div></footer>
+  </div>`;
 }
 
 // ------------------------------------------------------------------ çerçeve
@@ -449,7 +463,7 @@ export function sayiFarki(eski: { veri: SayiVeri; govde: string }, yeni: { veri:
 }
 
 const arastirmaAlanlari = (v: ArastirmaVeri): Alan[] => [
-  ['Başlık', v.baslik], ['No', String(v.no)], ['Yayın', v.yayin], ['Konu', konuAdi(v.konu)], ['Yazarlar', v.yazarlar],
+  ['Başlık', v.baslik], ['Tür', YAYIN_TURU[v.tur] ?? v.tur], ['No', String(v.no)], ['Yayın', v.yayin], ['Konu', konuAdi(v.konu)], ['Yazarlar', v.yazarlar],
   ['Özet', v.ozet], ['Künye', v.kunye.map((k) => `${k.ad}: ${k.deger}`)],
   ['Temel bulgular', v.bulgular.map((b) => (b.rakam ? `${b.rakam} — ${b.metin}` : b.metin))],
   ['Görsel', v.gorsel, 'gorsel'], ['Görselde ne var?', v.gorselAlt], ['Görsel kaynağı', v.gorselKaynak],

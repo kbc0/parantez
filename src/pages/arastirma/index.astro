@@ -1,78 +1,87 @@
 ---
-// (parantez) araştırma: ayda bir yayımlanan raporların vitrini. Sohbet değil, sade bir okuma odası.
-// En yeni rapor üstte bulgularıyla durur, öncekiler altında tek satır.
-import App from '../../layouts/App.astro';
-import Av from '../../components/Av.astro';
-import { arastirmalar, arastirmaSuresi, arastirmaUrl, pad, ayYil, kisi, PARANTEZ, SITE } from '../../lib/site';
-import { konuAdi, konuRenk } from '../../lib/konular';
+// Araştırma: yayın listesi. En yeni üstte, yıllara göre. Konu ve türe göre süzülür
+// (JavaScript yoksa hepsi görünür). Altta ilkelerimiz.
+import Arastirma from '../../layouts/Arastirma.astro';
+import { arastirmalar, arastirmaSuresi, arastirmaUrl, pad, ayYil, YAYIN_TURU, SITE } from '../../lib/site';
+import { konuAdi } from '../../lib/konular';
 
 const liste = await arastirmalar();
-const [son, ...onceki] = liste;
+const yil = (d: Date) => new Date(d.getTime() + 3 * 3600e3).getUTCFullYear();
+const yillar = [...new Set(liste.map((a) => yil(a.data.yayin)))];
+const konular = [...new Set(liste.map((a) => a.data.konu))];
+const turler = [...new Set(liste.map((a) => a.data.tur))];
 const adlar = (l: string[]) => (l.length < 2 ? l[0] : `${l.slice(0, -1).join(', ')} ve ${l[l.length - 1]}`);
 ---
-<App
-  title="Araştırma"
-  description="(parantez) araştırma: ayda bir, gençleri ilgilendiren bir konuyu uzun uzun kurcalıyoruz. Ne bulduk, nasıl bulduk, nerede yanılıyor olabiliriz."
-  sayfa="arastirma"
-  aktif="arastirma"
-  bar={{ baslik: 'Araştırma', alt: liste.length ? `ayda bir · ${liste.length} rapor` : 'ayda bir', geri: '/' }}
-  composer={false}
-  okuma
+<Arastirma
+  title="Yayınlar"
+  description="(parantez) araştırma: gençleri ilgilendiren konularda ayda bir yayımlanan raporlar, politika notları ve veri notları."
 >
-  <div class="arv">
-    <header class="arv__bas">
-      <p class="yz__ust"><span class="ar__etiket">(parantez) araştırma</span></p>
-      <h1 class="arv__baslik">Ayda bir konu, sonuna kadar.</h1>
-      <p class="arv__spot">Bültende haftayı kısaltıyoruz. Burada uzatıyoruz: Gençleri ilgilendiren bir soruyu bir ay boyunca soruyor, okuyor, sayıyoruz. Ne bulduğumuzu, nasıl bulduğumuzu ve nerede yanılıyor olabileceğimizi açıkça yazıyoruz.</p>
+  <div class="ar-kap">
+    <header class="ar-giris">
+      <p class="ar-etiket">Araştırma</p>
+      <h1>Gençleri ilgilendiren konularda araştırma ve analiz</h1>
+      <p class="ar-giris__spot">Ayda bir yayımlanan raporlar. Her birinde verinin nereden geldiğini, kimlere ulaşıldığını ve neyin ölçülemediğini açıkça yazıyoruz.</p>
     </header>
 
-    {son ? (
-      <article class="arv-son" style={`--c:${konuRenk(son.data.konu)}`}>
-        <div class="arv-son__sol">
-          <p class="arv-son__ust">Son rapor · No. {pad(son.data.no)} · {ayYil(son.data.yayin)}</p>
-          <h2 class="arv-son__baslik"><a href={arastirmaUrl(son)}>{son.data.baslik}</a></h2>
-          <p class="arv-son__ozet">{son.data.ozet}</p>
-          <div class="ar__imza">
-            <span class="ar__avlar">{son.data.yazarlar.map((ad) => <Av k={kisi(ad)} />)}</span>
-            <span><b>{adlar(son.data.yazarlar)}</b><small>{arastirmaSuresi(son)} dk okuma · {konuAdi(son.data.konu)}</small></span>
-          </div>
-          <a class="chip chip--dolu" href={arastirmaUrl(son)}>Raporu oku</a>
+    {liste.length > 1 && (
+      <div class="ar-suz" data-suz aria-label="Süz">
+        <div class="ar-suz__grup" role="group" aria-label="Konu">
+          <span>Konu</span>
+          <button type="button" data-suz-konu="" aria-pressed="true">Tümü</button>
+          {konular.map((k) => <button type="button" data-suz-konu={k} aria-pressed="false">{konuAdi(k)}</button>)}
         </div>
-        <section class="arv-son__bulgular" aria-label="Öne çıkanlar">
-          <h3 class="ar__h">Öne çıkanlar</h3>
-          <ol>
-            {son.data.bulgular.slice(0, 3).map((b) => (
-              <li>{b.rakam && <b class="ar__rakam">{b.rakam}</b>}<p>{b.metin}</p></li>
-            ))}
-          </ol>
-        </section>
-      </article>
-    ) : (
-      <p class="arv__bos">İlk raporumuz hazırlanıyor. Yayımlanınca bültende haber vereceğiz.</p>
+        {turler.length > 1 && (
+          <div class="ar-suz__grup" role="group" aria-label="Tür">
+            <span>Tür</span>
+            <button type="button" data-suz-tur="" aria-pressed="true">Tümü</button>
+            {turler.map((t) => <button type="button" data-suz-tur={t} aria-pressed="false">{YAYIN_TURU[t]}</button>)}
+          </div>
+        )}
+        <p class="ar-suz__sayi" data-suz-sayi aria-live="polite">{liste.length} yayın</p>
+      </div>
     )}
 
-    {onceki.length > 0 && (
-      <section class="arv-arsiv" aria-labelledby="onceki">
-        <h2 class="ar__h" id="onceki">Önceki raporlar</h2>
-        <ol>
-          {onceki.map((a) => (
-            <li>
-              <a href={arastirmaUrl(a)} style={`--c:${konuRenk(a.data.konu)}`}>
-                <span class="arv-arsiv__no">No. {pad(a.data.no)}</span>
-                <span class="arv-arsiv__t">
-                  <b>{a.data.baslik}</b>
-                  <small><i aria-hidden="true"></i>{ayYil(a.data.yayin)} · {konuAdi(a.data.konu)} · {arastirmaSuresi(a)} dk</small>
-                </span>
-              </a>
+    {liste.length ? yillar.map((y) => (
+      <section class="ar-yil" data-yil>
+        <h2 class="ar-yil__baslik">{y}</h2>
+        <ol class="ar-liste">
+          {liste.filter((a) => yil(a.data.yayin) === y).map((a) => (
+            <li class="ar-oge" data-konu={a.data.konu} data-tur={a.data.tur}>
+              <p class="ar-oge__ust">
+                <span>{YAYIN_TURU[a.data.tur]} · No. {pad(a.data.no)}</span>
+                <span>{ayYil(a.data.yayin)}</span>
+              </p>
+              <div class="ar-oge__govde">
+                <p class="ar-oge__konu">{konuAdi(a.data.konu)}</p>
+                <h3><a href={arastirmaUrl(a)}>{a.data.baslik}</a></h3>
+                <p class="ar-oge__ozet">{a.data.ozet}</p>
+                <p class="ar-oge__alt">{adlar(a.data.yazarlar)} · {arastirmaSuresi(a)} dk okuma{a.data.pdf && <> · <a href={a.data.pdf} target="_blank" rel="noopener">PDF</a></>}</p>
+              </div>
             </li>
           ))}
         </ol>
       </section>
+    )) : (
+      <p class="ar-bos">İlk yayınımız hazırlanıyor.</p>
     )}
+    <p class="ar-bos" data-suz-bos hidden>Bu seçimle eşleşen yayın yok.</p>
 
-    <aside class="not arv__not">
-      <Av k={PARANTEZ} />
-      <div class="not__b"><p>her raporun sonunda yöntemimizi yazıyoruz: kimlere sorduk, ne zaman, neyi ölçemedik. bir hata görürsen <a href={`mailto:${SITE.eposta}`}>{SITE.eposta}</a> adresine yaz, düzeltelim.</p></div>
-    </aside>
+    <section class="ar-ilkeler" id="ilkeler" aria-labelledby="ilkeler-baslik">
+      <h2 id="ilkeler-baslik">İlkelerimiz</h2>
+      <dl>
+        <div>
+          <dt>Açıklık</dt>
+          <dd>Her yayının sonunda yöntem notu var: verinin kaynağı, kimlere ve ne zaman ulaşıldığı, örneklemin dışarıda bıraktıkları.</dd>
+        </div>
+        <div>
+          <dt>Gözden geçirme</dt>
+          <dd>Hiçbir yayın tek kişinin onayıyla çıkmaz. Her metni yazarı dışında en az bir ekip üyesi okur ve onaylar.</dd>
+        </div>
+        <div>
+          <dt>Düzeltme</dt>
+          <dd>Bir hata görürseniz <a href={`mailto:${SITE.eposta}`}>{SITE.eposta}</a> adresine yazın. Düzeltmeyi yapar ve yayında belirtiriz.</dd>
+        </div>
+      </dl>
+    </section>
   </div>
-</App>
+</Arastirma>

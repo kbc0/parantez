@@ -19,11 +19,13 @@ Site sahibi bu çizgiyi çok seviyor; yeni işler bu çizgide kalsın:
   - Logo sol üstte durur. Sağ üstte tek "Arşiv" düğmesi var; tüm sayılar ve konular sağdan açılan çekmecede.
   - "Abone ol" yerinde açılır.
 - **Mobil ana sayfa sohbet listesidir.**
-- **Araştırma (`/arastirma/`) ciddi bir okuma odasıdır, mesaj değildir.** Ayda bir uzun rapor.
-  - Yazı sayfasının sakin düzeni; raporun kendi parçaları: künye, temel bulgular, içindekiler,
-    numaralı bölümler, grafik, tablo, dipnot, yöntem notu.
-  - Rengi fosfor: rakamların altından işaretleyici kalem gibi geçer, "(parantez) araştırma" etiketi.
-  - Sitenin geri kalanıyla bağ: aynı üst bar, yazar avatarları, sondaki tek (parantez) balonu.
+- **Araştırma (`/arastirma/`) bir düşünce kuruluşunun yayın sayfası gibidir: ciddi ve renksiz.**
+  - Kendi iskeleti var (`src/layouts/Arastirma.astro`, `src/styles/arastirma.css`): sohbet listesi, üst bar,
+    balon, emoji tepki ve renk yok. Mürekkep, beyaz, griler ve ince çizgiler; başlıklar 650 ağırlıkta.
+  - Giriş sayfası bir yayın listesidir: yıllara göre, konu ve türe göre süzülür; altta "İlkelerimiz".
+  - Yayın sayfası: tür ve no, başlık, özet, yazarlar, PDF/Atıf/Paylaş, künye ızgarası, temel bulgular,
+    içindekiler, numaralı bölümler, grafik (mürekkep ve gri), tablo, dipnot, yöntem, atıf, diğer yayınlar.
+  - Görseller gri tonlu.
 - **Geri düğmesi** okuru geldiği yere götürür. Sohbete dönen okur kaldığı yerden devam eder.
 
 Kaçınılacaklar:
@@ -51,13 +53,14 @@ Yazı tipi: Hanken Grotesk.
 - Markdown: Astro'nun Sätteri işlemcisi (`astro.config.mjs`).
   - ` ```grafik ` blokları çubuk grafiğe dönüşür (`src/lib/grafik.js`; panel önizlemesi de bunu kullanır).
   - `[^1]` dipnotları "Kaynaklar ve notlar" başlığıyla sonda toplanır.
-- Sayfalar: `src/pages/`. Ortak iskelet: `src/layouts/App.astro`.
+- Sayfalar: `src/pages/`. Ortak iskelet: `src/layouts/App.astro` (araştırma hariç). `<head>` etiketleri `src/components/Bas.astro`.
   - `okuma` prop'u yazı düzenini açar.
   - `ana` prop'u ana sayfa düzenini açar.
 - Betikler (`src/scripts/`):
   - `ortak.ts`: her sayfa; geri düğmesi, sayfa içi abonelik, paylaş.
   - `sohbet.ts`: sohbet sayfaları.
-  - `okuma.ts`: yazı ve araştırma raporu sayfası (`.yz` varsa yüklenir).
+  - `okuma.ts`: yazı sayfası.
+  - `arastirma.ts`: araştırma sayfaları; listeyi süzme, atıfı kopyalama.
 - Yazı paneli: `/admin` (bkz. `PANEL.md`).
   - Arayüz `src/pages/admin/index.astro`, `src/scripts/panel.ts`, `src/scripts/panel-icerik.ts`.
   - Sunucu `worker/panel.js`, `worker/inceleme.js` ve `worker/github.js`.
@@ -65,7 +68,8 @@ Yazı tipi: Hanken Grotesk.
     Yazandan başka bir ekip üyesi onaylayınca GitHub'a commit edilir. Hesaplar da D1'de.
   - Ekip listesi `src/data/ekip.json`, görseller `public/gorseller/` altında.
   - İçerik şeması değişirse `panel-icerik.ts`'teki denetim de güncellenmeli.
-  - Önizleme `src/scripts/panel-onizleme.ts`: yazı sayfası, araştırma raporu, sohbet ve üst barın kopyası.
+  - Önizleme `src/scripts/panel-onizleme.ts`: yazı sayfası, araştırma yayını, sohbet ve üst barın kopyası.
+    Panel sayfası önizleme için `arastirma.css`'i de yükler.
     Bu şablonlar değişirse önizleme de güncellenmeli.
 - Worker: `worker/index.js`.
   - `/api/abone`: abonelik; KV `ABONELER`.

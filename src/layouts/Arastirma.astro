@@ -1,0 +1,59 @@
+---
+// (parantez) araştırma bölümünün iskeleti. Sitenin sohbet düzeninden ayrı: sol liste, üst bar,
+// balon ve renk yok. Mürekkep, beyaz ve griler; ince çizgiler; yayın sayfası gibi okunur.
+import '@fontsource-variable/hanken-grotesk';
+import '../styles/global.css';
+import '../styles/arastirma.css';
+import Bas from '../components/Bas.astro';
+import { SITE } from '../lib/site';
+
+interface Props {
+  title?: string;
+  description?: string;
+  image?: string;
+  type?: 'website' | 'article';
+}
+const { title, description, image, type } = Astro.props;
+---
+<!doctype html>
+<html lang="tr">
+<head>
+  <Bas title={title} description={description} image={image} type={type} ek="(parantez) araştırma" />
+  <script is:inline>document.documentElement.classList.add('js');</script>
+</head>
+<body class="ar-sayfa">
+  <a class="skip" href="#icerik">İçeriğe geç</a>
+
+  <header class="ar-ust">
+    <div class="ar-kap ar-ust__ic">
+      <a class="ar-ust__marka" href="/arastirma/"><b>(parantez)</b><span>Araştırma</span></a>
+      <nav class="ar-ust__nav" aria-label="Araştırma">
+        <a href="/arastirma/#ilkeler">İlkelerimiz</a>
+        <a href="/">Bülten</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="icerik" class="ar-ana">
+    <slot />
+  </main>
+
+  <footer class="ar-alt">
+    <div class="ar-kap ar-alt__ic">
+      <p><b>(parantez) araştırma</b><br>Gençleri ilgilendiren konularda ayda bir yayımlanan raporlar. (parantez) bülteninin bir parçasıdır.</p>
+      <nav aria-label="Bağlantılar">
+        <a href="/">Bülten</a>
+        <a href="/abone/">Abone ol</a>
+        <a href="/hakkinda/">Hakkında</a>
+        <a href={`mailto:${SITE.eposta}`}>İletişim</a>
+        <a href="/rss.xml">RSS</a>
+      </nav>
+    </div>
+  </footer>
+
+  <div class="toast" data-toast hidden role="status"></div>
+  <script>
+    import '../scripts/arastirma';
+  </script>
+</body>
+</html>

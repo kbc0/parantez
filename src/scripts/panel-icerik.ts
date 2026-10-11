@@ -21,8 +21,9 @@ export type SayiVeri = {
   etkinlikler?: Etkinlik[];
   taslak?: boolean;
 };
+export const YAYIN_TURLERI = [['rapor', 'Rapor'], ['politika-notu', 'Politika notu'], ['veri-notu', 'Veri notu']] as const;
 export type ArastirmaVeri = {
-  no: number; baslik: string; yayin: string; ozet: string; yazarlar: string[]; konu: string;
+  no: number; tur: string; baslik: string; yayin: string; ozet: string; yazarlar: string[]; konu: string;
   bulgular: { rakam?: string; metin: string }[]; kunye: { ad: string; deger: string }[]; yontem: string;
   gorsel: string; gorselAlt: string; gorselKaynak: string; pdf?: string; taslak?: boolean;
 };
@@ -99,7 +100,7 @@ export function arastirmaOku(d: { yol: string; sha: string; metin: string }): Ka
   return {
     yol: d.yol, sha: d.sha, govde,
     veri: {
-      no: Number(v.no ?? 0), baslik: String(v.baslik ?? ''), yayin: tarihMetni(v.yayin), ozet: String(v.ozet ?? ''),
+      no: Number(v.no ?? 0), tur: String(v.tur ?? 'rapor'), baslik: String(v.baslik ?? ''), yayin: tarihMetni(v.yayin), ozet: String(v.ozet ?? ''),
       yazarlar: Array.isArray(v.yazarlar) ? v.yazarlar.map(String) : [], konu: String(v.konu ?? ''),
       bulgular: Array.isArray(v.bulgular) ? v.bulgular.map((b) => ({ rakam: b.rakam ? String(b.rakam) : undefined, metin: String(b.metin ?? '') })) : [],
       kunye: Array.isArray(v.kunye) ? v.kunye.map((k) => ({ ad: String(k.ad ?? ''), deger: String(k.deger ?? '') })) : [],
@@ -126,7 +127,7 @@ export function sayiMetni(v: SayiVeri, govde: string): string {
 
 export function arastirmaMetni(v: ArastirmaVeri, govde: string): string {
   return birlestir({
-    no: v.no, baslik: v.baslik, yayin: v.yayin, ozet: v.ozet, yazarlar: v.yazarlar, konu: v.konu,
+    no: v.no, tur: v.tur, baslik: v.baslik, yayin: v.yayin, ozet: v.ozet, yazarlar: v.yazarlar, konu: v.konu,
     bulgular: v.bulgular, kunye: v.kunye, yontem: v.yontem, gorsel: v.gorsel, gorselAlt: v.gorselAlt,
     gorselKaynak: v.gorselKaynak, pdf: v.pdf, taslak: v.taslak,
   }, govde);
@@ -186,7 +187,8 @@ export function sayiDenetle(v: SayiVeri): string[] {
 export function arastirmaDenetle(v: ArastirmaVeri, govde: string): string[] {
   const h: string[] = [];
   if (!v.baslik.trim()) h.push('Başlık boş.');
-  if (!(v.no > 0)) h.push('Araştırma numarası geçersiz.');
+  if (!(v.no > 0)) h.push('Yayın numarası geçersiz.');
+  if (!YAYIN_TURLERI.some(([k]) => k === v.tur)) h.push('Yayın türü seçilmedi.');
   if (!TARIH.test(v.yayin)) h.push('Yayın tarihi eksik.');
   if (!v.ozet.trim()) h.push('Özet boş.');
   if (v.yazarlar.length < 1 || v.yazarlar.length > 6) h.push('1 ile 6 arasında yazar seçilmeli.');

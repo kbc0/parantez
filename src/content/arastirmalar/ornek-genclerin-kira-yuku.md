@@ -1,5 +1,6 @@
 ---
 no: 1
+tur: "rapor"
 baslik: "Örnek rapor: Gençler gelirinin ne kadarını kiraya veriyor?"
 yayin: "2026-10-05"
 ozet: "Araştırma bölümünün nasıl görüneceğini göstermek için hazırlanmış bir örnek. Kirada yaşayan gençlerin gelirlerinin ne kadarını barınmaya ayırdığını, bu yükle nasıl baş ettiklerini ve rakamların neyi göstermediğini anlatıyor. Buradaki rakamlar gerçek bir ankete dayanmıyor."

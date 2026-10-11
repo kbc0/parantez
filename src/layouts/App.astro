@@ -2,6 +2,7 @@
 import '@fontsource-variable/hanken-grotesk';
 import '../styles/global.css';
 import Av from '../components/Av.astro';
+import Bas from '../components/Bas.astro';
 import Composer from '../components/Composer.astro';
 import type { Chip } from '../lib/chips';
 import { SITE, PARANTEZ, sayilar, sayiUrl, pad, tarihKisa, type Kisi } from '../lib/site';
@@ -24,10 +25,7 @@ interface Props {
   okuma?: boolean; // yazı sayfası: balonsuz, rahat okunan düzen
 }
 
-const { title, description = SITE.aciklama, image, type = 'website', sayfa, aktif, bar, chips, mod, kaynak, composer = true, ana = false, okuma = false } = Astro.props;
-const fullTitle = title ? `${title} — ${SITE.ad}` : `${SITE.ad} — ${SITE.slogan}`;
-const canonical = new URL(Astro.url.pathname, Astro.site);
-const ogImage = new URL(image ?? '/og.png', Astro.site);
+const { title, description, image, type = 'website', sayfa, aktif, bar, chips, mod, kaynak, composer = true, ana = false, okuma = false } = Astro.props;
 // Başlığı (parantez) olan barlarda (p) ikonu yok; yazının kendisi logo gibi durur
 const markaBar = bar.baslik === SITE.ad && !bar.kisi;
 const liste = await sayilar();
@@ -36,22 +34,7 @@ const guncel = liste[0]?.data.sayi;
 <!doctype html>
 <html lang="tr">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>{fullTitle}</title>
-  <meta name="description" content={description}>
-  <link rel="canonical" href={canonical}>
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <link rel="alternate" type="application/rss+xml" title={SITE.ad} href="/rss.xml">
-  <meta name="theme-color" content="#ffffff">
-  <meta property="og:type" content={type}>
-  <meta property="og:site_name" content={SITE.ad}>
-  <meta property="og:locale" content="tr_TR">
-  <meta property="og:title" content={title ?? SITE.ad}>
-  <meta property="og:description" content={description}>
-  <meta property="og:url" content={canonical}>
-  <meta property="og:image" content={ogImage}>
-  <meta name="twitter:card" content="summary_large_image">
+  <Bas title={title} description={description} image={image} type={type} />
   <script is:inline>
     document.documentElement.classList.add('js');
     // Masaüstünde sohbet listesi okur açmadıkça kapalı gelir

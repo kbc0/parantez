@@ -69,6 +69,20 @@ export function arastirmaSuresi(a: Arastirma): number {
   return Math.max(1, Math.ceil(kelime / 180));
 }
 
+export const YAYIN_TURU = { rapor: 'Rapor', 'politika-notu': 'Politika notu', 'veri-notu': 'Veri notu' } as const;
+
+// Atıf: "Arslan, E. ve Kaya, D. (2026). Başlık. (parantez) Araştırma, Rapor No. 01. adres"
+export function atifMetni(a: Arastirma, site: URL | string): string {
+  const kisaltilmis = a.data.yazarlar.map((ad) => {
+    const p = ad.trim().split(/\s+/);
+    const soyad = p.pop() ?? '';
+    return p.length ? `${soyad}, ${p.map((x) => `${x[0]}.`).join(' ')}` : soyad;
+  });
+  const yazarlar = kisaltilmis.length < 2 ? kisaltilmis[0] : `${kisaltilmis.slice(0, -1).join(', ')} ve ${kisaltilmis[kisaltilmis.length - 1]}`;
+  const yil = tr(a.data.yayin).getUTCFullYear();
+  return `${yazarlar} (${yil}). ${a.data.baslik.replace(/[.?!]$/, '')}${/[?!]$/.test(a.data.baslik) ? a.data.baslik.slice(-1) : '.'} (parantez) Araştırma, ${YAYIN_TURU[a.data.tur]} No. ${pad(a.data.no)}. ${new URL(arastirmaUrl(a), site)}`;
+}
+
 export const ayYil = (d: Date) => { const t = tr(d); return `${AYLAR[t.getUTCMonth()]} ${t.getUTCFullYear()}`; };
 
 // picsum.photos geçici görselleri istenen boyuta çevirir; panelden yüklenen
