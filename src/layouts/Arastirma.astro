@@ -1,10 +1,12 @@
 ---
-// (parantez) araştırma bölümünün iskeleti. Sitenin sohbet düzeninden ayrı ve sade:
-// üstte logo ve "Araştırma", altında yalnızca içerik. Renk, balon ve betik yok.
+// (parantez) araştırma bölümünün iskeleti. Üst menü ana sayfanınkinin aynısı (AnaUst, Arşiv çekmecesi);
+// altında yalnızca içerik. Renk, balon ve betik yok.
 import '@fontsource-variable/hanken-grotesk';
 import '../styles/global.css';
 import '../styles/arastirma.css';
 import Bas from '../components/Bas.astro';
+import AnaUst from '../components/AnaUst.astro';
+import Arsiv from '../components/Arsiv.astro';
 
 interface Props { title?: string; description?: string; image?: string; type?: 'website' | 'article' }
 const { title, description, image, type } = Astro.props;
@@ -16,12 +18,8 @@ const { title, description, image, type } = Astro.props;
 </head>
 <body class="ar-sayfa">
   <a class="skip" href="#icerik">İçeriğe geç</a>
-  <header class="ar-ust">
-    <div class="ar-kap ar-ust__ic">
-      <a class="ar-ust__marka" href="/">(parantez)</a>
-      <a class="ar-ust__bolum" href="/arastirma/">Araştırma</a>
-    </div>
-  </header>
+  <AnaUst aktif="arastirma" />
+  <Arsiv />
   <main id="icerik" class="ar-kap ar-ana">
     <slot />
   </main>

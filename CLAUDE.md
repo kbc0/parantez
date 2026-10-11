@@ -20,8 +20,9 @@ Site sahibi bu çizgiyi çok seviyor; yeni işler bu çizgide kalsın:
   - "Abone ol" yerinde açılır.
 - **Mobil ana sayfa sohbet listesidir.**
 - **Araştırma (`/arastirma/`) sade ve renksizdir; makale gibi okunur.** Site sahibi kalabalık istemiyor.
-  - Kendi iskeleti var (`src/layouts/Arastirma.astro`, `src/styles/arastirma.css`): üstte yalnızca logo ve
-    "Araştırma"; sohbet listesi, bar, balon, tepki, düğme ve renk yok. Mürekkep, beyaz, griler.
+  - Kendi iskeleti var (`src/layouts/Arastirma.astro`, `src/styles/arastirma.css`). Üst menü ana sayfanınkinin
+    aynısıdır (logo; Arşiv · Araştırma · Hakkında; Arşiv aynı çekmeceyi açar). Sohbet listesi, bar, balon,
+    tepki ve renk yok. Mürekkep, beyaz, griler.
   - Liste sayfası yalnızca başlık ve yayınlar (No. ve başlık). Tanıtım metni, süzgeç, özet yok.
   - Yazı sayfası: No., başlık, yazarlar ve tarih; sonra metin. Künye, bulgu kutusu, içindekiler, atıf gibi
     ayrı parçalar eklenmez; gereken her şey metnin içinde (ara başlık, tablo, grafik, dipnot).
@@ -54,6 +55,8 @@ Yazı tipi: Hanken Grotesk.
   - ` ```grafik ` blokları çubuk grafiğe dönüşür (`src/lib/grafik.js`; panel önizlemesi de bunu kullanır).
   - `[^1]` dipnotları "Kaynaklar ve notlar" başlığıyla sonda toplanır.
 - Sayfalar: `src/pages/`. Ortak iskelet: `src/layouts/App.astro` (araştırma hariç). `<head>` etiketleri `src/components/Bas.astro`.
+  - Ana sayfanın üst menüsü `src/components/AnaUst.astro`, Arşiv çekmecesi `src/components/Arsiv.astro`;
+    ikisi de ana sayfada ve araştırma sayfalarında kullanılır. Üst menü değişirse ikisinde de değişir.
   - `okuma` prop'u yazı düzenini açar.
   - `ana` prop'u ana sayfa düzenini açar.
 - Betikler (`src/scripts/`):

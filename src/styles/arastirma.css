@@ -5,11 +5,20 @@
 .ar-kap { width: 100%; max-width: 760px; margin: 0 auto; padding-inline: 20px; }
 .ar-ana { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
 
-.ar-ust { border-bottom: 1px solid var(--line); }
-.ar-ust__ic { display: flex; align-items: center; justify-content: space-between; height: 60px; }
-.ar-ust__marka { font-size: 20px; font-weight: 800; letter-spacing: -0.03em; text-decoration: none; }
-.ar-ust__bolum { font-size: 15px; font-weight: 600; color: #4b4b46; text-decoration: none; }
-:is(.ar-ust__marka, .ar-ust__bolum):hover { text-decoration: underline; text-underline-offset: 4px; }
+/* Üst menü ana sayfanınkinin aynısı (components/AnaUst.astro, Arsiv.astro; stiller global.css'te).
+   Ana sayfa telefonda menü yerine sohbet listesini gösterdiği için menü ve çekmece burada telefona da açılır. */
+@media (max-width: 899px) {
+  .ar-sayfa .ana-ust { display: flex; align-items: center; justify-content: space-between; gap: 12px; height: 64px; padding: 0 16px; }
+  .ar-sayfa .ana-ust .brand { padding: 0; font-size: 20px; }
+  .ar-sayfa .ana-ust nav { display: flex; align-items: center; gap: 16px; font-size: 14px; font-weight: 700; }
+  .ar-sayfa .ana-ust nav :is(a, button) { display: inline-flex; align-items: center; gap: 5px; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-decoration: none; cursor: pointer; }
+  .ar-sayfa .ana-ust nav svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; }
+
+  .ar-sayfa .liste[popover]:not(:popover-open) { display: none; }
+  .ar-sayfa .liste[popover] { position: fixed; inset: 0; width: 100vw; height: 100dvh; max-width: none; max-height: none; padding: 0 12px 32px; background: #fff; overflow-y: auto; overscroll-behavior: contain; }
+  .ar-sayfa .liste__bas { position: sticky; top: 0; z-index: 1; display: flex; align-items: center; justify-content: space-between; height: 64px; margin: 0 -12px; padding: 0 16px; border-bottom: 1px solid var(--line); background: #fff; }
+  .ar-sayfa .liste__bas b { font-size: 20px; font-weight: 800; letter-spacing: -0.02em; }
+}
 
 .ar-baslik { margin: 0; font-size: clamp(32px, 7vw, 46px); font-weight: 650; line-height: 1.1; letter-spacing: -0.025em; text-wrap: balance; }
 .ar-no { font-size: 13px; font-weight: 600; letter-spacing: .03em; color: #6b6b66; font-variant-numeric: tabular-nums; }

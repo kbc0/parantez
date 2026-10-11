@@ -221,12 +221,12 @@ export function sayiOnizleme(v: SayiVeri, govde: string, b: Baglam): string {
 type ArastirmaTaslak = { yol: string; veri: ArastirmaVeri; govde: string };
 const adlar = (l: string[]) => (l.length < 2 ? l[0] ?? '' : `${l.slice(0, -1).join(', ')} ve ${l[l.length - 1]}`);
 
-// src/layouts/Arastirma.astro + src/pages/arastirma/[slug].astro
+// src/layouts/Arastirma.astro (üst menü: components/AnaUst.astro) + src/pages/arastirma/[slug].astro
 export function arastirmaOnizleme(a: ArastirmaTaslak, _b: Baglam, gorselUrl?: string): string {
   const v = a.veri;
   const foto = gorselUrl ?? (v.gorsel ? gorsel(v.gorsel, 1200, 632) : '');
   return `<div class="ar-sayfa">
-    <header class="ar-ust"><div class="ar-kap ar-ust__ic"><a class="ar-ust__marka" href="#">(parantez)</a><a class="ar-ust__bolum" href="#">Araştırma</a></div></header>
+    <header class="ana-ust"><a class="brand" href="#"><b>(parantez)</b></a><nav><button type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg>Arşiv</button><a href="#">Araştırma</a><a href="#">Hakkında</a></nav></header>
     <main class="ar-kap ar-ana">
       <article class="ar-yazi">
         <header>

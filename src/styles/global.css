@@ -396,7 +396,7 @@ img.kirik { visibility: hidden; }
   cursor: pointer;
 }
 .kapat svg { width: 18px; height: 18px; fill: none; stroke: var(--ink); stroke-width: 2.4; stroke-linecap: round; }
-html:not(.js) .kapat { display: none; }
+html:not(.js) .kapat:not([popovertarget]) { display: none; } /* çekmeceyi kapatan düğme betiksiz de çalışır */
 .b--aksiyon {
   border: 1.5px solid var(--me);
   background: #fff;

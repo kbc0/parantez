@@ -4,13 +4,12 @@
 // sağdan açılan bir çekmece olur (popover): üstteki "Arşiv" açar.
 import App from '../layouts/App.astro';
 import Av from '../components/Av.astro';
-import { sayilar, yazilar, sayininYazilari, sayiUrl, yaziUrl, pad, tarihKisa, tarihUzun, gunAdi, aralik, okumaSuresi, ilkAd, kisi, arastirmalar, ayYil, PARANTEZ, SITE } from '../lib/site';
-import { KONULAR, konuAdi, konuRenk } from '../lib/konular';
+import Arsiv from '../components/Arsiv.astro';
+import AnaUst from '../components/AnaUst.astro';
+import { sayilar, sayininYazilari, sayiUrl, yaziUrl, pad, tarihUzun, gunAdi, okumaSuresi, ilkAd, kisi, PARANTEZ } from '../lib/site';
+import { konuAdi, konuRenk } from '../lib/konular';
 
 const liste = await sayilar();
-const tum = await yazilar();
-const satirlar = await Promise.all(liste.map(async (s, i) => ({ s, yazi: (await sayininYazilari(s.data.sayi)).length, guncel: i === 0 })));
-const konular = Object.entries(KONULAR).map(([k, ad]) => ({ k, ad, n: tum.filter((y) => y.data.konu === k).length })).filter((x) => x.n > 0);
 
 const g = liste[0];
 const gYazilar = g ? await sayininYazilari(g.data.sayi) : [];
@@ -18,49 +17,12 @@ const gDk = gYazilar.reduce((t, y) => t + okumaSuresi(y), 0);
 // Sayının ilk paragrafı kapakta özet olur
 const ozet = (g?.body ?? '').trim().split(/\n\s*\n/)[0]?.replace(/[*_`#>]/g, '').trim();
 const editor = g ? kisi(g.data.imza.split(',')[0].trim()) : PARANTEZ;
-const [sonArastirma] = await arastirmalar();
 ---
 <App composer={false} ana
   bar={{ baslik: '(parantez)', alt: `her pazartesi 07:30 · ${liste.length} sayı`, kok: true }}>
-  <div class="liste" id="liste" popover>
-    <div class="liste__bas">
-      <b>Arşiv</b>
-      <button type="button" class="kapat" popovertarget="liste" popovertargetaction="hide" aria-label="Kapat">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
-      </button>
-    </div>
-    <nav class="clist clist--sayfa" aria-label="Sayılar">
-      {satirlar.map(({ s, yazi, guncel }) => (
-        <a class="ci" href={sayiUrl(s.data.sayi)}>
-          <span class="av av--o" style={`--av:${guncel ? '#2a35ff' : '#111'}`} aria-hidden="true">{pad(s.data.sayi)}</span>
-          <span class="ci__t"><b>Sayı {pad(s.data.sayi)}{guncel && <em class="rozet">yeni</em>}</b><span>{s.data.baslik} · {yazi} yazı</span><small>{aralik(s.data.baslangic, s.data.bitis)}</small></span>
-          <time>{tarihKisa(s.data.yayin)}</time>
-        </a>
-      ))}
-    </nav>
+  <Arsiv />
 
-    <h2 class="liste__h" id="konular">Konular</h2>
-    <nav class="tags tags--sayfa" aria-label="Konular">
-      {konular.map((x) => <a class="tag" href={`/konu/${x.k}/`}>#{x.ad.toLocaleLowerCase('tr')} <small>{x.n}</small></a>)}
-    </nav>
-
-    <nav class="liste__alt" aria-label="Diğer">
-      <a class="ci ci--yalin" href="/arastirma/"><span class="av av--o av--ar" aria-hidden="true">%</span><span class="ci__t"><b>Araştırma</b><span>{sonArastirma ? `${ayYil(sonArastirma.data.yayin)}: ${sonArastirma.data.baslik}` : 'Ayda bir konu, sonuna kadar'}</span></span><span aria-hidden="true">›</span></a>
-      <a class="ci ci--yalin" href="/abone/" data-abone-ac="hizli-abone" data-abone-gizle><span class="av av--o" style="--av:#ff4a24" aria-hidden="true">@</span><span class="ci__t"><b>Abone ol</b><span>Her pazartesi 07:30 gelen kutunda</span></span><span aria-hidden="true">›</span></a>
-      <a class="ci ci--yalin" href="/hakkinda/"><span class="av av--o av--i" style="--av:#111" aria-hidden="true">i</span><span class="ci__t"><b>Hakkında</b><span>{SITE.slogan}</span></span><span aria-hidden="true">›</span></a>
-    </nav>
-  </div>
-
-  <header class="ana-ust">
-    <a class="brand" href="/"><b>(parantez)</b></a>
-    <nav aria-label="Site">
-      <button type="button" popovertarget="liste">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg>Arşiv
-      </button>
-      <a href="/arastirma/">Araştırma</a>
-      <a href="/hakkinda/">Hakkında</a>
-    </nav>
-  </header>
+  <AnaUst />
 
   {g && (
     <section class="kapak" aria-labelledby="kapak-baslik">
