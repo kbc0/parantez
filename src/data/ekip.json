@@ -3,18 +3,30 @@
     "ad": "Kamil Berkay Çetin",
     "kisa": "KBC",
     "renk": "#ff4a24",
-    "rol": "yayın yönetmeni"
+    "rol": "direktör"
   },
   {
-    "ad": "Deniz Kaya",
-    "kisa": "DK",
+    "ad": "İdris Efe Demirel",
+    "kisa": "IED",
     "renk": "#2a35ff",
-    "rol": "editör"
+    "rol": "genel yayın yönetmeni"
   },
   {
-    "ad": "Mert Yalın",
+    "ad": "Barış Nuri Kavafoğlu",
     "kisa": "MY",
     "renk": "#111111",
+    "rol": "yayın direktörü"
+  },
+  {
+    "ad": "Melih Dursun",
+    "kisa": "MD",
+    "renk": "#0f8a5f",
     "rol": "editör"
+  },
+  {
+    "ad": "Selingül Pekşen",
+    "kisa": "SP",
+    "renk": "#d6336c",
+    "rol": "sosyal medya"
   }
 ]
