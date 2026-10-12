@@ -7,7 +7,7 @@
 //   YONETICI_EPOSTA, YONETICI_PAROLA — bu bilgilerle ilk girişte yönetici hesabı açılır.
 // Aynı bilgiler sonradan da çalışır (parola unutulursa kurtarma yolu).
 
-import { github, GithubHatasi } from './github.js';
+import { github, GithubHatasi, yetkiHatasi } from './github.js';
 import { inceleme, incelemeSemasi } from './inceleme.js';
 
 const EPOSTA = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -315,7 +315,7 @@ async function icerik(yol, yontem, veri, ben, env, url) {
   } catch (e) {
     if (e instanceof GithubHatasi) {
       if (e.status === 409) return json({ hata: 'Bu içerik sen düzenlerken başka biri tarafından değiştirildi. Sayfayı yenileyip değişikliğini tekrar uygula.', yol: e.yol }, 409);
-      if (e.status === 401 || e.status === 403) return hata(502, 'GitHub anahtarı geçersiz ya da yetkisi yetmiyor.');
+      if (e.status === 401 || e.status === 403) { console.error(e.message); return hata(502, yetkiHatasi(e)); }
       if (e.status === 404) return hata(404, 'Dosya bulunamadı.');
       console.error(e.message);
       return hata(502, 'GitHub şu an cevap vermiyor. Biraz sonra tekrar dene.');

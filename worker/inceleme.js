@@ -11,7 +11,7 @@
 //
 // Öneriler ve yorumlar D1'de (DB) durur. Onaya kadar GitHub'a hiçbir şey gitmez.
 
-import { github, GithubHatasi } from './github.js';
+import { github, GithubHatasi, yetkiHatasi } from './github.js';
 
 const ACIK = ['taslak', 'inceleme', 'degisiklik'];
 const YOLLAR = {
@@ -197,7 +197,7 @@ export async function inceleme(yol, yontem, veri, ben, env, url) {
       await kilidiAc();
       if (e instanceof GithubHatasi) {
         console.error(e.message);
-        return hata(502, e.status === 401 || e.status === 403 ? 'GitHub anahtarı geçersiz ya da yetkisi yetmiyor.' : 'GitHub şu an cevap vermiyor. Biraz sonra tekrar dene.');
+        return hata(502, e.status === 401 || e.status === 403 ? yetkiHatasi(e) : 'GitHub şu an cevap vermiyor. Biraz sonra tekrar dene.');
       }
       throw e;
     }

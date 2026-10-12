@@ -20,6 +20,13 @@ export class GithubHatasi extends Error {
   }
 }
 
+// GitHub'ın yetki hatalarını panelde anlaşılır bir cümleye çevirir
+export function yetkiHatasi(e) {
+  if (e.status === 401) return 'GitHub anahtarı geçersiz ya da süresi dolmuş. Cloudflare\'deki GITHUB_TOKEN\'ı yeni bir anahtarla değiştirin.';
+  if (/rate limit/i.test(e.message)) return 'GitHub istek sınırı doldu. Birkaç dakika sonra tekrar dene.';
+  return 'GitHub anahtarı depoyu okuyabiliyor ama yazamıyor. Anahtarın izinlerinde Contents "Read and write" olmalı.';
+}
+
 const utf8 = (base64) => new TextDecoder().decode(Uint8Array.from(atob(base64.replace(/\s/g, '')), (c) => c.charCodeAt(0)));
 
 export function github(env, f = fetch) {

@@ -25,6 +25,8 @@ Panelin depoya yazabilmesi için bir anahtar gerekiyor.
    - **Expiration:** 1 yıl (süre dolunca yenisini oluşturup aşağıdaki değeri güncelleyin)
    - **Repository access:** *Only select repositories* → `kbc0/parantez`
    - **Permissions → Repository permissions → Contents:** *Read and write*
+     (izni ekleyince "Read-only" seçili gelir; açılır listeden **Read and write** yapın. Read-only kalırsa panel
+     içeriği okur ama kaydedemez.)
 4. **Generate token** ve çıkan anahtarı kopyalayın. Bir daha gösterilmez.
 
 ### 2. Cloudflare'de üç gizli değişken
@@ -124,7 +126,10 @@ Kaydedin (**Deploy**). Başka bir şey gerekmez. Hesaplar mevcut D1 veritabanın
 
 - **Parolasını unutan ekip üyesi:** Yönetici **Hesaplar**'dan *Parolayı sıfırla* der, yeni geçici parolayı iletir.
 - **Yönetici parolasını unutursa:** Cloudflare'deki `YONETICI_EPOSTA` ve `YONETICI_PAROLA` her zaman çalışır.
-- **"GitHub anahtarı geçersiz":** Anahtarın süresi dolmuş olabilir. 1. adımı tekrarlayıp `GITHUB_TOKEN`'ı güncelleyin.
+- **"GitHub anahtarı geçersiz ya da süresi dolmuş":** 1. adımı tekrarlayıp `GITHUB_TOKEN`'ı güncelleyin.
+- **"Depoyu okuyabiliyor ama yazamıyor":** Anahtarın Contents izni "Read-only" kalmış. GitHub'da anahtarı açıp
+  (Settings → Developer settings → Fine-grained tokens → anahtar → **Edit**) Contents'i **Read and write** yapın.
+  Anahtar değişmez; Cloudflare'de bir şey yapmak gerekmez.
 - **Tek başınıza yayın yapamıyorsanız:** Bu bilerek böyle. En az iki hesap gerekir; ikinci kişiye **Hesaplar**'dan hesap açın.
 - **"Yayın durumu" uzun süre dönüyorsa:** Cloudflare'de **Workers & Pages → parantez → Deployments**
   bölümünde son derlemenin hatasına bakın. Site, hatalı derleme yayına çıkmadığı için eski hâliyle çalışmaya devam eder.
