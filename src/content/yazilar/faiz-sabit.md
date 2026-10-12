@@ -3,13 +3,16 @@ baslik: "Faiz yine sabit: kredi kartı borcu olanlar ne yapmalı"
 sayi: 3
 sira: 1
 konu: "ekonomi"
-yazar: "Ece Arslan"
+yazar: "Kamil Berkay Çetin"
 spot: "Merkez Bankası bu ay da faize dokunmadı. Kâğıt üstünde hiçbir şey değişmedi; ama kredi kartı ekstresi olan herkes için bu “hiçbir şey” epey bir şey demek."
 gorsel: "https://picsum.photos/seed/prz-faiz/1600/1000"
 gorselAlt: "Bir masanın üzerinde kredi kartları ve hesap makinesi"
 gorselKaynak: "Fotoğraf: Picsum"
 neden: "Gençlerin en yaygın borç türü kredi kartı. Faizin yüksek kaldığı her ay, asgari ödemeyle döndürülen borç biraz daha büyüyor."
-kisaca: ["Politika faizi bu ay da değişmedi.", "Kredi ve kart faizleri bir süre daha yüksek kalacak.", "Mevduat hâlâ cazip; bankalar arası farkı karşılaştır."]
+kisaca:
+  - "Politika faizi bu ay da değişmedi."
+  - "Kredi ve kart faizleri bir süre daha yüksek kalacak."
+  - "Mevduat hâlâ cazip; bankalar arası farkı karşılaştır."
 ---
 
 Kısaca olan şu: politika faizi bir ay daha aynı seviyede kaldı. Banka, enflasyonun düşüş hızının beklenenden yavaş olduğunu, bu yüzden sıkı duruşu sürdüreceğini söyledi. Piyasa da büyük ölçüde bunu bekliyordu; yani sürpriz yok.
