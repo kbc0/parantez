@@ -1,6 +1,7 @@
-// (parantez) — akran incelemesi. Sayı, yazı ve araştırmalar doğrudan yayınlanmaz:
+// (parantez) — akran incelemesi. Yeni sayı, yazı ve araştırmalar doğrudan yayınlanmaz:
 // yazan bir öneri hazırlar, başka bir ekip üyesi önizleyip onaylayınca yayına çıkar.
 // GitHub'daki "pull request" mantığı, ama panelin içinde ve GitHub hesabı gerektirmeden.
+// Yayındaki bir içeriğin küçük düzeltmesi incelemeye gitmeden de yayınlanabilir (worker/panel.js kaydet).
 //
 // Öneri durumları:
 //   taslak     — yazan hâlâ çalışıyor
@@ -45,6 +46,26 @@ export const incelemeSemasi = (db) => [
 const yorumEkle = (db, oneri, ben, metin, tur = 'yorum') =>
   db.prepare('INSERT INTO panel_yorumlar (oneri, eposta, ad, metin, tur, zaman) VALUES (?, ?, ?, ?, ?, ?)')
     .bind(oneri, ben.eposta, ben.ad, String(metin).slice(0, 4000), tur, Date.now()).run();
+
+// Yayındaki bir dosya doğrudan düzeltilecekse: o dosya için açık bir öneri varsa
+// yalnızca yazanın kendi önerisinden yapılabilir. Öneri o zaman yayınlanmış sayılır.
+export async function dogrudanDenetle(db, yol, ben, oneriId) {
+  const o = await db.prepare(`SELECT id, islem, yazan, yazan_ad, onaylayan, guncelleme, gorsel_yol, gorsel FROM panel_oneriler
+    WHERE yol = ? AND durum IN ('taslak', 'inceleme', 'degisiklik')`).bind(yol).first();
+  if (!o) return {};
+  if (o.yazan !== ben.eposta || o.islem !== 'kaydet') {
+    return { hata: `Bunun için açık bir öneri var (${o.yazan_ad}). Değişikliği orada yap ya da ona yorum yaz.`, id: o.id };
+  }
+  if (o.id !== oneriId) return { hata: 'Bunun için açık bir önerin var; değişikliği onun içinden yap.', id: o.id };
+  if (o.onaylayan && o.guncelleme > Date.now() - KILIT) return { hata: 'Öneri şu an onaylanıyor; biraz sonra tekrar bak.', id: o.id };
+  return { oneri: o };
+}
+
+export async function dogrudanYayinlandi(db, id, ben, commit) {
+  await db.prepare(`UPDATE panel_oneriler SET durum = 'yayinlandi', onaylayan = NULL, onaylayan_ad = NULL, commit_sha = ?, gorsel = NULL, guncelleme = ? WHERE id = ?`)
+    .bind(commit, Date.now(), id).run();
+  await yorumEkle(db, id, ben, 'küçük düzeltme olarak doğrudan yayınladı', 'olay');
+}
 
 const disari = (o) => {
   const { gorsel, ...geri } = o;

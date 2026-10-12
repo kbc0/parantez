@@ -70,8 +70,9 @@ Yazı tipi: Hanken Grotesk.
 - Yazı paneli: `/admin` (bkz. `PANEL.md`).
   - Arayüz `src/pages/admin/index.astro`, `src/scripts/panel.ts`, `src/scripts/panel-icerik.ts`.
   - Sunucu `worker/panel.js`, `worker/inceleme.js` ve `worker/github.js`.
-  - Akran incelemesi: sayı, yazı ve araştırmalar öneri olarak D1'de bekler.
+  - Akran incelemesi: yeni sayı, yazı ve araştırmalar (ve silmeler) öneri olarak D1'de bekler.
     Yazandan başka bir ekip üyesi onaylayınca GitHub'a commit edilir. Hesaplar da D1'de.
+  - Yayındaki bir içeriğin küçük düzeltmesi "Doğrudan yayınla" ile incelemesiz commit edilir (`/api/panel/kaydet`).
   - Ekip listesi `src/data/ekip.json`, görseller `public/gorseller/` altında.
   - İçerik şeması değişirse `panel-icerik.ts`'teki denetim de güncellenmeli.
   - Önizleme `src/scripts/panel-onizleme.ts`: yazı sayfası, araştırma yayını, sohbet ve üst barın kopyası.

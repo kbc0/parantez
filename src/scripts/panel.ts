@@ -402,23 +402,27 @@ function yaziFormu(slug: string, oneriId?: number) {
 
       ${v.taslak ? '<label class="pn-onay"><input type="checkbox" name="taslak" checked> Sitede gizli kalsın <small>onaylansa da görünmez</small></label>' : ''}
 
-      ${eylemler(oneri, kayit ? 'Silinmesini öner' : '', '#/yazilar')}
+      ${eylemler(oneri, kayit ? 'Silinmesini öner' : '', '#/yazilar', !!kayit)}
     </form>`);
 }
 
-// Formların altı: önizle, incelemeye gönder, taslak olarak sakla
-function eylemler(oneri: OneriOzet | undefined, silme: string, geri: string) {
+// Formların altı: önizle, incelemeye gönder, taslak olarak sakla.
+// Yayındaki bir içerik düzenleniyorsa (yayinda) küçük düzeltme incelemeye gitmeden de yayınlanabilir.
+function eylemler(oneri: OneriOzet | undefined, silme: string, geri: string, yayinda: boolean) {
   const inceleniyor = oneri?.durum === 'inceleme';
   return `
     <div class="pn-gonder">
       <div class="pn-eylem">
         <button class="chip" type="button" data-onizle>Önizle</button>
         <button class="chip chip--dolu" type="submit" data-gonder="1">${inceleniyor ? 'Öneriyi güncelle' : oneri?.durum === 'degisiklik' ? 'Düzelttim, yeniden gönder' : 'İncelemeye gönder'}</button>
+        ${yayinda ? '<button class="chip" type="submit" data-dogrudan>Doğrudan yayınla</button>' : ''}
         ${inceleniyor ? '' : `<button class="chip" type="submit" data-gonder="0">${oneri?.durum === 'degisiklik' ? 'Kaydet, sonra gönderirim' : 'Taslak olarak sakla'}</button>`}
         <a class="pn-vazgec" href="${oneri ? `#/oneri/${oneri.id}` : geri}">Vazgeç</a>
         ${silme && !oneri ? `<button class="pn-tehlike" type="button" data-sil>${silme}</button>` : ''}
       </div>
-      <p class="pn-not">Hiçbir şey doğrudan yayına çıkmaz. İncelemeye gönderince ekipten başka biri önizleyip onaylar; kendi önerini onaylayamazsın.</p>
+      <p class="pn-not">${yayinda
+        ? `Küçük bir düzeltmeyse doğrudan yayınla; birkaç dakikada sitede olur.${oneri ? ' Önerin de yayınlanmış sayılır.' : ''} Büyük değişiklikleri incelemeye gönder: ekipten başka biri önizleyip onaylar.`
+        : 'Yeni içerik doğrudan yayına çıkmaz. İncelemeye gönderince ekipten başka biri önizleyip onaylar; kendi önerini onaylayamazsın.'}</p>
     </div>`;
 }
 
@@ -460,7 +464,7 @@ function gorselIstegi(gorsel: string, oneri?: OneriOzet) {
   return undefined;
 }
 
-async function yaziKaydet(f: HTMLFormElement, gonder: boolean) {
+async function yaziKaydet(f: HTMLFormElement, gonder: boolean, dogrudan: boolean) {
   const oneri = formOnerisi(f);
   const sabit = f.dataset.slug !== 'yeni';
   const v = yaziOkuForm(f);
@@ -468,6 +472,7 @@ async function yaziKaydet(f: HTMLFormElement, gonder: boolean) {
   const ad = sabit ? f.dataset.slug! : (deger(f, 'adres') || adres(v.baslik));
   const yol = `src/content/yazilar/${ad}.md`;
   const kayit = durum.yazilar.find((y) => y.yol === yol) ?? null;
+  if (dogrudan) gonder = true;
   const hatalar = gonder ? yaziDenetle(v, govde) : v.baslik ? [] : ['Başlık boş.'];
   if (!sabit) {
     if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(ad)) hatalar.push('Adres yalnızca küçük harf, rakam ve tire içerebilir.');
@@ -479,6 +484,7 @@ async function yaziKaydet(f: HTMLFormElement, gonder: boolean) {
     if (ayniSira) hatalar.push(`Sayı ${pad(v.sayi)}'te ${v.sira}. sırada zaten “${ayniSira.veri.baslik}” var.`);
   }
   if (hataGoster(f, hatalar)) return;
+  if (dogrudan && kayit) return dogrudanYayinla(f, 'yazi', kayit, yaziMetni(v, govde), yaziMetni(kayit.veri, kayit.govde), v.baslik, gorselIstegi(v.gorsel, oneri));
   await oneriKaydet(f, {
     id: oneri?.id, tur: 'yazi', islem: 'kaydet', yol, temel: kayit?.sha ?? null,
     metin: yaziMetni(v, govde), baslik: v.baslik, gorsel: gorselIstegi(v.gorsel, oneri),
@@ -500,6 +506,29 @@ async function oneriKaydet(f: HTMLFormElement, istek: Record<string, unknown>, g
   } finally {
     for (const d of dugmeler) if (d.isConnected) d.disabled = false;
   }
+}
+
+// Yayındaki bir içeriğin küçük düzeltmesi: incelemeye gitmeden commit edilir (worker/panel.js kaydet).
+// Form kişinin kendi önerisinden açıldıysa öneri de yayınlanmış sayılır.
+// onceki: yayındaki hâlin aynı biçimde yazılmışı; hiçbir şey değişmediyse dosya boşuna yeniden biçimlenmesin.
+async function dogrudanYayinla(f: HTMLFormElement, tur: OneriTur, kayit: { yol: string; sha: string }, metin: string, onceki: string,
+  baslik: string, gorsel?: { yol: string; base64: string } | null) {
+  const oneri = formOnerisi(f);
+  if (!gorsel && !oneri && metin === onceki) {
+    hataGoster(f, ['Yayındaki hâliyle aynı; değişen bir şey yok.']);
+    return;
+  }
+  await kaydet(f, {
+    mesaj: `Küçük düzeltme: ${baslik}`, dosyalar: [{ yol: kayit.yol, metin }, ...(gorsel ? [gorsel] : [])],
+    beklenen: { [kayit.yol]: kayit.sha }, oneri: oneri?.id,
+  }, async (commit) => {
+    const yeni = { tur, islem: 'kaydet' as const, yol: kayit.yol, metin };
+    await yayinaIsle(yeni);
+    if (oneri) await onerileriYukle().catch(() => {});
+    bekleyenEkle(commit, baslik, siteAdresi(yeni));
+    toast('Yayınlandı. Birkaç dakika içinde sitede olur.', 3800);
+    location.hash = { yazi: '#/yazilar', sayi: '#/sayilar', arastirma: '#/arastirmalar' }[tur];
+  });
 }
 
 // ------------------------------------------------------------------ sayılar
@@ -626,9 +655,9 @@ function sayiFormu(arg: string, oneriId?: number) {
         <button type="button" class="pn-ekle" data-ekle="etkinlik">+ etkinlik ekle</button>
       </fieldset>
 
-      <label class="pn-onay"><input type="checkbox" name="taslak"${v.taslak ? ' checked' : ''}> Sitede gizli kalsın <small>sayı ve yazıları onaylansa da görünmez; hepsi hazır olunca işareti kaldırıp yeniden gönder, birlikte yayına çıksınlar</small></label>
+      <label class="pn-onay"><input type="checkbox" name="taslak"${v.taslak ? ' checked' : ''}> Sitede gizli kalsın <small>sayı ve yazıları onaylansa da görünmez; hepsi hazır olunca işareti kaldır, birlikte yayına çıksınlar</small></label>
 
-      ${eylemler(oneri, kayit && !yazilari ? 'Silinmesini öner' : '', '#/sayilar')}
+      ${eylemler(oneri, kayit && !yazilari ? 'Silinmesini öner' : '', '#/sayilar', !!kayit)}
       ${kayit && yazilari && !oneri ? `<p class="pn-not">Bu sayıyı silmek için önce içindeki ${yazilari} yazının silinmesi ya da başka sayıya taşınması gerekiyor.</p>` : ''}
     </form>`);
 }
@@ -655,19 +684,21 @@ function sayiOkuForm(f: HTMLFormElement): SayiVeri {
   };
 }
 
-async function sayiKaydet(f: HTMLFormElement, gonder: boolean) {
+async function sayiKaydet(f: HTMLFormElement, gonder: boolean, dogrudan: boolean) {
   const oneri = formOnerisi(f);
   const v = sayiOkuForm(f);
   const govde = $<HTMLTextAreaElement>('[name="govde"]', f)!.value;
   const yol = f.dataset.yol || `src/content/sayilar/${pad(v.sayi)}.md`;
   const kayit = durum.sayilar.find((s) => s.yol === yol) ?? null;
+  if (dogrudan) gonder = true;
   const hatalar = gonder ? sayiDenetle(v) : v.sayi > 0 ? [] : ['Sayı numarası geçersiz.'];
   if (gonder && !govde.trim()) hatalar.push('Haftanın özeti boş.');
   if (!f.dataset.yol && v.sayi > 0 && (baglam().sayilar.some((s) => s.veri.sayi === v.sayi) || acikOneri(yol))) hatalar.push(`Sayı ${pad(v.sayi)} zaten var ya da önerilmiş.`);
   if (hataGoster(f, hatalar)) return;
+  const baslik = `Sayı ${pad(v.sayi)}${v.baslik ? ` · ${v.baslik}` : ''}`;
+  if (dogrudan && kayit) return dogrudanYayinla(f, 'sayi', kayit, sayiMetni(v, govde), sayiMetni(kayit.veri, kayit.govde), baslik);
   await oneriKaydet(f, {
-    id: oneri?.id, tur: 'sayi', islem: 'kaydet', yol, temel: kayit?.sha ?? null,
-    metin: sayiMetni(v, govde), baslik: `Sayı ${pad(v.sayi)}${v.baslik ? ` · ${v.baslik}` : ''}`,
+    id: oneri?.id, tur: 'sayi', islem: 'kaydet', yol, temel: kayit?.sha ?? null, metin: sayiMetni(v, govde), baslik,
   }, gonder);
 }
 
@@ -762,7 +793,7 @@ function arastirmaFormu(slug: string, oneriId?: number) {
 
       ${v.taslak ? '<label class="pn-onay"><input type="checkbox" name="taslak" checked> Sitede gizli kalsın <small>onaylansa da görünmez</small></label>' : ''}
 
-      ${eylemler(oneri, kayit ? 'Silinmesini öner' : '', '#/arastirmalar')}
+      ${eylemler(oneri, kayit ? 'Silinmesini öner' : '', '#/arastirmalar', !!kayit)}
     </form>`);
 }
 
@@ -775,7 +806,7 @@ function arastirmaOkuForm(f: HTMLFormElement): ArastirmaVeri {
   };
 }
 
-async function arastirmaKaydet(f: HTMLFormElement, gonder: boolean) {
+async function arastirmaKaydet(f: HTMLFormElement, gonder: boolean, dogrudan: boolean) {
   const oneri = formOnerisi(f);
   const sabit = f.dataset.slug !== 'yeni';
   const v = arastirmaOkuForm(f);
@@ -783,6 +814,7 @@ async function arastirmaKaydet(f: HTMLFormElement, gonder: boolean) {
   const ad = sabit ? f.dataset.slug! : (deger(f, 'adres') || adres(v.baslik));
   const yol = `src/content/arastirmalar/${ad}.md`;
   const kayit = durum.arastirmalar.find((a) => a.yol === yol) ?? null;
+  if (dogrudan) gonder = true;
   const hatalar = gonder ? arastirmaDenetle(v, govde) : v.baslik ? [] : ['Başlık boş.'];
   if (!sabit) {
     if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(ad)) hatalar.push('Adres yalnızca küçük harf, rakam ve tire içerebilir.');
@@ -793,6 +825,7 @@ async function arastirmaKaydet(f: HTMLFormElement, gonder: boolean) {
     if (ayniNo) hatalar.push(`${pad(v.no)} numarası “${ayniNo.veri.baslik}” araştırmasında kullanılıyor.`);
   }
   if (hataGoster(f, hatalar)) return;
+  if (dogrudan && kayit) return dogrudanYayinla(f, 'arastirma', kayit, arastirmaMetni(v, govde), arastirmaMetni(kayit.veri, kayit.govde), v.baslik, gorselIstegi(v.gorsel, oneri));
   await oneriKaydet(f, {
     id: oneri?.id, tur: 'arastirma', islem: 'kaydet', yol, temel: kayit?.sha ?? null,
     metin: arastirmaMetni(v, govde), baslik: v.baslik, gorsel: gorselIstegi(v.gorsel, oneri),
@@ -901,11 +934,11 @@ function incelemeSayfasi() {
     ? `<section class="pn-grup"><h2>${baslik}</h2>${liste.join('') || `<p class="pn-bos">${bos}</p>`}</section>` : '';
   iskelet('inceleme', `
     <div class="pn-bas"><h1>İnceleme</h1></div>
-    <p class="pn-not pn-not--ust">Sayı ve yazılar doğrudan yayınlanmaz. Yazan incelemeye gönderir; ekipten başka biri önizleyip onaylayınca yayına çıkar. Kimse kendi önerisini onaylayamaz.</p>
+    <p class="pn-not pn-not--ust">Yeni sayı, yazı ve araştırmalar incelemeyle yayınlanır: yazan incelemeye gönderir, ekipten başka biri önizleyip onaylar. Kimse kendi önerisini onaylayamaz. Yayındakilerin küçük düzeltmeleri doğrudan da yayınlanabilir.</p>
     ${bolum('Onayını bekleyenler', onayimiBekleyen().map(acikSatir), 'Şu an onayını bekleyen bir şey yok.')}
     ${bolum('Senin önerilerin', acik.filter(benim).map(acikSatir), 'Açık önerin yok. Yazılar ya da Sayılar’dan bir şey düzenleyince burada görünür.')}
     ${bolum('Ekipte hazırlananlar', acik.filter((o) => !benim(o) && o.durum !== 'inceleme').map(acikSatir))}
-    ${bolum('Son kapananlar', son.map((o) => satir(o, `${e(o.yazan_ad)} önerdi${o.onaylayan_ad ? ` · ${e(o.onaylayan_ad)} onayladı` : ''} · ${zamanMetni(o.guncelleme)}`)))}`);
+    ${bolum('Son kapananlar', son.map((o) => satir(o, `${e(o.yazan_ad)} önerdi${o.onaylayan_ad ? ` · ${e(o.onaylayan_ad)} onayladı` : o.durum === 'yayinlandi' ? ' · doğrudan yayınladı' : ''} · ${zamanMetni(o.guncelleme)}`)))}`);
 }
 
 let sayfaOnerisi: OneriTam | null = null;
@@ -969,7 +1002,8 @@ function oneriCiz(o: OneriTam, yorumlar: Yorum[]) {
     taslak: ben ? 'Taslak. Ekip görebilir ama onaylayamaz; hazır olunca incelemeye gönder.' : `${e(ilk(o.yazan_ad))} hâlâ üzerinde çalışıyor. İncelemeye gönderilince onaylayabilirsin; şimdiden yorum yazabilirsin.`,
     inceleme: ben ? 'Onay bekliyor. Ekipten başka biri onaylayınca yayına çıkar.' : `${e(ilk(o.yazan_ad))} bu ${ne}yı ${ne2} istiyor. Önizlemeye${farklar ? ' ve değişikliklere' : ''} bak; uygunsa onayla, değilse neyin değişmesi gerektiğini yaz.`,
     degisiklik: ben ? 'Değişiklik istendi. Konuşmaya bak, düzeltip yeniden gönder.' : 'Yazandan düzeltme bekleniyor.',
-    yayinlandi: `Yayınlandı. ${e(o.onaylayan_ad ?? '')} onayladı.`,
+    yayinlandi: o.onaylayan_ad ? `Yayınlandı. ${e(o.onaylayan_ad)} onayladı.`
+      : `Yayınlandı. ${ben ? 'Küçük düzeltme olarak doğrudan yayınladın.' : `${e(ilk(o.yazan_ad))} küçük düzeltme olarak doğrudan yayınladı.`}`,
     kapatildi: 'Geri çekildi; yayına çıkmadı.',
   };
   const eylem = [
@@ -1055,7 +1089,7 @@ function balon(y: Yorum, metin: string, etiket: string) {
 }
 
 // Onaylanan öneri yayına çıkınca paneldeki içerik de güncellenir
-async function yayinaIsle(o: OneriTam) {
+async function yayinaIsle(o: Pick<OneriOzet, 'tur' | 'islem' | 'yol' | 'metin'>) {
   const yeni = o.islem === 'kaydet' && o.metin ? { yol: o.yol, sha: await blobSha(o.metin), metin: o.metin } : null;
   if (o.tur === 'yazi') {
     durum.yazilar = durum.yazilar.filter((y) => y.yol !== o.yol);
@@ -1069,7 +1103,7 @@ async function yayinaIsle(o: OneriTam) {
   }
 }
 
-function siteAdresi(o: OneriTam): string | undefined {
+function siteAdresi(o: Pick<OneriOzet, 'tur' | 'islem' | 'yol' | 'metin'>): string | undefined {
   if (o.islem === 'sil' || !o.metin) return undefined;
   if (o.tur === 'sayi') {
     const v = sayiOku({ yol: o.yol, sha: '', metin: o.metin }).veri;
@@ -1197,12 +1231,14 @@ function hataGoster(f: HTMLFormElement, hatalar: string[], baglanti?: string): b
 
 async function kaydet(
   f: HTMLFormElement,
-  istek: { mesaj: string; dosyalar: { yol: string; metin?: string; base64?: string }[]; sil?: string[]; beklenen: Record<string, string | null> },
+  istek: { mesaj: string; dosyalar: { yol: string; metin?: string; base64?: string }[]; sil?: string[]; beklenen: Record<string, string | null>; oneri?: number },
   sonra: (commit: string) => Promise<void>,
 ) {
-  const dugme = $<HTMLButtonElement>('[data-kaydet]', f);
+  const dugmeler = $$<HTMLButtonElement>('.pn-eylem button', f);
+  const dugme = $<HTMLButtonElement>('[data-kaydet], [data-dogrudan]', f);
   const eski = dugme?.textContent;
-  if (dugme) { dugme.disabled = true; dugme.textContent = 'Kaydediliyor…'; }
+  for (const d of dugmeler) d.disabled = true;
+  if (dugme) dugme.textContent = dugme.hasAttribute('data-dogrudan') ? 'Yayınlanıyor…' : 'Kaydediliyor…';
   try {
     const oncesi = await surum();
     const { commit } = await api<{ commit: string }>('kaydet', istek);
@@ -1210,9 +1246,11 @@ async function kaydet(
     sonOncesi = oncesi;
     await sonra(commit);
   } catch (err) {
-    hataGoster(f, [(err as Error).message]);
+    const a = err as ApiHatasi;
+    hataGoster(f, [a.message], a.veri?.id ? `#/oneri/${a.veri.id}` : undefined);
   } finally {
-    if (dugme && dugme.isConnected) { dugme.disabled = false; dugme.textContent = eski ?? 'Kaydet'; }
+    for (const d of dugmeler) if (d.isConnected) d.disabled = false;
+    if (dugme?.isConnected) dugme.textContent = eski ?? 'Kaydet';
   }
 }
 
@@ -1525,10 +1563,12 @@ kok.addEventListener('submit', async (ev) => {
     } catch (err) { toast((err as Error).message); }
     return;
   }
-  const gonder = (ev as SubmitEvent).submitter?.dataset.gonder === '1';
-  if (tur === 'yazi') return yaziKaydet(f, gonder);
-  if (tur === 'arastirma') return arastirmaKaydet(f, gonder);
-  if (tur === 'sayi') return sayiKaydet(f, gonder);
+  const basilan = (ev as SubmitEvent).submitter;
+  const gonder = basilan?.dataset.gonder === '1';
+  const dogrudan = !!basilan?.hasAttribute('data-dogrudan');
+  if (tur === 'yazi') return yaziKaydet(f, gonder, dogrudan);
+  if (tur === 'arastirma') return arastirmaKaydet(f, gonder, dogrudan);
+  if (tur === 'sayi') return sayiKaydet(f, gonder, dogrudan);
   if (tur === 'yorum') return yorumGonder(f, (ev as SubmitEvent).submitter?.dataset.islem ?? 'yorum');
   if (tur === 'ekip') return ekipKaydet(f);
 });

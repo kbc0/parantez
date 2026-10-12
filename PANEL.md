@@ -3,10 +3,13 @@
 Panel `parantezbulten.com/admin` adresinde. Ekip buradan e-posta ve parolayla girer;
 sayı, yazı, araştırma ve ekip bilgilerini düzenler. GitHub hesabı gerekmez.
 
-Sayı, yazı ve araştırmalar **akran incelemesiyle** yayınlanır, GitHub'daki pull request gibi:
-yazan değişikliğini incelemeye gönderir, ekipten **başka biri** okurun göreceği hâliyle
-önizleyip onaylar. Kimse kendi önerisini onaylayamaz; yani bir şeyin yayına çıkması için
-en az iki kişi gerekir. Yönetici de bu kurala tabidir.
+Yeni sayı, yazı ve araştırmalar **akran incelemesiyle** yayınlanır, GitHub'daki pull request gibi:
+yazan incelemeye gönderir, ekipten **başka biri** okurun göreceği hâliyle önizleyip onaylar.
+Kimse kendi önerisini onaylayamaz; yani yeni bir şeyin yayına çıkması için en az iki kişi gerekir.
+Yönetici de bu kurala tabidir. Silmek de incelemeyle olur.
+
+Yayında olan bir şeyin **küçük düzeltmesi** (yazım hatası, imza, tarih, bir cümle) incelemeye
+gitmeden **Doğrudan yayınla** ile de yayınlanabilir. Büyük değişiklikler yine incelemeye gönderilir.
 
 Onaylanan öneri sitenin GitHub deposuna bir commit olarak gider (yazarı öneren kişi,
 mesajında onaylayan da yazar). Cloudflare siteyi 1–2 dakikada yeniden derleyip yayına alır.
@@ -56,15 +59,18 @@ Kaydedin (**Deploy**). Başka bir şey gerekmez. Hesaplar mevcut D1 veritabanın
 ### Yazmak
 
 - **Yeni yazı:** **Yazılar** → **+ Yeni yazı**, sayıyı seçin. Var olan bir yazıyı düzenlemek için listeden açın.
-- Formun altında üç düğme var:
+- Formun altındaki düğmeler:
   - **Önizle:** okurun göreceği hâli telefon ya da masaüstü ekranında gösterir. Hiçbir şey kaydedilmez.
   - **Taslak olarak sakla:** kaydeder ama kimseye göndermez. Ekip görebilir, onaylayamaz.
-  - **İncelemeye gönder:** ekibin onayına açar. Hiçbir şey doğrudan yayına çıkmaz.
+  - **İncelemeye gönder:** ekibin onayına açar. Yeni içerik yalnızca böyle yayına çıkar.
+  - **Doğrudan yayınla:** yalnızca yayındaki bir şeyi düzenlerken görünür. Küçük düzeltmeler için;
+    incelemeye gitmeden 1–2 dakikada sitede olur. Bu sayı, yazı ya da araştırma için açık bir öneri varsa
+    yalnızca öneriyi yazan, kendi önerisinin içinden doğrudan yayınlayabilir; öneri de yayınlanmış sayılır.
 - **Silmek:** yazıyı açıp *Silinmesini öner*. Bu da bir öneridir; onaylanınca siteden kalkar.
 - **Görsel:** Yatay bir fotoğraf seçin; panel küçültüp JPG yapar.
   "Görselde ne var?" alanını doldurun; görme engelli okurlar için.
 - **Kaydedemiyorsanız:** Kırmızı kutuda neyin eksik olduğu yazar.
-  Panel, sitenin derlenmesini bozacak içeriğin incelemeye gönderilmesine izin vermez.
+  Panel, sitenin derlenmesini bozacak içeriğin incelemeye gönderilmesine ya da yayınlanmasına izin vermez.
 
 ### İncelemek
 
@@ -83,8 +89,9 @@ Kaydedin (**Deploy**). Başka bir şey gerekmez. Hesaplar mevcut D1 veritabanın
 
 - **Yeni sayı:** **Sayılar** → **+ Yeni sayı**. "Sitede gizli kalsın" işaretli gelir:
   sayı ve içindeki yazılar onaylansa bile sitede görünmez. Böylece yazılar hafta içinde tek tek incelenip onaylanabilir.
-- **Sayıyı yayınlamak:** Bütün yazılar onaylanınca sayıyı açıp "Sitede gizli kalsın" işaretini kaldırın ve incelemeye gönderin.
-  Onaylandığı anda sayı ve bütün yazıları birlikte yayına çıkar.
+- **Sayıyı yayınlamak:** Bütün yazılar onaylanınca sayıyı açıp "Sitede gizli kalsın" işaretini kaldırın;
+  incelemeye gönderin ya da doğrudan yayınlayın. Sayı ve bütün yazıları birlikte yayına çıkar.
+- **Yayındaki sayıyı düzeltmek:** (ör. selamı veren editörün imzası) sayıyı açın, değiştirin, **Doğrudan yayınla**.
 - Sohbetteki her şey (haftanın cümlesi, editörün notu, kısa kısa, dinle/izle/oku önerileri, etkinlikler) sayı formundadır.
   Önizleme, sayının sohbet hâlini gösterir.
 
@@ -144,8 +151,10 @@ Kaydedin (**Deploy**). Başka bir şey gerekmez. Hesaplar mevcut D1 veritabanın
   ve `worker/github.js` (GitHub REST/GraphQL).
 - Öneriler ve yorumlar D1'de (`panel_oneriler`, `panel_yorumlar`). Onaya kadar GitHub'a hiçbir şey gitmez;
   önerinin görseli de onaya kadar D1'de durur (en fazla ~1 MB).
-- Sunucu kuralları: sayı ve yazı yalnızca onayla yazılır (`/api/panel/kaydet` yalnızca ekip listesine yazar);
-  öneren kendi önerisini onaylayamaz; onay, önerinin hazırlandığı sürüm hâlâ yayındaysa commit edilir.
+- Sunucu kuralları: yeni sayı, yazı ve araştırmalar ile silmeler yalnızca onayla yazılır.
+  `/api/panel/kaydet` ekip listesine ya da yayındaki tek bir içerik dosyasına (beklenen sürümüyle; varsa görseliyle) yazar.
+  O dosyanın açık bir önerisi varsa yalnızca önerinin yazanı, öneri kimliğiyle yazabilir; öneri `yayinlandi` olur.
+  Öneren kendi önerisini onaylayamaz; onay, önerinin hazırlandığı sürüm hâlâ yayındaysa commit edilir.
 - Panel yalnızca `src/content/sayilar/*.md`, `src/content/yazilar/*.md`, `src/content/arastirmalar/*.md`,
   `src/data/ekip.json` ve `public/gorseller/*` dosyalarına yazabilir.
 - Parolalar PBKDF2 ile saklanır. Oturum çerezi `HttpOnly`, `Secure`, `SameSite=Strict`.

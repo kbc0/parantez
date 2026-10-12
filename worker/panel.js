@@ -8,7 +8,7 @@
 // Aynı bilgiler sonradan da çalışır (parola unutulursa kurtarma yolu).
 
 import { github, GithubHatasi, yetkiHatasi } from './github.js';
-import { inceleme, incelemeSemasi } from './inceleme.js';
+import { inceleme, incelemeSemasi, dogrudanDenetle, dogrudanYayinlandi } from './inceleme.js';
 
 const EPOSTA = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const ITERASYON = 20000; // Workers'ın CPU sınırına sığsın diye ölçülü
@@ -289,9 +289,15 @@ async function icerik(yol, yontem, veri, ben, env, url) {
       const sil = Array.isArray(veri.sil) ? veri.sil : [];
       const beklenen = veri.beklenen && typeof veri.beklenen === 'object' ? veri.beklenen : {};
       if (!dosyalar.length && !sil.length) return hata(400, 'Kaydedilecek bir şey yok.');
-      // Sayı, yazı ve araştırmalar yalnızca akran incelemesiyle yayına çıkar (worker/inceleme.js)
-      if (sil.length || dosyalar.some((d) => d?.yol !== 'src/data/ekip.json')) return hata(403, 'Sayı, yazı ve araştırmalar inceleme ile yayınlanır.');
-      if (dosyalar.length > 6 || sil.length > 6) return hata(400, 'Tek seferde çok fazla dosya.');
+      // Doğrudan kayıt: ekip listesi ya da yayındaki tek bir içeriğin küçük düzeltmesi (ve onun görseli).
+      // Yeni içerik ve silme yalnızca akran incelemesiyle yayına çıkar (worker/inceleme.js).
+      if (sil.length) return hata(403, 'Silme inceleme ile yapılır.');
+      if (dosyalar.length > 2) return hata(400, 'Tek seferde çok fazla dosya.');
+      const icerikler = dosyalar.filter((d) => ICERIK.some((r) => r.test(d?.yol)));
+      if (icerikler.some((d) => !/^[0-9a-f]{40}$/.test(beklenen[d.yol] ?? ''))) return hata(403, 'Yeni sayı, yazı ve araştırmalar inceleme ile yayınlanır.');
+      if (icerikler.length > 1) return hata(400, 'Tek seferde tek içerik düzeltilir.');
+      const ekipte = dosyalar.some((d) => d?.yol === 'src/data/ekip.json');
+      if (ekipte ? dosyalar.length > 1 : !icerikler.length) return hata(400, 'Görsel ancak bir içerikle birlikte kaydedilir.');
 
       for (const d of dosyalar) {
         if (!YAZILABILIR.some((r) => r.test(d?.yol))) return hata(400, `Bu dosyaya yazılamaz: ${d?.yol}`);
@@ -308,8 +314,22 @@ async function icerik(yol, yontem, veri, ben, env, url) {
         if (!YAZILABILIR.some((r) => r.test(y)) || (sha !== null && !/^[0-9a-f]{40}$/.test(sha))) return hata(400, 'Geçersiz sürüm bilgisi.');
       }
 
+      // Dosyanın açık bir önerisi varsa yalnızca yazanı, kendi önerisinden düzeltebilir
+      let oneri = null;
+      if (icerikler.length) {
+        const d = await dogrudanDenetle(env.DB, icerikler[0].yol, ben, Number(veri.oneri) || 0);
+        if (d.hata) return json({ hata: d.hata, id: d.id }, 409);
+        oneri = d.oneri ?? null;
+        // Öneriye daha önce yüklenen görsel D1'de durur; metin onu kullanıyorsa birlikte gider
+        if (oneri?.gorsel && oneri.gorsel_yol && !dosyalar.some((x) => x.yol === oneri.gorsel_yol)
+          && icerikler[0].metin.includes(`/${oneri.gorsel_yol.replace(/^public\//, '')}`)) {
+          dosyalar.push({ yol: oneri.gorsel_yol, base64: oneri.gorsel });
+        }
+      }
+
       const mesaj = `${String(veri.mesaj || 'Panelden güncelleme').slice(0, 120)}\n\nPanelden: ${ben.ad} <${ben.eposta}>`;
       const commit = await gh.yaz({ mesaj, yazar: ben, dosyalar, sil, beklenen });
+      if (oneri) await dogrudanYayinlandi(env.DB, oneri.id, ben, commit);
       return json({ ok: true, commit });
     }
   } catch (e) {
