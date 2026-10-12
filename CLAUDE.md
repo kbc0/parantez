@@ -78,8 +78,12 @@ Yazı tipi: Hanken Grotesk.
   - Önizleme `src/scripts/panel-onizleme.ts`: yazı sayfası, araştırma yayını, sohbet ve üst barın kopyası.
     Panel sayfası önizleme için `arastirma.css`'i de yükler.
     Bu şablonlar değişirse önizleme de güncellenmeli.
+- Bülten e-postası (Resend): `worker/bulten.js` şablonu sayının sohbet hâlinin e-posta karşılığıdır;
+  `IssueChat.astro` değişirse o da gözden geçirilmeli. Gönderim `worker/gonderim.js` (her dakika çalışan zamanlayıcı;
+  panelde **Bülten**), e-posta istemcisi `worker/eposta.js`.
 - Worker: `worker/index.js`.
-  - `/api/abone`: abonelik; KV `ABONELER`.
+  - `/api/abone/*`: çift onaylı abonelik ve tek tıkla çıkış (`worker/abonelik.js`; D1 `aboneler`).
+    Sayfaları `/abone/son-adim/`, `/abone/tamam/`, `/abone/cik/`, `/abone/ayrildin/`. KV `ABONELER` yalnızca eski kayıtlar için.
   - `/api/tepki`: tepkiler; D1 `parantez-tepkiler`. Yeni bir sayfa türü tepki alacaksa `SAYFA` kalıbına eklenmeli.
-- Her şey JavaScript olmadan da çalışmalı. Formlar doğrudan `/api/abone`'ye gider.
+- Her şey JavaScript olmadan da çalışmalı. Formlar doğrudan `/api/abone`'ye gider; çıkış formu `/api/abone/cik`'e.
 - Yerelde deneme: `npx wrangler dev`. Derlemeyi kendisi yapar.

@@ -1,7 +1,7 @@
 # Yazı paneli: kurulum ve kullanım
 
 Panel `parantezbulten.com/admin` adresinde. Ekip buradan e-posta ve parolayla girer;
-sayı, yazı, araştırma ve ekip bilgilerini düzenler. GitHub hesabı gerekmez.
+sayı, yazı, araştırma ve ekip bilgilerini düzenler; bülteni e-postayla gönderir. GitHub hesabı gerekmez.
 
 Yeni sayı, yazı ve araştırmalar **akran incelemesiyle** yayınlanır, GitHub'daki pull request gibi:
 yazan incelemeye gönderir, ekipten **başka biri** okurun göreceği hâliyle önizleyip onaylar.
@@ -54,6 +54,28 @@ Kaydedin (**Deploy**). Başka bir şey gerekmez. Hesaplar mevcut D1 veritabanın
 4. **Hesaplar** → her ekip üyesine hesap açın. Çıkan geçici parolayı kişiye iletin.
    Kişi ilk girişte kendi parolasını belirler.
 
+### 4. E-posta gönderimi (Resend)
+
+Bülten ve abonelik onay e-postaları [Resend](https://resend.com) ile gider.
+
+1. Resend'de **Domains** → **Add Domain** → `parantezbulten.com`. Bölge: **Ireland (eu-west-1)**.
+2. Resend birkaç DNS kaydı gösterir (`resend._domainkey` TXT; `send` için MX ve TXT).
+   Cloudflare'de **parantezbulten.com** → **DNS** → **Records** → **Add record** ile hepsini aynen ekleyin.
+   Resend, Cloudflare için otomatik kurulum düğmesi gösterirse onu da kullanabilirsiniz.
+   Ayrıca önerilir: `_dmarc` adına TXT kaydı, değeri `v=DMARC1; p=none;`.
+3. Resend'de alan adı **Verified** olunca **API Keys** → **Create API Key**
+   (Permission: *Sending access*, Domain: `parantezbulten.com`). Anahtarı kopyalayın.
+4. Cloudflare'de 2. adımdaki yere bir gizli değişken daha ekleyin: `RESEND_API_KEY` = bu anahtar.
+5. Panelde **Bülten** → **Kendime deneme gönder** ile deneyin.
+
+Gönderen `(parantez) <bulten@parantezbulten.com>`, cevaplar `baris@parantezbulten.com`'a gider
+(`wrangler.jsonc` → `BULTEN_KIMDEN`, `BULTEN_YANIT`).
+
+Resend'in ücretsiz planı **günde 100 e-posta** gönderir (onay e-postaları dahil). Abone sayısı 90'ı geçince
+Pro plana geçin (ayda 50.000 e-posta). Sınır dolarsa gönderim durmaz, bekler; sınır açılınca kaldığı yerden sürer.
+
+`RESEND_API_KEY` tanımlanana kadar abonelik eskisi gibi tek adımlıdır (onay e-postası gitmez).
+
 ## Günlük kullanım
 
 ### Yazmak
@@ -94,6 +116,28 @@ Kaydedin (**Deploy**). Başka bir şey gerekmez. Hesaplar mevcut D1 veritabanın
 - **Yayındaki sayıyı düzeltmek:** (ör. selamı veren editörün imzası) sayıyı açın, değiştirin, **Doğrudan yayınla**.
 - Sohbetteki her şey (haftanın cümlesi, editörün notu, kısa kısa, dinle/izle/oku önerileri, etkinlikler) sayı formundadır.
   Önizleme, sayının sohbet hâlini gösterir.
+
+### Bülten (e-posta)
+
+- **Bülten** sayfası: abone sayısı, sıradaki gönderim ve gönderilenler.
+- Sayıyı seçin → **Önizle** e-postanın telefonda ve masaüstünde nasıl görüneceğini gösterir.
+  **Kendime deneme gönder** e-postayı yalnızca size yollar.
+- **… 07:30'a planla:** sayının yayın günü (pazartesi) 07:30'da tüm abonelere gider.
+  Sayı "Sitede gizli kalsın" işaretliyse 07:20'de kendiliğinden yayına çıkar; e-posta, sayı sitede görününce gider.
+  Yani pazar akşamı her şeyi hazırlayıp planlamak yeterli; sabah kimsenin bir şeye basması gerekmez.
+- **Şimdi gönder:** yayın saati geçmiş bir sayı için. Birkaç dakika içinde gider.
+- Plan, gönderim başlamadan ya da sürerken **iptal** edilebilir. Sayı yayına çıkmışsa sitede kalır.
+- Bir sayı yalnızca bir kez gönderilir. Aynı anda tek bir gönderim planlanabilir.
+- Gönderim dakikada 30 kişiye gider (saatte 1.800); panel ilerlemeyi gösterir. Bu hız Cloudflare'in ücretsiz
+  Workers planına göre ayarlı. Ücretli plandaysanız `wrangler.jsonc`'ye `"BULTEN_PARTI": "100"` ve
+  `"BULTEN_TUR": "3"` ekleyerek dakikada 300'e çıkarabilirsiniz.
+
+### Abonelik
+
+- Okur sitede e-postasını yazınca **onay e-postası** gider; bağlantıya dokununca abonelik başlar.
+  Böylece başkasının adresi yazılamaz.
+- Her bültenin altında **abonelikten çık** bağlantısı var. Gmail ve Apple Mail'deki "abonelikten çık" düğmesi de çalışır.
+- Aboneler D1'de (`aboneler` tablosu). Eskiden KV'de duranlar ilk çalışmada oraya taşınır; onaylı sayılırlar.
 
 ### Araştırmalar
 
@@ -138,6 +182,11 @@ Kaydedin (**Deploy**). Başka bir şey gerekmez. Hesaplar mevcut D1 veritabanın
   (Settings → Developer settings → Fine-grained tokens → anahtar → **Edit**) Contents'i **Read and write** yapın.
   Anahtar değişmez; Cloudflare'de bir şey yapmak gerekmez.
 - **Tek başınıza yayın yapamıyorsanız:** Bu bilerek böyle. En az iki hesap gerekir; ikinci kişiye **Hesaplar**'dan hesap açın.
+- **"E-posta gönderimi henüz kurulmadı":** Cloudflare'de `RESEND_API_KEY` yok (kurulumun 4. adımı).
+- **"Resend gönderimi reddetti; alan adı doğrulanmamış olabilir":** Resend'de **Domains** altında `parantezbulten.com`
+  *Verified* olmalı. DNS kayıtları eksikse Cloudflare'den ekleyin.
+- **Gönderim "Site hâlâ güncellenmedi" diyorsa:** sayı yayına alındı ama Cloudflare derlemesi bitmedi ya da hata verdi.
+  Derleme düzelince gönderim kendiliğinden başlar.
 - **"Yayın durumu" uzun süre dönüyorsa:** Cloudflare'de **Workers & Pages → parantez → Deployments**
   bölümünde son derlemenin hatasına bakın. Site, hatalı derleme yayına çıkmadığı için eski hâliyle çalışmaya devam eder.
 
@@ -149,6 +198,14 @@ Kaydedin (**Deploy**). Başka bir şey gerekmez. Hesaplar mevcut D1 veritabanın
   Bunlardan biri değişirse önizlemedeki karşılığı da güncellenmeli.
 - Sunucu: `worker/panel.js` (giriş, hesaplar, içerik), `worker/inceleme.js` (öneriler, yorumlar, onay)
   ve `worker/github.js` (GitHub REST/GraphQL).
+- Bülten: `worker/bulten.js` (e-posta şablonu; sohbetin e-postadaki hâli, içerik GitHub'dan),
+  `worker/gonderim.js` (plan, zamanlayıcı, panelin `/api/panel/bulten/*` uçları), `worker/eposta.js` (Resend),
+  `worker/abonelik.js` (kayıt, onay, çıkış; `/api/abone/*`). Zamanlayıcı her dakika çalışır (`wrangler.jsonc` → `triggers`).
+- Gönderimler D1'de (`gonderimler`): planli → yayinda → gonderiliyor → bitti (ya da iptal).
+  Her yayındaki sayının e-postası site derlenirken `/bulten/<no>.json` olarak hazırlanır (`src/pages/bulten/[sayi].json.ts`);
+  zamanlayıcı onu okuyup dondurur, dosya yoksa site henüz güncellenmemiştir. Panelin önizlemesi aynı şablonu GitHub'daki
+  içerikle çalıştırır (gizli sayı da önizlenebilsin diye). Partiler Resend'e `Idempotency-Key` ile gider;
+  yarıda kalan parti yeniden gönderilirse ikinci kez gitmez.
 - Öneriler ve yorumlar D1'de (`panel_oneriler`, `panel_yorumlar`). Onaya kadar GitHub'a hiçbir şey gitmez;
   önerinin görseli de onaya kadar D1'de durur (en fazla ~1 MB).
 - Sunucu kuralları: yeni sayı, yazı ve araştırmalar ile silmeler yalnızca onayla yazılır.
@@ -159,4 +216,6 @@ Kaydedin (**Deploy**). Başka bir şey gerekmez. Hesaplar mevcut D1 veritabanın
   `src/data/ekip.json` ve `public/gorseller/*` dosyalarına yazabilir.
 - Parolalar PBKDF2 ile saklanır. Oturum çerezi `HttpOnly`, `Secure`, `SameSite=Strict`.
   15 dakikada 10 hatalı denemeden sonra giriş durur.
-- Yerelde denemek için `.dev.vars` dosyasına üç değişkeni yazın, `npx wrangler dev` çalıştırın.
+- Yerelde denemek için `.dev.vars` dosyasına değişkenleri yazın, `npx wrangler dev --test-scheduled` çalıştırın.
+  Zamanlayıcıyı elle çalıştırmak için: `curl "http://127.0.0.1:8787/cdn-cgi/handler/scheduled?cron=*+*+*+*+*"`.
+  `RESEND_API` ve `GITHUB_API` ile sahte sunuculara yönlendirilebilir; `SITE_ADRESI` e-postalardaki bağlantıların kökü.

@@ -19,7 +19,7 @@ export default defineConfig({
   site: SITE,
   trailingSlash: 'always',
   build: { format: 'directory' },
-  integrations: [sitemap({ filter: (sayfa) => !sayfa.includes('/admin/') })],
+  integrations: [sitemap({ filter: (sayfa) => !sayfa.includes('/admin/') && !/\/abone\/[^/]+\/$/.test(sayfa) })],
   markdown: {
     processor: satteri({
       // ```grafik blokları çubuk grafiğe dönüşür (src/lib/grafik.js)

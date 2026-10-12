@@ -23,9 +23,10 @@ interface Props {
   composer?: boolean; // sohbet listesinde yazma alanı yok
   ana?: boolean; // ana sayfa: mobilde sohbet listesi, masaüstünde solda liste + sağda bu haftanın kapağı
   okuma?: boolean; // yazı sayfası: balonsuz, rahat okunan düzen
+  gizli?: boolean; // arama motorlarına kapalı
 }
 
-const { title, description, image, type = 'website', sayfa, aktif, bar, chips, mod, kaynak, composer = true, ana = false, okuma = false } = Astro.props;
+const { title, description, image, type = 'website', sayfa, aktif, bar, chips, mod, kaynak, composer = true, ana = false, okuma = false, gizli = false } = Astro.props;
 // Başlığı (parantez) olan barlarda (p) ikonu yok; yazının kendisi logo gibi durur
 const markaBar = bar.baslik === SITE.ad && !bar.kisi;
 const liste = await sayilar();
@@ -34,7 +35,7 @@ const guncel = liste[0]?.data.sayi;
 <!doctype html>
 <html lang="tr">
 <head>
-  <Bas title={title} description={description} image={image} type={type} />
+  <Bas title={title} description={description} image={image} type={type} gizli={gizli} />
   <script is:inline>
     document.documentElement.classList.add('js');
     // Masaüstünde sohbet listesi okur açmadıkça kapalı gelir

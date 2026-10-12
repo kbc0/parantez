@@ -1,0 +1,21 @@
+---
+// Abonelikten çıkış. E-postadaki bağlantı /api/abone/cik?t=… adresine gelir; Worker bu sayfayı
+// formdaki anahtarı doldurarak gösterir (worker/abonelik.js). Çıkış formla (POST) olur, böylece
+// e-posta güvenlik tarayıcılarının bağlantıyı açması okuru listeden çıkarmaz.
+import App from '../../layouts/App.astro';
+import Grp from '../../components/Grp.astro';
+import { PARANTEZ, guncelUrl } from '../../lib/site';
+import { genelChips } from '../../lib/chips';
+const buHafta = await guncelUrl();
+---
+<App title="Abonelikten çık" gizli bar={{ baslik: '(parantez)', alt: 'abonelik', geri: '/' }} chips={genelChips(buHafta).filter((c) => c.ac !== 'abone')}>
+  <div class="day">abonelik</div>
+  <Grp k={PARANTEZ}>
+    <p class="b">abonelikten çıkmak istiyorsun, anladım.</p>
+    <p class="b">bir dokunuşla listeden çıkarırım; pazartesi e-postaları bir daha gelmez. site her zaman burada.</p>
+  </Grp>
+  <form class="me cik-form" method="post" action="/api/abone/cik">
+    <input type="hidden" name="t" value="">
+    <button class="b" type="submit">evet, listeden çıkar</button>
+  </form>
+</App>

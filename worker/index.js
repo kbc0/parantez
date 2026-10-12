@@ -1,14 +1,16 @@
 // (parantez) — Cloudflare Worker
 // Statik sayfaları `dist/` klasöründen Cloudflare servis eder; bu dosya yalnızca
 // statik dosyası olmayan istekleri karşılar:
-//   POST /api/abone  — e-posta aboneliği (KV: ABONELER)
+//   /api/abone/*     — abonelik: kayıt, onay, çıkış (worker/abonelik.js; D1: DB)
 //   GET  /api/tepki  — bir sayfadaki tepki sayıları (D1: DB)
 //   POST /api/tepki  — tepki ver / geri al
-//   /api/panel/*     — yazı paneli (/admin): giriş, hesaplar, içerik (worker/panel.js)
+//   /api/panel/*     — yazı paneli (/admin): giriş, hesaplar, içerik, bülten (worker/panel.js)
+// Her dakika çalışan zamanlayıcı (scheduled) planlanan bülteni yayınlar ve gönderir (worker/gonderim.js).
 
 import { panel } from './panel.js';
+import { abone, cik, onayla } from './abonelik.js';
+import { zamanla } from './gonderim.js';
 
-const EPOSTA = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const EMOJI = ['❤️', '😂', '😮', '😢', '🔥'];
 const SAYFA = /^(sayi-\d{1,4}|yazi-[a-z0-9-]{1,90}|arastirma-[a-z0-9-]{1,90}|hakkinda)$/;
 const MESAJ = /^[a-z0-9-]{1,40}$/;
@@ -19,46 +21,20 @@ export default {
     const url = new URL(request.url);
     const yol = url.pathname.replace(/\/$/, '');
     if (yol === '/api/abone') return abone(request, env);
+    if (yol === '/api/abone/onay') return onayla(request, env, url);
+    if (yol === '/api/abone/cik') return cik(request, env, url);
     if (yol === '/api/tepki') return tepki(request, env, url);
     if (yol === '/api/panel' || yol.startsWith('/api/panel/')) return panel(request, env, url);
     return env.ASSETS.fetch(request);
+  },
+
+  async scheduled(olay, env, ctx) {
+    ctx.waitUntil(zamanla(env));
   },
 };
 
 const json = (veri, status = 200) =>
   Response.json(veri, { status, headers: { 'cache-control': 'no-store' } });
-
-// ------------------------------------------------------------------ abonelik
-
-async function abone(request, env) {
-  const jsonIster = (request.headers.get('accept') || '').includes('application/json');
-  const yanit = (status, mesaj) =>
-    jsonIster
-      ? json({ ok: status < 300, mesaj }, status)
-      : status < 300
-        ? Response.redirect(new URL('/abone/tamam/', request.url), 303)
-        : new Response(mesaj, { status, headers: { 'content-type': 'text/plain; charset=utf-8' } });
-
-  if (request.method !== 'POST') return new Response('Yalnızca POST', { status: 405, headers: { allow: 'POST' } });
-
-  let form;
-  try { form = await request.formData(); } catch { return yanit(400, 'form okunamadı.'); }
-
-  if (form.get('web')) return yanit(200, 'tamamdır.'); // bot tuzağı
-
-  const eposta = String(form.get('eposta') || '').trim().toLowerCase();
-  if (!EPOSTA.test(eposta) || eposta.length > 254) return yanit(400, 'bu bir e-posta adresine benzemiyor. tekrar dener misin?');
-  if (!env.ABONELER) return yanit(503, 'abonelik şu an kapalı. birazdan tekrar dener misin?');
-
-  if (await env.ABONELER.get(eposta)) return yanit(200, 'sen zaten abonesin. bülten her pazartesi 07:30’da gelen kutunda.');
-
-  await env.ABONELER.put(eposta, JSON.stringify({
-    tarih: new Date().toISOString(),
-    kaynak: String(form.get('kaynak') || 'site').slice(0, 60),
-    ulke: request.cf?.country ?? null,
-  }));
-  return yanit(201, 'tamamdır, kaydettim. pazartesi 07:30’da gelen kutundayız.');
-}
 
 // ------------------------------------------------------------------ tepkiler
 

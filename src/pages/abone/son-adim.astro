@@ -1,0 +1,15 @@
+---
+// JavaScript olmadan abone olan okur buraya gelir: onay bağlantısı e-postasında.
+import App from '../../layouts/App.astro';
+import Grp from '../../components/Grp.astro';
+import { PARANTEZ, guncelUrl } from '../../lib/site';
+import { genelChips } from '../../lib/chips';
+const buHafta = await guncelUrl();
+---
+<App title="Son bir adım" gizli bar={{ baslik: '(parantez)', alt: 'abone ol', geri: '/' }} chips={genelChips(buHafta).filter((c) => c.ac !== 'abone')}>
+  <div class="day">abone ol</div>
+  <Grp k={PARANTEZ}>
+    <p class="b">neredeyse tamam: e-postana bir onay bağlantısı gönderdim.</p>
+    <p class="b">ona dokununca abonelik başlıyor. birkaç dakikada gelmezse spam klasörüne de bakar mısın?</p>
+  </Grp>
+</App>

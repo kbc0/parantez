@@ -171,7 +171,7 @@ function iskelet(etkin: string, icerik: string) {
     <div class="pn-govde">
       <nav class="pn-menu" aria-label="Panel">
         ${link('inceleme', `İnceleme${onayimiBekleyen().length ? ` <small>${onayimiBekleyen().length} bekliyor</small>` : ''}`)}
-        ${link('yazilar', 'Yazılar')}${link('sayilar', 'Sayılar')}${link('arastirmalar', 'Araştırmalar')}${link('ekip', 'Ekip')}${yonetici() ? link('hesaplar', 'Hesaplar') : ''}
+        ${link('yazilar', 'Yazılar')}${link('sayilar', 'Sayılar')}${link('arastirmalar', 'Araştırmalar')}${link('bulten', 'Bülten')}${link('ekip', 'Ekip')}${yonetici() ? link('hesaplar', 'Hesaplar') : ''}
         <a class="pn-menu__site" href="/" target="_blank" rel="noopener">Siteyi aç ↗</a>
         <div class="pn-yayin" data-yayin></div>
       </nav>
@@ -883,6 +883,185 @@ async function ekipKaydet(f: HTMLFormElement) {
   });
 }
 
+// ------------------------------------------------------------------ bülten (e-posta)
+
+type Gonderim = {
+  id: number; sayi: number; durum: 'planli' | 'yayinda' | 'gonderiliyor' | 'bitti' | 'iptal'; zaman: number; planlayan_ad: string;
+  baslangic: number | null; bitis: number | null; konu: string | null; adet: number; toplam: number | null;
+  hata: string | null; bekle: number | null; iptal_eden: string | null;
+};
+type BultenDurum = { aboneler: { onayli: number; bekliyor: number; ayrildi: number }; gonderimler: Gonderim[]; resend: boolean; kimden: string };
+type BultenOnizleme = { konu: string; html: string; uyarilar: string[] };
+
+let bulten: BultenDurum | null = null;
+let bultenSecili = 0;
+let bultenOnizleme: (BultenOnizleme & { baslik: string }) | null = null;
+let bultenCihaz: 'telefon' | 'masaustu' = 'telefon';
+let bultenZaman = 0;
+
+const BULTEN_ACIK = ['planli', 'yayinda', 'gonderiliyor'];
+const saatli = (t: number) => new Date(t).toLocaleString('tr-TR', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Istanbul' });
+const yayinAni = (yayin: string) => Date.parse(`${yayin}T04:30:00Z`); // pazartesi 07:30, Türkiye saati
+
+function gonderimMetni(g: Gonderim) {
+  const simdi = Date.now();
+  if (g.durum === 'planli') return g.zaman - simdi > 10 * 60e3
+    ? `${saatli(g.zaman)}’da gönderilecek. Sayı 10 dakika önce sitede görünür olur. Planlayan: ${e(g.planlayan_ad)}.`
+    : 'Birazdan yayına çıkıp gönderilecek.';
+  if (g.durum === 'yayinda') return g.zaman > simdi
+    ? `Sayı sitede yayında. Gönderim ${saatli(g.zaman)}’da başlayacak.`
+    : 'Site güncelleniyor; sayı sitede görününce gönderim başlar.';
+  if (g.durum === 'gonderiliyor') return `Gönderiliyor: ${g.adet} / ${g.toplam ?? '?'} kişi.`;
+  if (g.durum === 'bitti') return `${g.adet} kişiye gitti · ${saatli(g.bitis ?? g.zaman)}`;
+  return `İptal edildi${g.iptal_eden ? ` (${e(g.iptal_eden)})` : ''} · ${saatli(g.bitis ?? g.zaman)}`;
+}
+
+async function bultenSayfasi(yenile = true) {
+  clearTimeout(bultenZaman);
+  // Sayfa kendini tazelerken okurun kaldığı yer kaybolmasın
+  const y = scrollY;
+  const yerinde = !!$('[data-bulten-sayfa]');
+  if (!durum.github) return iskelet('bulten', githubYok());
+  if (!durum.yuklendi) return iskelet('bulten', yukleniyor());
+  if (yenile || !bulten) {
+    if (!bulten) iskelet('bulten', '<p class="pn-bos">Bülten yükleniyor…</p>');
+    try { bulten = await api<BultenDurum>('bulten'); } catch (err) { return iskelet('bulten', `<p class="pn-bos">${e((err as Error).message)}</p>`); }
+    if (!location.hash.startsWith('#/bulten')) return;
+  }
+  const b = bulten!;
+  const acik = b.gonderimler.find((g) => BULTEN_ACIK.includes(g.durum));
+  const gecmis = b.gonderimler.filter((g) => !BULTEN_ACIK.includes(g.durum));
+  const gidenler = new Set(b.gonderimler.filter((g) => g.durum === 'bitti').map((g) => g.sayi));
+  const sayilar = [...durum.sayilar].sort((x, y) => y.veri.sayi - x.veri.sayi);
+  if (!sayilar.some((s) => s.veri.sayi === bultenSecili)) bultenSecili = (sayilar.find((s) => !gidenler.has(s.veri.sayi)) ?? sayilar[0])?.veri.sayi ?? 0;
+  const sec = sayilar.find((s) => s.veri.sayi === bultenSecili);
+  const baslik = (n: number) => { const s = sayiBul(n); return `Sayı ${pad(n)}${s?.veri.baslik ? ` · ${e(s.veri.baslik)}` : ''}`; };
+  const { onayli, bekliyor, ayrildi } = b.aboneler;
+
+  let siradaki = '';
+  if (acik) {
+    const oran = acik.toplam ? Math.min(100, Math.round((acik.adet / acik.toplam) * 100)) : 0;
+    siradaki = `
+      <section class="pn-kart pn-kart--ic pn-gonderim">
+        <h2>${baslik(acik.sayi)}</h2>
+        <p class="pn-gonderim__d">${gonderimMetni(acik)}</p>
+        ${acik.durum === 'gonderiliyor' ? `<div class="pn-ilerleme"><i style="width:${oran}%"></i></div>` : ''}
+        ${acik.hata ? `<p class="pn-uyari">${e(acik.hata)}</p>` : ''}
+        <div class="pn-eylem">
+          <button type="button" class="chip" data-bulten-onizle="${acik.sayi}">Önizle</button>
+          ${b.resend ? `<button type="button" class="chip" data-bulten-dene="${acik.sayi}">Kendime deneme gönder</button>` : ''}
+          <button type="button" class="pn-tehlike" data-bulten-iptal="${acik.id}">${acik.durum === 'gonderiliyor' ? 'Gönderimi durdur' : 'Planı iptal et'}</button>
+        </div>
+      </section>`;
+  } else if (sec) {
+    const zaman = yayinAni(sec.veri.yayin);
+    const gitti = gidenler.has(sec.veri.sayi);
+    const ileride = zaman > Date.now() + 60e3;
+    const not = gitti ? 'Bu sayı gönderildi.'
+      : ileride ? `Planlarsan ${saatli(zaman)}’da ${onayli} aboneye gider.${sec.veri.taslak ? ' Sayı şu an gizli; 10 dakika önce kendiliğinden yayına çıkar.' : ''}`
+      : `Bu sayının yayın saati geçti. “Şimdi gönder” sayıyı ${sec.veri.taslak ? 'yayına alır ve ' : ''}birkaç dakika içinde ${onayli} aboneye gönderir.`;
+    siradaki = `
+      <section class="pn-kart pn-kart--ic pn-gonderim">
+        <h2>Sıradaki gönderim</h2>
+        <label class="pn-alan"><span>Sayı</span><select name="bultenSayi">${sayilar.map((s) => `<option value="${s.veri.sayi}"${s.veri.sayi === bultenSecili ? ' selected' : ''}>${baslik(s.veri.sayi)}${s.veri.taslak ? ' (gizli)' : ''}${gidenler.has(s.veri.sayi) ? ' · gönderildi' : ''}</option>`).join('')}</select></label>
+        <p class="pn-not">${not}</p>
+        <div class="pn-eylem">
+          <button type="button" class="chip" data-bulten-onizle="${sec.veri.sayi}">Önizle</button>
+          ${b.resend ? `<button type="button" class="chip" data-bulten-dene="${sec.veri.sayi}">Kendime deneme gönder</button>` : ''}
+          ${b.resend && !gitti && ileride ? `<button type="button" class="chip chip--dolu" data-bulten-planla="${sec.veri.sayi}">${new Date(zaman).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', timeZone: 'Europe/Istanbul' })} 07:30’a planla</button>` : ''}
+          ${b.resend && !gitti ? `<button type="button" class="chip${ileride ? '' : ' chip--dolu'}" data-bulten-simdi="${sec.veri.sayi}">Şimdi gönder</button>` : ''}
+        </div>
+      </section>`;
+  } else {
+    siradaki = '<p class="pn-bos">Henüz sayı yok.</p>';
+  }
+
+  const o = bultenOnizleme;
+  iskelet('bulten', `
+    <div class="pn-bas" data-bulten-sayfa><h1>Bülten</h1></div>
+    <p class="pn-not pn-not--ust">Her sayı pazartesi 07:30’da e-postayla gider. Planlanan sayı gizliyse 07:20’de sitede görünür olur; 07:30’da gönderim başlar. Gönderen: ${e(b.kimden)}.</p>
+    ${b.resend ? '' : '<p class="pn-uyari">E-posta gönderimi henüz kurulmadı: Cloudflare’de <b>RESEND_API_KEY</b> tanımlanmalı (PANEL.md). Önizleme çalışır; deneme ve gönderim çalışmaz.</p>'}
+    <section class="pn-grup">
+      <h2>Aboneler</h2>
+      <p class="pn-abone-say"><b>${onayli}</b> abone <small>· ${bekliyor} onay bekliyor · ${ayrildi} ayrıldı</small></p>
+    </section>
+    ${siradaki}
+    ${o ? `
+      <section class="pn-kart pn-kart--ic pn-bulten-onizleme" data-bulten-onizleme>
+        <div class="pn-bas"><h2>${o.baslik}</h2>
+          <div class="pn-cihazlar">${(['telefon', 'masaustu'] as const).map((c) => `<button type="button" data-bulten-cihaz="${c}" aria-pressed="${c === bultenCihaz}">${c === 'telefon' ? 'Telefon' : 'Masaüstü'}</button>`).join('')}</div>
+        </div>
+        <p class="pn-konu"><small>Konu</small><b>${e(o.konu)}</b></p>
+        ${o.uyarilar.map((u) => `<p class="pn-uyari">${e(u)}</p>`).join('')}
+        <div class="pn-eposta" data-cihaz="${bultenCihaz}"><iframe title="E-posta önizlemesi" sandbox="allow-same-origin" data-bulten-cerceve></iframe></div>
+      </section>` : ''}
+    ${gecmis.length ? `
+      <section class="pn-grup">
+        <h2>Gönderilenler</h2>
+        ${gecmis.map((g) => `
+          <div class="pn-hesap">
+            <span class="pn-satir-t"><b>${g.konu ? `Sayı ${pad(g.sayi)} · ${e(g.konu)}` : baslik(g.sayi)}</b><small>${gonderimMetni(g)}</small></span>
+            ${g.baslangic ? `<button type="button" class="pn-kucuk" data-bulten-gor="${g.id}">E-postayı gör</button>` : ''}
+          </div>`).join('')}
+      </section>` : ''}`);
+  if (yerinde) scrollTo(0, y);
+
+  const cerceve = $<HTMLIFrameElement>('[data-bulten-cerceve]');
+  if (cerceve && o) {
+    cerceve.addEventListener('load', () => { cerceve.style.height = `${cerceve.contentDocument?.documentElement.scrollHeight ?? 900}px`; });
+    cerceve.srcdoc = o.html;
+  }
+  // Gönderim sürerken sayfa kendini tazeler
+  if (acik && (acik.durum !== 'planli' || acik.zaman - Date.now() < 15 * 60e3)) {
+    bultenZaman = window.setTimeout(() => { if (location.hash.startsWith('#/bulten')) bultenSayfasi(); }, 15_000);
+  }
+}
+
+async function bultenEylem(t: HTMLElement): Promise<boolean> {
+  const dugme = t.closest<HTMLButtonElement>('[data-bulten-onizle], [data-bulten-gor], [data-bulten-dene], [data-bulten-planla], [data-bulten-simdi], [data-bulten-iptal], [data-bulten-cihaz]');
+  if (!dugme) return false;
+  const d = dugme.dataset;
+  if (d.bultenCihaz) {
+    bultenCihaz = d.bultenCihaz as typeof bultenCihaz;
+    $('.pn-eposta')?.setAttribute('data-cihaz', bultenCihaz);
+    for (const x of $$('[data-bulten-cihaz]')) x.setAttribute('aria-pressed', String(x === dugme));
+    const cerceve = $<HTMLIFrameElement>('[data-bulten-cerceve]');
+    if (cerceve?.contentDocument) cerceve.style.height = `${cerceve.contentDocument.documentElement.scrollHeight}px`;
+    return true;
+  }
+  const n = Number(d.bultenOnizle ?? d.bultenDene ?? d.bultenPlanla ?? d.bultenSimdi);
+  if (d.bultenSimdi && !confirm(`Sayı ${pad(n)} şimdi ${bulten?.aboneler.onayli ?? 0} aboneye gönderilsin mi?`)) return true;
+  if (d.bultenIptal && !confirm('Gönderim iptal edilsin mi?')) return true;
+  const eski = dugme.textContent;
+  dugme.disabled = true;
+  try {
+    if (d.bultenOnizle || d.bultenGor) {
+      dugme.textContent = 'Hazırlanıyor…';
+      const j = await api<BultenOnizleme>('bulten/onizle', d.bultenGor ? { id: Number(d.bultenGor) } : { sayi: n });
+      bultenOnizleme = { ...j, baslik: d.bultenGor ? 'Gönderilen e-posta' : 'E-posta önizlemesi' };
+      await bultenSayfasi(false);
+      $('[data-bulten-onizleme]')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else if (d.bultenDene) {
+      dugme.textContent = 'Gönderiliyor…';
+      const j = await api<{ eposta: string }>('bulten/dene', { sayi: n });
+      toast(`Deneme e-postası ${j.eposta} adresine gitti.`, 4200);
+    } else if (d.bultenPlanla || d.bultenSimdi) {
+      const j = await api<{ zaman: number }>('bulten/planla', { sayi: n, simdi: !!d.bultenSimdi });
+      toast(d.bultenSimdi ? 'Gönderim başlıyor. Birkaç dakika içinde aboneler alır.' : `Planlandı: ${saatli(j.zaman)}.`, 4200);
+      await bultenSayfasi();
+    } else if (d.bultenIptal) {
+      const j = await api<{ onceki: string }>('bulten/iptal', { id: Number(d.bultenIptal) });
+      toast(j.onceki === 'planli' ? 'Plan iptal edildi.' : 'Gönderim durduruldu. Sayı sitede yayında kaldı.', 4200);
+      await bultenSayfasi();
+    }
+  } catch (err) {
+    toast((err as Error).message, 5200);
+  } finally {
+    if (dugme.isConnected) { dugme.disabled = false; dugme.textContent = eski; }
+  }
+  return true;
+}
+
 // ------------------------------------------------------------------ hesaplar (yönetici)
 
 async function hesaplarSayfasi() {
@@ -1348,6 +1527,7 @@ function ciz() {
     case 'sayi': return sayiFormu(arg || 'yeni');
     case 'arastirmalar': return arastirmalarSayfasi();
     case 'arastirma': return arastirmaFormu(arg || 'yeni');
+    case 'bulten': return bultenSayfasi();
     case 'ekip': return ekipSayfasi();
     case 'hesaplar': return hesaplarSayfasi();
     case 'hesabim': return parolaSayfasi(false);
@@ -1371,6 +1551,7 @@ addEventListener('beforeunload', (ev) => { if (durum.kirli) ev.preventDefault();
 
 kok.addEventListener('input', (ev) => {
   const t = ev.target as HTMLInputElement;
+  if (t.name === 'bultenSayi') { bultenSecili = Number(t.value); bultenOnizleme = null; return void bultenSayfasi(false); }
   const f = t.closest<HTMLFormElement>('form[data-form="yazi"], form[data-form="sayi"], form[data-form="arastirma"], form[data-form="ekip"], form[data-form="yorum"]');
   if (f) durum.kirli = f.dataset.form !== 'yorum' || !!t.value.trim();
   // Yeni yazıda adres başlıktan oluşur (okur elle değiştirmediyse)
@@ -1425,6 +1606,7 @@ kok.addEventListener('click', async (ev) => {
     return ciz();
   }
   if (t.closest('[data-yenile]')) { durum.yukHata = ''; ciz(); return icerikYukle(); }
+  if (await bultenEylem(t)) return;
 
   const ekle = t.closest<HTMLElement>('[data-ekle]');
   if (ekle && f) {

@@ -1,0 +1,16 @@
+---
+// Abonelikten çıkan okur buraya gelir (worker/abonelik.js).
+import App from '../../layouts/App.astro';
+import Grp from '../../components/Grp.astro';
+import { PARANTEZ, guncelUrl } from '../../lib/site';
+import { genelChips } from '../../lib/chips';
+const buHafta = await guncelUrl();
+---
+<App title="Çıktın" gizli bar={{ baslik: '(parantez)', alt: 'abonelik', geri: '/' }} chips={genelChips(buHafta).filter((c) => c.ac !== 'abone')}>
+  <div class="day">abonelik</div>
+  <div class="me"><p class="b">evet, listeden çıkar</p></div>
+  <Grp k={PARANTEZ}>
+    <p class="b">tamamdır, listeden çıkardım. bir daha e-posta gelmez.</p>
+    <p class="b">fikrin değişirse <a href="/abone/">buradan</a> yeniden abone olabilirsin. arada <a href={buHafta}>bu haftanın sayısına</a> da bakabilirsin.</p>
+  </Grp>
+</App>

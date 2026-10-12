@@ -305,3 +305,20 @@
 .pn-secim { display: inline-flex; align-items: center; gap: 7px; padding: 8px 13px; border: 1px solid var(--line); border-radius: 99px; font-size: 15px; font-weight: 700; cursor: pointer; }
 .pn-secim input { width: 16px; height: 16px; accent-color: var(--me); }
 .pn-secim:has(input:checked) { border-color: #cdd1ff; background: var(--me-soft); color: var(--me); }
+
+/* bülten */
+.pn-abone-say { margin: 0; padding: 14px 16px; font-size: 15px; color: var(--mute); }
+.pn-abone-say b { margin-right: 4px; font-size: 28px; font-weight: 800; letter-spacing: -0.02em; color: var(--ink); }
+.pn-gonderim { margin: 0 0 26px; }
+.pn-gonderim__d { margin: 0 0 12px; font-size: 16px; line-height: 1.5; }
+.pn-ilerleme { height: 8px; margin: 0 0 14px; border-radius: 99px; background: var(--bubble); overflow: hidden; }
+.pn-ilerleme i { display: block; height: 100%; border-radius: inherit; background: var(--me); transition: width .4s; }
+.pn-bulten-onizleme { margin: 0 0 26px; }
+.pn-bulten-onizleme .pn-bas { margin-bottom: 10px; }
+.pn-bulten-onizleme .pn-bas h2 { margin: 0; }
+.pn-bulten-onizleme .pn-cihazlar { margin: 0; }
+.pn-konu { margin: 0 0 14px; font-size: 16px; }
+.pn-konu small { display: block; margin-bottom: 2px; font-size: 12px; font-weight: 700; color: var(--mute); }
+.pn-eposta { margin: 0 auto; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: #fff; }
+.pn-eposta[data-cihaz="telefon"] { width: 390px; max-width: 100%; }
+.pn-eposta iframe { display: block; width: 100%; height: 900px; border: 0; }

@@ -203,6 +203,9 @@ img.kirik { visibility: hidden; }
 /* okurun mesajı (sağ) */
 .me { display: flex; justify-content: flex-end; margin: 14px 0; }
 .me .b { max-width: min(84%, 520px); background: var(--me); color: #fff; border-radius: 20px 20px 6px 20px; }
+/* abonelikten çıkış: okurun cevabı bir düğme */
+.cik-form button.b { border: 0; font: inherit; text-align: left; cursor: pointer; }
+.cik-form button.b:hover { background: #1d27e6; }
 
 /* yazıyor… */
 .b.typing { display: inline-flex; gap: 5px; padding: 14px 16px; }

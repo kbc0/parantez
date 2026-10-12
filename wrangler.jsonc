@@ -14,12 +14,20 @@
     // /api/* istekleri (form gönderimleri dahil) her zaman önce Worker'a gider
     "run_worker_first": ["/api/*"]
   },
-  // Abone e-postaları. ID verilmediği için ilk deploy'da Cloudflare otomatik oluşturur.
+  // Eski abone listesi. Aboneler artık D1'de; buradakiler bir kez D1'e taşınır (worker/abonelik.js).
   "kv_namespaces": [{ "binding": "ABONELER" }],
-  // Mesaj tepkileri. İlk deploy'da Cloudflare otomatik oluşturur; tablo ilk istekte kurulur.
+  // Tepkiler, aboneler, panel hesapları ve gönderimler. Tablolar ilk istekte kurulur.
   "d1_databases": [{ "binding": "DB", "database_name": "parantez-tepkiler" }],
-  // Yazı paneli içerikleri bu depoya commit eder. GITHUB_TOKEN, YONETICI_EPOSTA ve
-  // YONETICI_PAROLA Cloudflare panelinde gizli değişken (secret) olarak tanımlanır.
-  "vars": { "GITHUB_REPO": "kbc0/parantez", "GITHUB_DAL": "main" },
+  // Yazı paneli içerikleri bu depoya commit eder. GITHUB_TOKEN, YONETICI_EPOSTA, YONETICI_PAROLA
+  // ve RESEND_API_KEY Cloudflare panelinde gizli değişken (secret) olarak tanımlanır.
+  "vars": {
+    "GITHUB_REPO": "kbc0/parantez",
+    "GITHUB_DAL": "main",
+    "SITE_ADRESI": "https://parantezbulten.com",
+    "BULTEN_KIMDEN": "(parantez) <bulten@parantezbulten.com>",
+    "BULTEN_YANIT": "baris@parantezbulten.com"
+  },
+  // Her dakika: planlanan bülteni yayınlar ve gönderir (worker/gonderim.js)
+  "triggers": { "crons": ["* * * * *"] },
   "observability": { "enabled": true }
 }
