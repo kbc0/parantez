@@ -28,6 +28,7 @@ const tur = (env) => Math.min(10, Math.max(1, Number(env.BULTEN_TUR) || 1)); // 
 const KILIT = 3 * 60e3;
 const ACIK = ['planli', 'yayinda', 'gonderiliyor'];
 const DENEME_ARASI = 30e3;
+const EPOSTA = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 const pad = (n) => String(n).padStart(2, '0');
 const json = (veri, status = 200) => Response.json(veri, { status, headers: { 'cache-control': 'no-store' } });
@@ -210,17 +211,20 @@ export async function bultenPanel(yol, yontem, veri, ben, env) {
     if (!env.RESEND_API_KEY) return hata(503, 'E-posta gönderimi kurulmamış: Cloudflare\'de RESEND_API_KEY tanımlanmalı.');
 
     if (yol === 'bulten/dene') {
+      // Deneme, panele giren kişiye ya da onun yazdığı adrese gider
+      const adres = String(veri.adres || ben.eposta).trim().toLowerCase();
+      if (!EPOSTA.test(adres) || adres.length > 254) return hata(400, 'Deneme adresi bir e-posta adresine benzemiyor.');
       const ad = `dene:${ben.eposta}`;
       const son = await db.prepare('SELECT deger FROM ayarlar WHERE ad = ?').bind(ad).first();
       if (son && Number(son.deger) > simdi - DENEME_ARASI) return hata(429, 'Deneme e-postası az önce gitti. Yarım dakika sonra tekrar dene.');
       const v = await bultenVerisi(env, no);
       if (!v) return hata(404, `Sayı ${pad(no)} depoda yok.`);
       const b = bultenHtml(env, v);
-      const m = kisisel({ ...b, konu: `[deneme] ${b.konu}` }, ben.eposta, `${siteAdresi(env)}/abone/`);
+      const m = kisisel({ ...b, konu: `[deneme] ${b.konu}` }, adres, `${siteAdresi(env)}/abone/`);
       delete m.headers; // deneme e-postasında tek tıkla çıkış yok
       await eposta(env).gonder(m);
       await db.prepare('INSERT OR REPLACE INTO ayarlar (ad, deger) VALUES (?, ?)').bind(ad, String(simdi)).run();
-      return json({ ok: true, eposta: ben.eposta });
+      return json({ ok: true, eposta: adres });
     }
 
     if (yol === 'bulten/planla') {

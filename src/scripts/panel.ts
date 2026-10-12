@@ -900,6 +900,13 @@ let bultenCihaz: 'telefon' | 'masaustu' = 'telefon';
 let bultenZaman = 0;
 
 const BULTEN_ACIK = ['planli', 'yayinda', 'gonderiliyor'];
+// Deneme e-postasının gideceği adres; son yazılan hatırlanır
+const denemeAdresi = () => { try { return localStorage.getItem('pn:deneme') || durum.ben?.eposta || ''; } catch { return durum.ben?.eposta ?? ''; } };
+const denemeAlani = (n: number) => `
+  <div class="pn-deneme">
+    <label class="pn-alan"><span>Deneme e-postası <small>yalnızca bu adrese gider</small></span><input name="denemeAdres" type="email" value="${e(denemeAdresi())}" autocomplete="email"></label>
+    <button type="button" class="chip" data-bulten-dene="${n}">Deneme gönder</button>
+  </div>`;
 const saatli = (t: number) => new Date(t).toLocaleString('tr-TR', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Istanbul' });
 const yayinAni = (yayin: string) => Date.parse(`${yayin}T04:30:00Z`); // pazartesi 07:30, Türkiye saati
 
@@ -949,9 +956,9 @@ async function bultenSayfasi(yenile = true) {
         ${acik.hata ? `<p class="pn-uyari">${e(acik.hata)}</p>` : ''}
         <div class="pn-eylem">
           <button type="button" class="chip" data-bulten-onizle="${acik.sayi}">Önizle</button>
-          ${b.resend ? `<button type="button" class="chip" data-bulten-dene="${acik.sayi}">Kendime deneme gönder</button>` : ''}
           <button type="button" class="pn-tehlike" data-bulten-iptal="${acik.id}">${acik.durum === 'gonderiliyor' ? 'Gönderimi durdur' : 'Planı iptal et'}</button>
         </div>
+        ${b.resend ? denemeAlani(acik.sayi) : ''}
       </section>`;
   } else if (sec) {
     const zaman = yayinAni(sec.veri.yayin);
@@ -967,10 +974,10 @@ async function bultenSayfasi(yenile = true) {
         <p class="pn-not">${not}</p>
         <div class="pn-eylem">
           <button type="button" class="chip" data-bulten-onizle="${sec.veri.sayi}">Önizle</button>
-          ${b.resend ? `<button type="button" class="chip" data-bulten-dene="${sec.veri.sayi}">Kendime deneme gönder</button>` : ''}
           ${b.resend && !gitti && ileride ? `<button type="button" class="chip chip--dolu" data-bulten-planla="${sec.veri.sayi}">${new Date(zaman).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', timeZone: 'Europe/Istanbul' })} 07:30’a planla</button>` : ''}
           ${b.resend && !gitti ? `<button type="button" class="chip${ileride ? '' : ' chip--dolu'}" data-bulten-simdi="${sec.veri.sayi}">Şimdi gönder</button>` : ''}
         </div>
+        ${b.resend ? denemeAlani(sec.veri.sayi) : ''}
       </section>`;
   } else {
     siradaki = '<p class="pn-bos">Henüz sayı yok.</p>';
@@ -1043,7 +1050,9 @@ async function bultenEylem(t: HTMLElement): Promise<boolean> {
       $('[data-bulten-onizleme]')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } else if (d.bultenDene) {
       dugme.textContent = 'Gönderiliyor…';
-      const j = await api<{ eposta: string }>('bulten/dene', { sayi: n });
+      const adres = $<HTMLInputElement>('[name="denemeAdres"]')?.value.trim() || durum.ben?.eposta || '';
+      try { localStorage.setItem('pn:deneme', adres); } catch { /* yok */ }
+      const j = await api<{ eposta: string }>('bulten/dene', { sayi: n, adres });
       toast(`Deneme e-postası ${j.eposta} adresine gitti.`, 4200);
     } else if (d.bultenPlanla || d.bultenSimdi) {
       const j = await api<{ zaman: number }>('bulten/planla', { sayi: n, simdi: !!d.bultenSimdi });

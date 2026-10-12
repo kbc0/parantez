@@ -66,7 +66,8 @@ Bülten ve abonelik onay e-postaları [Resend](https://resend.com) ile gider.
 3. Resend'de alan adı **Verified** olunca **API Keys** → **Create API Key**
    (Permission: *Sending access*, Domain: `parantezbulten.com`). Anahtarı kopyalayın.
 4. Cloudflare'de 2. adımdaki yere bir gizli değişken daha ekleyin: `RESEND_API_KEY` = bu anahtar.
-5. Panelde **Bülten** → **Kendime deneme gönder** ile deneyin.
+5. Panelde **Bülten** → **Deneme gönder** ile kendi adresinize deneyin. Onay e-postasını görmek için sitede
+   kendi adresinizle abone olun.
 
 Gönderen `(parantez) <bulten@parantezbulten.com>`, cevaplar `baris@parantezbulten.com`'a gider
 (`wrangler.jsonc` → `BULTEN_KIMDEN`, `BULTEN_YANIT`).
@@ -121,7 +122,7 @@ Pro plana geçin (ayda 50.000 e-posta). Sınır dolarsa gönderim durmaz, bekler
 
 - **Bülten** sayfası: abone sayısı, sıradaki gönderim ve gönderilenler.
 - Sayıyı seçin → **Önizle** e-postanın telefonda ve masaüstünde nasıl görüneceğini gösterir.
-  **Kendime deneme gönder** e-postayı yalnızca size yollar.
+  **Deneme gönder** e-postayı yalnızca yazdığınız adrese yollar (varsayılan sizin adresiniz; son yazılan hatırlanır).
 - **… 07:30'a planla:** sayının yayın günü (pazartesi) 07:30'da tüm abonelere gider.
   Sayı "Sitede gizli kalsın" işaretliyse 07:20'de kendiliğinden yayına çıkar; e-posta, sayı sitede görününce gider.
   Yani pazar akşamı her şeyi hazırlayıp planlamak yeterli; sabah kimsenin bir şeye basması gerekmez.

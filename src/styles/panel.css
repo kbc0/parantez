@@ -322,3 +322,6 @@
 .pn-eposta { margin: 0 auto; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: #fff; }
 .pn-eposta[data-cihaz="telefon"] { width: 390px; max-width: 100%; }
 .pn-eposta iframe { display: block; width: 100%; height: 900px; border: 0; }
+.pn-deneme { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
+.pn-deneme .pn-alan { flex: 1; min-width: 220px; margin: 0; }
+.pn-deneme .chip { padding: 11px 20px; font-size: 16px; }
