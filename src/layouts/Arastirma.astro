@@ -1,27 +1,14 @@
 ---
-// (parantez) araştırma bölümünün iskeleti. Üst menü ana sayfanınkinin aynısı (AnaUst, Arşiv çekmecesi);
-// altında yalnızca içerik. Renk, balon ve betik yok.
-import '@fontsource-variable/hanken-grotesk';
-import '../styles/global.css';
+// (parantez) araştırma: ana sayfanın üst menüsüyle sade sayfa; altında yalnızca içerik.
+// Renk, balon ve betik yok.
 import '../styles/arastirma.css';
-import Bas from '../components/Bas.astro';
-import AnaUst from '../components/AnaUst.astro';
-import Arsiv from '../components/Arsiv.astro';
+import Sayfa from './Sayfa.astro';
 
 interface Props { title?: string; description?: string; image?: string; type?: 'website' | 'article' }
 const { title, description, image, type } = Astro.props;
 ---
-<!doctype html>
-<html lang="tr">
-<head>
-  <Bas title={title} description={description} image={image} type={type} />
-</head>
-<body class="ar-sayfa">
-  <a class="skip" href="#icerik">İçeriğe geç</a>
-  <AnaUst aktif="arastirma" />
-  <Arsiv />
+<Sayfa title={title} description={description} image={image} type={type} aktif="arastirma" sinif="ar-sayfa">
   <main id="icerik" class="ar-kap ar-ana">
     <slot />
   </main>
-</body>
-</html>
+</Sayfa>

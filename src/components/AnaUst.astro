@@ -1,7 +1,7 @@
 ---
 // Ana sayfanın üst menüsü: solda logo, sağda Arşiv (çekmeceyi açar), Araştırma ve Hakkında.
-// Ana sayfa ve araştırma sayfaları aynı menüyü kullanır; çekmece Arsiv.astro'da.
-interface Props { aktif?: 'arastirma' }
+// Ana sayfa, araştırma ve hakkında aynı menüyü kullanır (layouts/Sayfa.astro); çekmece Arsiv.astro'da.
+interface Props { aktif?: 'arastirma' | 'hakkinda' }
 const { aktif } = Astro.props;
 ---
 <header class="ana-ust">
@@ -11,6 +11,6 @@ const { aktif } = Astro.props;
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg>Arşiv
     </button>
     <a href="/arastirma/" aria-current={aktif === 'arastirma' ? 'page' : undefined}>Araştırma</a>
-    <a href="/hakkinda/">Hakkında</a>
+    <a href="/hakkinda/" aria-current={aktif === 'hakkinda' ? 'page' : undefined}>Hakkında</a>
   </nav>
 </header>

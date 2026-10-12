@@ -191,8 +191,8 @@ export function sayiOnizleme(v: SayiVeri, govde: string, b: Baglam): string {
           ${grp(PARANTEZ, `
             ${oneriler.length ? '<p class="b">gündemin dışında kalanlar. dinle, izle, oku:</p>' : ''}
             ${oneriler.map(({ fiil, o }) => `
-              <div class="b on">
-                <small>${fiil} · ${e(o!.tur)}</small><b>${e(o!.baslik)}</b><span class="on__kim">${e(o!.kimden)}</span><p>${e(o!.not)}</p>
+              <div class="b onr">
+                <small>${fiil} · ${e(o!.tur)}</small><b>${e(o!.baslik)}</b><span class="onr__kim">${e(o!.kimden)}</span><p>${e(o!.not)}</p>
                 ${o!.link ? `<a href="#">${e(o!.linkMetni ?? `${fiil} →`)}</a>` : ''}
               </div>`).join('')}
             ${etkinlikler.length ? '<p class="b">bir de bu hafta gidilecek yerler:</p>' : ''}
@@ -225,7 +225,7 @@ const adlar = (l: string[]) => (l.length < 2 ? l[0] ?? '' : `${l.slice(0, -1).jo
 export function arastirmaOnizleme(a: ArastirmaTaslak, _b: Baglam, gorselUrl?: string): string {
   const v = a.veri;
   const foto = gorselUrl ?? (v.gorsel ? gorsel(v.gorsel, 1200, 632) : '');
-  return `<div class="ar-sayfa">
+  return `<div class="ust-sayfa ar-sayfa">
     <header class="ana-ust"><a class="brand" href="#"><b>(parantez)</b></a><nav><button type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg>Arşiv</button><a href="#">Araştırma</a><a href="#">Hakkında</a></nav></header>
     <main class="ar-kap ar-ana">
       <article class="ar-yazi">

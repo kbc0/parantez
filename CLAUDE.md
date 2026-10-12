@@ -20,13 +20,15 @@ Site sahibi bu çizgiyi çok seviyor; yeni işler bu çizgide kalsın:
   - "Abone ol" yerinde açılır.
 - **Mobil ana sayfa sohbet listesidir.**
 - **Araştırma (`/arastirma/`) sade ve renksizdir; makale gibi okunur.** Site sahibi kalabalık istemiyor.
-  - Kendi iskeleti var (`src/layouts/Arastirma.astro`, `src/styles/arastirma.css`). Üst menü ana sayfanınkinin
+  - İskeleti `src/layouts/Arastirma.astro` (Sayfa.astro üstüne), stili `src/styles/arastirma.css`. Üst menü ana sayfanınkinin
     aynısıdır (logo; Arşiv · Araştırma · Hakkında; Arşiv aynı çekmeceyi açar). Sohbet listesi, bar, balon,
     tepki ve renk yok. Mürekkep, beyaz, griler.
   - Liste sayfası yalnızca başlık ve yayınlar (No. ve başlık). Tanıtım metni, süzgeç, özet yok.
   - Yazı sayfası: No., başlık, yazarlar ve tarih; sonra metin. Künye, bulgu kutusu, içindekiler, atıf gibi
     ayrı parçalar eklenmez; gereken her şey metnin içinde (ara başlık, tablo, grafik, dipnot).
   - Görseller gri tonlu.
+- **Hakkında (`/hakkinda/`) sohbet gibi konuşur ama sohbet düzeninde değildir.** Üst menü ana sayfanınki;
+  sol liste, üst bar ve mesaj kutusu yok. Balonlar ve tepkiler aynen kalır; e-posta en altta mesajla alınır.
 - **Geri düğmesi** okuru geldiği yere götürür. Sohbete dönen okur kaldığı yerden devam eder.
 
 Kaçınılacaklar:
@@ -55,8 +57,10 @@ Yazı tipi: Hanken Grotesk.
   - ` ```grafik ` blokları çubuk grafiğe dönüşür (`src/lib/grafik.js`; panel önizlemesi de bunu kullanır).
   - `[^1]` dipnotları "Kaynaklar ve notlar" başlığıyla sonda toplanır.
 - Sayfalar: `src/pages/`. Ortak iskelet: `src/layouts/App.astro` (araştırma hariç). `<head>` etiketleri `src/components/Bas.astro`.
-  - Ana sayfanın üst menüsü `src/components/AnaUst.astro`, Arşiv çekmecesi `src/components/Arsiv.astro`;
-    ikisi de ana sayfada ve araştırma sayfalarında kullanılır. Üst menü değişirse ikisinde de değişir.
+  - Ana sayfanın üst menüsü `src/components/AnaUst.astro`, Arşiv çekmecesi `src/components/Arsiv.astro`.
+    Ana sayfa ve sade sayfalar (`src/layouts/Sayfa.astro`: araştırma, hakkında) ikisini de kullanır;
+    üst menü değişirse hepsinde değişir.
+  - `.on` sınıfı basılı tepki ve seçili öğeler içindir; tek başına stil vermeyin (öneri kartı `.onr`).
   - `okuma` prop'u yazı düzenini açar.
   - `ana` prop'u ana sayfa düzenini açar.
 - Betikler (`src/scripts/`):

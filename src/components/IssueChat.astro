@@ -68,10 +68,10 @@ const gun = (d: Date) => new Date(d.getTime() + 3 * 3600e3).getUTCDate();
       <Grp k={PARANTEZ}>
         {oneriler.length > 0 && <p class="b">gündemin dışında kalanlar. dinle, izle, oku:</p>}
         {oneriler.map(({ k, fiil, o }) => (
-          <div class="b on" data-tepki={`oneri-${k}`}>
+          <div class="b onr" data-tepki={`oneri-${k}`}>
             <small>{fiil} · {o!.tur}</small>
             <b>{o!.baslik}</b>
-            <span class="on__kim">{o!.kimden}</span>
+            <span class="onr__kim">{o!.kimden}</span>
             <p>{o!.not}</p>
             {o!.link && <a href={o!.link} target="_blank" rel="noopener">{o!.linkMetni ?? `${fiil} →`}</a>}
           </div>

@@ -1,0 +1,34 @@
+---
+// Ana sayfanın üst menüsüyle açılan sade sayfalar (araştırma, hakkında): sol sohbet listesi,
+// üst bar ve mesaj kutusu yok. Üst menü AnaUst.astro, Arşiv çekmecesi Arsiv.astro.
+// İçeriği (<main>) sayfa kendisi verir.
+import '@fontsource-variable/hanken-grotesk';
+import '../styles/global.css';
+import Bas from '../components/Bas.astro';
+import AnaUst from '../components/AnaUst.astro';
+import Arsiv from '../components/Arsiv.astro';
+
+interface Props {
+  title?: string;
+  description?: string;
+  image?: string;
+  type?: 'website' | 'article';
+  aktif?: 'arastirma' | 'hakkinda';
+  sinif?: string; // body'ye eklenecek sınıf, ör. ar-sayfa
+  sayfa?: string; // tepkilerin saklandığı sayfa anahtarı
+}
+const { title, description, image, type, aktif, sinif, sayfa } = Astro.props;
+---
+<!doctype html>
+<html lang="tr">
+<head>
+  <Bas title={title} description={description} image={image} type={type} />
+  <script is:inline>document.documentElement.classList.add('js');</script>
+</head>
+<body class:list={['ust-sayfa', sinif]} data-sayfa={sayfa}>
+  <a class="skip" href="#icerik">İçeriğe geç</a>
+  <AnaUst aktif={aktif} />
+  <Arsiv />
+  <slot />
+</body>
+</html>

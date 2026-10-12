@@ -234,13 +234,13 @@ img.kirik { visibility: hidden; }
 .lc__ok { display: none; position: absolute; top: 14px; right: 10px; padding: 3px 8px; border-radius: 99px; background: #fff; color: var(--me); font-size: 11px; font-weight: 800; box-shadow: 0 1px 3px rgba(0,0,0,.15); }
 .lc.okundu .lc__ok { display: block; }
 
-/* parantez dışı: öneri */
-.on { width: min(100%, 460px); background: #fff; border: 1px solid var(--line); padding: 13px 16px 15px; }
-.on > small { display: block; font-size: 12px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--hot); }
-.on > b { display: block; margin-top: 4px; font-size: 21px; line-height: 1.12; letter-spacing: -0.02em; }
-.on__kim { display: block; margin-top: 2px; font-size: 14px; color: var(--mute); }
-.on p { margin: 8px 0 0; font-size: 16px; line-height: 1.45; }
-.on a { display: inline-block; margin-top: 8px; font-size: 14px; font-weight: 700; }
+/* parantez dışı: öneri kartı. Adı .on değil: .on basılı tepki ve seçili liste öğelerinin sınıfı */
+.onr { width: min(100%, 460px); background: #fff; border: 1px solid var(--line); padding: 13px 16px 15px; }
+.onr > small { display: block; font-size: 12px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--hot); }
+.onr > b { display: block; margin-top: 4px; font-size: 21px; line-height: 1.12; letter-spacing: -0.02em; }
+.onr__kim { display: block; margin-top: 2px; font-size: 14px; color: var(--mute); }
+.onr p { margin: 8px 0 0; font-size: 16px; line-height: 1.45; }
+.onr a { display: inline-block; margin-top: 8px; font-size: 14px; font-weight: 700; }
 
 /* parantez dışı: etkinlik */
 .ev { display: grid; grid-template-columns: 54px minmax(0, 1fr) auto; gap: 12px; align-items: center; width: min(100%, 460px); background: #fff; border: 1px solid var(--line); padding: 10px 12px; }
@@ -790,4 +790,23 @@ html:not(.js) .b--aksiyon, .kutu-acik .b--aksiyon, .abone-oldu .b--aksiyon { dis
 /* ana sayfa listesindeki araştırma satırı */
 .av--ar { background: var(--bubble); color: var(--ink); font-size: 17px; }
 
+/* Ana sayfanın üst menüsüyle açılan sade sayfalar (layouts/Sayfa.astro: araştırma, hakkında).
+   Ana sayfa telefonda menü yerine sohbet listesini gösterir; bu sayfalarda menü ve çekmece telefona da açılır. */
+@media (max-width: 899px) {
+  .ust-sayfa .ana-ust { display: flex; align-items: center; justify-content: space-between; gap: 12px; height: 64px; padding: 0 16px; }
+  .ust-sayfa .ana-ust .brand { padding: 0; font-size: 20px; }
+  .ust-sayfa .ana-ust nav { display: flex; align-items: center; gap: 16px; font-size: 14px; font-weight: 700; }
+  .ust-sayfa .ana-ust nav :is(a, button) { display: inline-flex; align-items: center; gap: 5px; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-decoration: none; cursor: pointer; }
+  .ust-sayfa .ana-ust nav svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; }
 
+  .ust-sayfa .liste[popover]:not(:popover-open) { display: none; }
+  .ust-sayfa .liste[popover] { position: fixed; inset: 0; width: 100vw; height: 100dvh; max-width: none; max-height: none; padding: 0 12px 32px; background: #fff; overflow-y: auto; overscroll-behavior: contain; }
+  .ust-sayfa .liste__bas { position: sticky; top: 0; z-index: 1; display: flex; align-items: center; justify-content: space-between; height: 64px; margin: 0 -12px; padding: 0 16px; border-bottom: 1px solid var(--line); background: #fff; }
+  .ust-sayfa .liste__bas b { font-size: 20px; font-weight: 800; letter-spacing: -0.02em; }
+}
+
+/* hakkında: sohbet balonları, sade sayfada (Sayfa.astro) */
+.hk { padding-bottom: calc(64px + env(safe-area-inset-bottom)); }
+.hk-abone { margin-top: 14px; }
+.hk-abone .yz-abone__form { margin-left: 44px; }
+.hk-abone .yz-abone__uyari { margin-left: 60px; }

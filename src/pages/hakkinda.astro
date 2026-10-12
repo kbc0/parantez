@@ -1,12 +1,13 @@
 ---
-import App from '../layouts/App.astro';
+// Hakkında: ana sayfanın üst menüsüyle açılan sade sayfa (layouts/Sayfa.astro). İçerik sohbet gibi
+// (balonlar, tepkiler) ama sohbet düzeni yok: sol liste, üst bar ve mesaj kutusu yok.
+import Sayfa from '../layouts/Sayfa.astro';
 import Grp from '../components/Grp.astro';
-import { SITE, PARANTEZ, guncelUrl } from '../lib/site';
-const buHafta = await guncelUrl();
+import { SITE, PARANTEZ } from '../lib/site';
 ---
-<App title="Hakkında" description="Birkaç kişilik genç bir ekip. Gündem uzun, biz kısaltıyoruz. Ara sıra da uzatıyoruz."
-  sayfa="hakkinda" aktif="hakkinda" bar={{ baslik: '(parantez)', alt: 'hakkında', geri: '/' }}
-  chips={[{ metin: 'Abone ol', ac: 'abone' }, { metin: 'Bu haftanın sayısı', href: buHafta }, { metin: 'Tüm sayılar', href: '/' }]}>
+<Sayfa title="Hakkında" description="Birkaç kişilik genç bir ekip. Gündem uzun, biz kısaltıyoruz. Ara sıra da uzatıyoruz."
+  aktif="hakkinda" sayfa="hakkinda">
+<main id="icerik" class="msgs hk">
   <div class="day">hakkında</div>
   <div class="me"><p class="b">siz kimsiniz?</p></div>
   <Grp k={PARANTEZ}>
@@ -30,6 +31,28 @@ const buHafta = await guncelUrl();
   <div class="me"><p class="b">size nasıl ulaşırım?</p></div>
   <Grp k={PARANTEZ}>
     <p class="b">fikrin, itirazın ya da bir sorun mu var? <a href={`mailto:${SITE.eposta}`}>{SITE.eposta}</a></p>
-    <p class="b">bülten için aşağıdan “Abone ol”a dokunman yeterli.</p>
   </Grp>
-</App>
+  <section class="hk-abone" data-abone-kutu data-abone-gizle aria-label="Abone ol">
+    <Grp k={PARANTEZ} isim={false} cls="grp--devam">
+      <p class="b">bülten için e-posta adresini aşağıya yazman yeterli.</p>
+    </Grp>
+    <form class="yz-abone__form" action="/api/abone" method="post">
+      <input type="hidden" name="kaynak" value="hakkinda">
+      <input class="hp" type="text" name="web" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <label class="sr" for="hk-eposta">E-posta adresin</label>
+      <input id="hk-eposta" name="eposta" type="email" inputmode="email" autocomplete="email" enterkeyhint="send" autocapitalize="off" spellcheck="false" placeholder="e-posta adresin" required>
+      <button class="send" type="submit" aria-label="Abone ol">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
+      </button>
+    </form>
+    <p class="yz-abone__uyari" data-uyari hidden role="status"></p>
+  </section>
+</main>
+
+<div class="picker" data-picker hidden role="dialog" aria-label="Tepki seç"></div>
+<div class="toast" data-toast hidden role="status"></div>
+<script>
+  import '../scripts/ortak';
+  import '../scripts/sohbet';
+</script>
+</Sayfa>
