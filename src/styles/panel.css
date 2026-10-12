@@ -325,3 +325,11 @@
 .pn-deneme { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
 .pn-deneme .pn-alan { flex: 1; min-width: 220px; margin: 0; }
 .pn-deneme .chip { padding: 11px 20px; font-size: 16px; }
+
+/* aboneler */
+.pn-abone-arac { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 14px; }
+.pn-abone-arac input[type="search"] { flex: 1; min-width: 220px; padding: 11px 14px; border: 1px solid var(--line); border-radius: 12px; background: #fff; font: inherit; font-size: 15px; }
+.pn-abone-arac .pn-sekmeler { flex-wrap: wrap; justify-content: flex-start; margin: 0; padding: 0; border: 0; }
+.pn-abone .pn-satir-t { min-width: min(240px, 100%); }
+.pn-abone .pn-satir-t b { overflow-wrap: anywhere; }
+.pn-abone__eylem { display: flex; flex-wrap: wrap; gap: 6px; }

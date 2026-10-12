@@ -141,6 +141,20 @@ Pro plana geçin (ayda 50.000 e-posta). Sınır dolarsa gönderim durmaz, bekler
 - Her bültenin altında **abonelikten çık** bağlantısı var. Gmail ve Apple Mail'deki "abonelikten çık" düğmesi de çalışır.
 - Aboneler D1'de (`aboneler` tablosu). Eskiden KV'de duranlar ilk çalışmada oraya taşınır; onaylı sayılırlar.
 
+### Aboneler (yalnızca yönetici)
+
+E-posta adresleri kişisel veri; listeyi yalnızca yöneticiler görür. Yazarlar **Bülten**'de yalnızca sayıları görür.
+
+- **Aboneler** sayfası: arama, durum süzgeci (onaylı, onay bekliyor, ayrıldı, engelli), **CSV indir**.
+- Satırdaki işlemler:
+  - **Onay e-postasını yeniden gönder** / **Onayla:** onay e-postası gelmediğini söyleyen biri için.
+    Elle onayı yalnızca kişi isterse yapın.
+  - **Listeden çıkar:** bülten artık gitmez; kişi isterse siteden yeniden abone olabilir.
+  - **Engelle:** bülten gitmez ve bu adresle siteden yeniden abone olunamaz (site her zamanki cevabı verir, e-posta göndermez).
+    Kötüye kullanım için. **Engeli kaldır** adresi "ayrıldı" yapar.
+  - **Sil:** kayıt tamamen silinir. "Verilerimi silin" diyen biri için.
+- **Abone ekle:** eklenen adrese onay e-postası gider; kişi onaylamadan listeye girmez.
+
 ### Araştırmalar
 
 - **Araştırmalar** → **+ Yeni araştırma**. Sitede `/arastirma/` sayfasında numarası ve başlığıyla listelenir.

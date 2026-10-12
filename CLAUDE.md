@@ -84,6 +84,7 @@ Yazı tipi: Hanken Grotesk.
 - Worker: `worker/index.js`.
   - `/api/abone/*`: çift onaylı abonelik ve tek tıkla çıkış (`worker/abonelik.js`; D1 `aboneler`).
     Sayfaları `/abone/son-adim/`, `/abone/tamam/`, `/abone/cik/`, `/abone/ayrildin/`, `/abone/gecersiz/`. KV `ABONELER` yalnızca eski kayıtlar için.
+    Panelde abone listesi (arama, çıkarma, engelleme, silme, CSV) yalnızca yöneticiye açık (`/api/panel/aboneler/*`).
   - `/api/tepki`: tepkiler; D1 `parantez-tepkiler`. Yeni bir sayfa türü tepki alacaksa `SAYFA` kalıbına eklenmeli.
 - Her şey JavaScript olmadan da çalışmalı. Formlar doğrudan `/api/abone`'ye gider; çıkış formu `/api/abone/cik`'e.
 - Yerelde deneme: `npx wrangler dev`. Derlemeyi kendisi yapar.

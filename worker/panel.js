@@ -10,6 +10,7 @@
 import { github, GithubHatasi, yetkiHatasi } from './github.js';
 import { inceleme, incelemeSemasi, dogrudanDenetle, dogrudanYayinlandi } from './inceleme.js';
 import { bultenPanel } from './gonderim.js';
+import { abonePanel } from './abonelik.js';
 
 const EPOSTA = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const ITERASYON = 20000; // Workers'ın CPU sınırına sığsın diye ölçülü
@@ -172,6 +173,7 @@ export async function panel(request, env, url) {
   if (['icerik', 'dosya', 'dosyalar', 'kaydet'].includes(yol)) return icerik(yol, yontem, veri, ben, env, url);
   if (yol === 'oneriler' || yol === 'oneri' || yol === 'gorsel' || yol.startsWith('oneri/')) return inceleme(yol, yontem, veri, ben, env, url);
   if (yol === 'bulten' || yol.startsWith('bulten/')) return bultenPanel(yol, yontem, veri, ben, env);
+  if (yol === 'aboneler' || yol.startsWith('aboneler/')) return abonePanel(yol, yontem, veri, ben, env, url);
   return hata(404, 'Bulunamadı.');
 }
 

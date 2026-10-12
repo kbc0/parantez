@@ -7,12 +7,14 @@
 //
 // Aboneler D1'de (DB, `aboneler`). Eskiden KV'de (ABONELER) duranlar ilk zamanlanmış
 // çalışmada D1'e taşınır (kvTasi). Resend anahtarı yoksa kayıt eskisi gibi tek adımlıdır.
+// Panelde yönetici listeyi görür, arar ve yönetir (abonePanel: /api/panel/aboneler/*).
 
 import { eposta, EpostaHatasi, h } from './eposta.js';
 
 const EPOSTA = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const ANAHTAR = /^[A-Za-z0-9_-]{20,64}$/;
 const TEKRAR = 10 * 60e3; // aynı adrese onay e-postası en fazla 10 dakikada bir
+const ONAY_BEKLE = 'neredeyse tamam: e-postana bir onay bağlantısı gönderdim. ona dokununca abonelik başlıyor. birkaç dakikada gelmezse spam klasörüne de bakar mısın?';
 const IP_SINIRI = 10; // bir IP'den saatte en fazla bu kadar kayıt denemesi
 
 export const siteAdresi = (env) => (env.SITE_ADRESI || 'https://parantezbulten.com').replace(/\/$/, '');
@@ -21,7 +23,7 @@ export const cikisAdresi = (env, anahtar) => `${siteAdresi(env)}/api/abone/cik?t
 let semaHazir = null;
 export function abonelikSemasi(db) {
   semaHazir ??= db.batch([
-    // durum: bekliyor (onay bağlantısı gitti) | onayli | ayrildi
+    // durum: bekliyor (onay bağlantısı gitti) | onayli | ayrildi | engelli (panelden; siteden yeniden abone olamaz)
     db.prepare(`CREATE TABLE IF NOT EXISTS aboneler (
       eposta TEXT PRIMARY KEY, durum TEXT NOT NULL, anahtar TEXT NOT NULL UNIQUE, kaynak TEXT, ulke TEXT,
       olusturma INTEGER NOT NULL, onay INTEGER, ayrilma INTEGER, son_mektup INTEGER)`),
@@ -81,6 +83,8 @@ export async function abone(request, env) {
     return yanit(200, 'sen zaten abonesin. bülten her pazartesi 07:30’da gelen kutunda.'); // henüz taşınmamış eski kayıt
   }
   if (kayit?.durum === 'onayli') return yanit(200, 'sen zaten abonesin. bülten her pazartesi 07:30’da gelen kutunda.');
+  // Engellenen adres: cevap aynı, ama hiçbir şey gönderilmez ve kayıt değişmez
+  if (kayit?.durum === 'engelli') return yanit(201, ONAY_BEKLE, '/abone/son-adim/');
 
   const kaynak = String(form.get('kaynak') || 'site').slice(0, 60);
   const ulke = request.cf?.country ?? null;
@@ -93,7 +97,7 @@ export async function abone(request, env) {
     return yanit(201, 'tamamdır, kaydettim. pazartesi 07:30’da gelen kutundayız.');
   }
 
-  const bekle = 'neredeyse tamam: e-postana bir onay bağlantısı gönderdim. ona dokununca abonelik başlıyor. birkaç dakikada gelmezse spam klasörüne de bakar mısın?';
+  const bekle = ONAY_BEKLE;
   if (kayit?.durum === 'bekliyor' && kayit.son_mektup > simdi - TEKRAR) return yanit(200, bekle, '/abone/son-adim/');
 
   if (!kayit) {
@@ -123,7 +127,7 @@ export async function onayla(request, env, url) {
   if (!env.DB || !ANAHTAR.test(t)) return git('/abone/');
   await abonelikSemasi(env.DB);
   const k = await env.DB.prepare('SELECT eposta, durum FROM aboneler WHERE anahtar = ?').bind(t).first();
-  if (!k || k.durum === 'ayrildi') return git('/abone/');
+  if (!k || k.durum === 'ayrildi' || k.durum === 'engelli') return git('/abone/');
   if (k.durum === 'bekliyor') await env.DB.prepare("UPDATE aboneler SET durum = 'onayli', onay = ?, ayrilma = NULL WHERE anahtar = ?").bind(Date.now(), t).run();
   return git('/abone/tamam/');
 }
@@ -159,7 +163,7 @@ export async function cik(request, env, url) {
   await abonelikSemasi(env.DB);
   const k = await env.DB.prepare('SELECT durum FROM aboneler WHERE anahtar = ?').bind(t).first();
   if (!k) return gecersiz();
-  if (k.durum !== 'ayrildi') await env.DB.prepare("UPDATE aboneler SET durum = 'ayrildi', ayrilma = ? WHERE anahtar = ?").bind(Date.now(), t).run();
+  if (k.durum === 'onayli' || k.durum === 'bekliyor') await env.DB.prepare("UPDATE aboneler SET durum = 'ayrildi', ayrilma = ? WHERE anahtar = ?").bind(Date.now(), t).run();
   if (tekTik) return new Response('ok', { headers: { 'content-type': 'text/plain; charset=utf-8' } });
   return Response.redirect(new URL('/abone/ayrildin/', url), 303);
 }
@@ -197,9 +201,109 @@ export async function kvTasi(env) {
 export async function aboneSayilari(db) {
   await abonelikSemasi(db);
   const { results } = await db.prepare('SELECT durum, COUNT(*) AS n FROM aboneler GROUP BY durum').all();
-  const s = { onayli: 0, bekliyor: 0, ayrildi: 0 };
+  const s = { onayli: 0, bekliyor: 0, ayrildi: 0, engelli: 0 };
   for (const r of results) s[r.durum] = r.n;
   return s;
+}
+
+// ------------------------------------------------------------------ panel: /api/panel/aboneler/*
+
+const DURUMLAR = ['onayli', 'bekliyor', 'ayrildi', 'engelli'];
+const SAYFA_BOYU = 50;
+const isoTarih = (t) => (t ? new Date(t).toISOString() : '');
+const csvHucre = (v) => (/[",\n]/.test(String(v ?? '')) ? `"${String(v).replace(/"/g, '""')}"` : String(v ?? ''));
+
+// Abone listesi kişisel veri: yalnızca yönetici görür ve değiştirir
+export async function abonePanel(yol, yontem, veri, ben, env, url) {
+  const db = env.DB;
+  if (ben.yetki !== 'yonetici') return json({ hata: 'Abone listesini yalnızca yönetici görebilir.' }, 403);
+  await abonelikSemasi(db);
+  const hata = (status, mesaj) => json({ hata: mesaj }, status);
+
+  if (yol === 'aboneler' && yontem === 'GET') {
+    const q = (url.searchParams.get('q') || '').trim().toLowerCase().slice(0, 100);
+    const durum = DURUMLAR.includes(url.searchParams.get('durum')) ? url.searchParams.get('durum') : '';
+    const atla = Math.max(0, Number(url.searchParams.get('atla')) || 0);
+    const kosul = 'WHERE (?1 = \'\' OR instr(eposta, ?1) > 0) AND (?2 = \'\' OR durum = ?2)';
+    const { results } = await db.prepare(`SELECT eposta, durum, kaynak, ulke, olusturma, onay, ayrilma FROM aboneler ${kosul}
+      ORDER BY olusturma DESC, eposta LIMIT ?3 OFFSET ?4`).bind(q, durum, SAYFA_BOYU + 1, atla).all();
+    const { n } = await db.prepare(`SELECT COUNT(*) AS n FROM aboneler ${kosul}`).bind(q, durum).first();
+    return json({ liste: results.slice(0, SAYFA_BOYU), devami: results.length > SAYFA_BOYU, toplam: n, sayilar: await aboneSayilari(db) });
+  }
+
+  if (yol === 'aboneler/csv' && yontem === 'GET') {
+    const { results } = await db.prepare('SELECT eposta, durum, kaynak, ulke, olusturma, onay, ayrilma FROM aboneler ORDER BY olusturma').all();
+    const satirlar = [['eposta', 'durum', 'kaynak', 'ulke', 'kayit', 'onay', 'ayrilma'],
+      ...results.map((r) => [r.eposta, r.durum, r.kaynak, r.ulke, isoTarih(r.olusturma), isoTarih(r.onay), isoTarih(r.ayrilma)])];
+    return new Response(`\ufeff${satirlar.map((s) => s.map(csvHucre).join(',')).join('\n')}\n`, {
+      headers: {
+        'content-type': 'text/csv; charset=utf-8', 'cache-control': 'no-store',
+        'content-disposition': `attachment; filename="parantez-aboneler-${new Date().toISOString().slice(0, 10)}.csv"`,
+      },
+    });
+  }
+  if (yontem !== 'POST') return hata(404, 'Bulunamadı.');
+
+  const adres = String(veri.eposta || '').trim().toLowerCase();
+  if (!EPOSTA.test(adres) || adres.length > 254) return hata(400, 'Bu bir e-posta adresine benzemiyor.');
+  const simdi = Date.now();
+  const k = await db.prepare('SELECT * FROM aboneler WHERE eposta = ?').bind(adres).first();
+
+  // Elle ekleme de onayla olur: eklenen adrese onay e-postası gider
+  if (yol === 'aboneler/ekle') {
+    if (k) return hata(409, `Bu adres listede zaten var (${{ onayli: 'onaylı', bekliyor: 'onay bekliyor', ayrildi: 'ayrılmış', engelli: 'engelli' }[k.durum]}).`);
+    if (!env.RESEND_API_KEY) return hata(503, 'Onay e-postası gidemez: Cloudflare\'de RESEND_API_KEY tanımlanmalı.');
+    const anahtar = yeniAnahtar();
+    await db.prepare("INSERT INTO aboneler (eposta, durum, anahtar, kaynak, olusturma, son_mektup) VALUES (?, 'bekliyor', ?, 'panel', ?, ?)")
+      .bind(adres, anahtar, simdi, simdi).run();
+    try {
+      await eposta(env).gonder({ to: adres, ...onayEpostasi(env, anahtar) });
+    } catch (e) {
+      await db.prepare('DELETE FROM aboneler WHERE eposta = ?').bind(adres).run();
+      if (e instanceof EpostaHatasi) return hata(502, `Onay e-postası gidemedi: ${e.message}`);
+      throw e;
+    }
+    return json({ ok: true, mesaj: `${adres} adresine onay e-postası gitti. Onaylayınca abone olur.` });
+  }
+
+  if (yol !== 'aboneler/islem') return hata(404, 'Bulunamadı.');
+  if (!k) return hata(404, 'Bu adres listede yok.');
+  const islem = String(veri.islem || '');
+  const durumu = (yeni, ek = '') => db.prepare(`UPDATE aboneler SET durum = ?${ek} WHERE eposta = ?`);
+
+  if (islem === 'onayla') {
+    if (k.durum !== 'bekliyor') return hata(409, 'Yalnızca onay bekleyen bir adres elle onaylanabilir.');
+    await durumu('onayli', ', onay = ?, ayrilma = NULL').bind('onayli', simdi, adres).run();
+    return json({ ok: true, mesaj: `${adres} onaylandı; bültenler gidecek.` });
+  }
+  if (islem === 'yeniden-gonder') {
+    if (k.durum !== 'bekliyor') return hata(409, 'Onay e-postası yalnızca onay bekleyen adrese gönderilir.');
+    if (!env.RESEND_API_KEY) return hata(503, 'Onay e-postası gidemez: Cloudflare\'de RESEND_API_KEY tanımlanmalı.');
+    if (k.son_mektup > simdi - TEKRAR) return hata(429, 'Bu adrese 10 dakika içinde zaten onay e-postası gitti.');
+    await eposta(env).gonder({ to: adres, ...onayEpostasi(env, k.anahtar) });
+    await db.prepare('UPDATE aboneler SET son_mektup = ? WHERE eposta = ?').bind(simdi, adres).run();
+    return json({ ok: true, mesaj: `${adres} adresine onay e-postası yeniden gitti.` });
+  }
+  if (islem === 'cikar') {
+    if (k.durum !== 'onayli' && k.durum !== 'bekliyor') return hata(409, 'Bu adres zaten listede değil.');
+    await durumu('ayrildi', ', ayrilma = ?').bind('ayrildi', simdi, adres).run();
+    return json({ ok: true, mesaj: `${adres} listeden çıkarıldı.` });
+  }
+  if (islem === 'engelle') {
+    if (k.durum === 'engelli') return hata(409, 'Bu adres zaten engelli.');
+    await durumu('engelli', ', ayrilma = ?').bind('engelli', simdi, adres).run();
+    return json({ ok: true, mesaj: `${adres} engellendi; bülten gitmez, siteden de abone olamaz.` });
+  }
+  if (islem === 'engeli-kaldir') {
+    if (k.durum !== 'engelli') return hata(409, 'Bu adres engelli değil.');
+    await durumu('ayrildi').bind('ayrildi', adres).run();
+    return json({ ok: true, mesaj: `${adres} için engel kalktı. İsterse siteden yeniden abone olabilir.` });
+  }
+  if (islem === 'sil') {
+    await db.prepare('DELETE FROM aboneler WHERE eposta = ?').bind(adres).run();
+    return json({ ok: true, mesaj: `${adres} ve kaydı tamamen silindi.` });
+  }
+  return hata(400, 'Bilinmeyen işlem.');
 }
 
 // ------------------------------------------------------------------ onay e-postası

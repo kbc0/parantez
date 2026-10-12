@@ -171,7 +171,7 @@ function iskelet(etkin: string, icerik: string) {
     <div class="pn-govde">
       <nav class="pn-menu" aria-label="Panel">
         ${link('inceleme', `İnceleme${onayimiBekleyen().length ? ` <small>${onayimiBekleyen().length} bekliyor</small>` : ''}`)}
-        ${link('yazilar', 'Yazılar')}${link('sayilar', 'Sayılar')}${link('arastirmalar', 'Araştırmalar')}${link('bulten', 'Bülten')}${link('ekip', 'Ekip')}${yonetici() ? link('hesaplar', 'Hesaplar') : ''}
+        ${link('yazilar', 'Yazılar')}${link('sayilar', 'Sayılar')}${link('arastirmalar', 'Araştırmalar')}${link('bulten', 'Bülten')}${yonetici() ? link('aboneler', 'Aboneler') : ''}${link('ekip', 'Ekip')}${yonetici() ? link('hesaplar', 'Hesaplar') : ''}
         <a class="pn-menu__site" href="/" target="_blank" rel="noopener">Siteyi aç ↗</a>
         <div class="pn-yayin" data-yayin></div>
       </nav>
@@ -890,7 +890,7 @@ type Gonderim = {
   baslangic: number | null; bitis: number | null; konu: string | null; adet: number; toplam: number | null;
   hata: string | null; bekle: number | null; iptal_eden: string | null;
 };
-type BultenDurum = { aboneler: { onayli: number; bekliyor: number; ayrildi: number }; gonderimler: Gonderim[]; resend: boolean; kimden: string };
+type BultenDurum = { aboneler: { onayli: number; bekliyor: number; ayrildi: number; engelli: number }; gonderimler: Gonderim[]; resend: boolean; kimden: string };
 type BultenOnizleme = { konu: string; html: string; uyarilar: string[] };
 
 let bulten: BultenDurum | null = null;
@@ -943,7 +943,7 @@ async function bultenSayfasi(yenile = true) {
   if (!sayilar.some((s) => s.veri.sayi === bultenSecili)) bultenSecili = (sayilar.find((s) => !gidenler.has(s.veri.sayi)) ?? sayilar[0])?.veri.sayi ?? 0;
   const sec = sayilar.find((s) => s.veri.sayi === bultenSecili);
   const baslik = (n: number) => { const s = sayiBul(n); return `Sayı ${pad(n)}${s?.veri.baslik ? ` · ${e(s.veri.baslik)}` : ''}`; };
-  const { onayli, bekliyor, ayrildi } = b.aboneler;
+  const { onayli, bekliyor, ayrildi, engelli } = b.aboneler;
 
   let siradaki = '';
   if (acik) {
@@ -990,7 +990,7 @@ async function bultenSayfasi(yenile = true) {
     ${b.resend ? '' : '<p class="pn-uyari">E-posta gönderimi henüz kurulmadı: Cloudflare’de <b>RESEND_API_KEY</b> tanımlanmalı (PANEL.md). Önizleme çalışır; deneme ve gönderim çalışmaz.</p>'}
     <section class="pn-grup">
       <h2>Aboneler</h2>
-      <p class="pn-abone-say"><b>${onayli}</b> abone <small>· ${bekliyor} onay bekliyor · ${ayrildi} ayrıldı</small></p>
+      <p class="pn-abone-say"><b>${onayli}</b> abone <small>· ${bekliyor} onay bekliyor · ${ayrildi} ayrıldı${engelli ? ` · ${engelli} engelli` : ''}</small></p>
     </section>
     ${siradaki}
     ${o ? `
@@ -1069,6 +1069,97 @@ async function bultenEylem(t: HTMLElement): Promise<boolean> {
     toast((err as Error).message, 5200);
   } finally {
     if (dugme.isConnected) { dugme.disabled = false; dugme.textContent = eski; }
+  }
+  return true;
+}
+
+// ------------------------------------------------------------------ aboneler (yönetici)
+
+type Abone = { eposta: string; durum: 'onayli' | 'bekliyor' | 'ayrildi' | 'engelli'; kaynak: string | null; ulke: string | null; olusturma: number; onay: number | null; ayrilma: number | null };
+type AboneSayilari = Record<Abone['durum'], number>;
+
+const ABONE_DURUM: Record<Abone['durum'], [string, string]> = {
+  onayli: ['onaylı', 'yayinlandi'], bekliyor: ['onay bekliyor', 'inceleme'], ayrildi: ['ayrıldı', 'taslak'], engelli: ['engelli', 'degisiklik'],
+};
+const aboneSuz = { q: '', durum: '' as '' | Abone['durum'] };
+let aboneListe: Abone[] = [];
+let aboneZaman = 0;
+
+function aboneSatiri(a: Abone) {
+  const [ad, rozetTur] = ABONE_DURUM[a.durum];
+  const ne = a.durum === 'ayrildi' || a.durum === 'engelli' ? `${a.durum === 'engelli' ? 'engellendi' : 'ayrıldı'} ${zamanMetni(a.ayrilma ?? a.olusturma)}`
+    : a.durum === 'onayli' ? `onay ${zamanMetni(a.onay ?? a.olusturma)}` : `yazdı ${zamanMetni(a.olusturma)}`;
+  const d = (islem: string, metin: string, tehlike = false) => `<button type="button" class="pn-kucuk${tehlike ? ' pn-tehlike' : ''}" data-abone-islem="${islem}" data-eposta="${e(a.eposta)}">${metin}</button>`;
+  return `
+    <div class="pn-hesap pn-abone">
+      <span class="pn-satir-t"><b>${e(a.eposta)}</b><small>${ne}${a.kaynak ? ` · ${e(a.kaynak)}` : ''}${a.ulke ? ` · ${e(a.ulke)}` : ''}</small></span>
+      <em class="pn-rozet pn-rozet--${rozetTur}">${ad}</em>
+      <span class="pn-abone__eylem">
+        ${a.durum === 'bekliyor' ? `${d('yeniden-gonder', 'Onay e-postasını yeniden gönder')}${d('onayla', 'Onayla')}` : ''}
+        ${a.durum === 'onayli' || a.durum === 'bekliyor' ? d('cikar', 'Listeden çıkar') : ''}
+        ${a.durum === 'engelli' ? d('engeli-kaldir', 'Engeli kaldır') : d('engelle', 'Engelle', true)}
+        ${d('sil', 'Sil', true)}
+      </span>
+    </div>`;
+}
+
+async function abonelerSayfasi(devam = false) {
+  if (!yonetici()) return iskelet('aboneler', '<p class="pn-bos">Abone listesini yalnızca yönetici görebilir.</p>');
+  const ilk = !$('[data-aboneler]');
+  if (ilk) iskelet('aboneler', `
+    <div class="pn-bas"><h1>Aboneler</h1><a class="chip" href="/api/panel/aboneler/csv" download>CSV indir</a></div>
+    <p class="pn-not pn-not--ust">Bültene abone olanlar. Kişisel veri olduğu için yalnızca yönetici görür. Bülten yalnızca <b>onaylı</b> adreslere gider.</p>
+    <div class="pn-abone-arac">
+      <input type="search" name="aboneAra" placeholder="E-posta ara" value="${e(aboneSuz.q)}" autocomplete="off">
+      <div class="pn-sekmeler" data-abone-sekmeler></div>
+    </div>
+    <section class="pn-grup" data-aboneler><p class="pn-bos">Yükleniyor…</p></section>
+    <form class="pn-kart pn-kart--ic" data-form="abone-ekle" novalidate>
+      <h2>Abone ekle</h2>
+      <p class="pn-not">Eklediğin adrese onay e-postası gider; bağlantıya dokununca abone olur. Kimse izni olmadan listeye girmez.</p>
+      <div class="pn-deneme">
+        <label class="pn-alan"><span>E-posta</span><input name="eposta" type="email" autocomplete="off"></label>
+        <button class="chip chip--dolu" type="submit">Ekle</button>
+      </div>
+    </form>`);
+  const p = new URLSearchParams({ q: aboneSuz.q, durum: aboneSuz.durum, atla: String(devam ? aboneListe.length : 0) });
+  let j: { liste: Abone[]; devami: boolean; toplam: number; sayilar: AboneSayilari };
+  try { j = await api(`aboneler?${p}`); } catch (err) { toast((err as Error).message); return; }
+  if (!location.hash.startsWith('#/aboneler')) return;
+  aboneListe = devam ? [...aboneListe, ...j.liste] : j.liste;
+  const s = j.sayilar;
+  const hepsi = s.onayli + s.bekliyor + s.ayrildi + s.engelli;
+  $('[data-abone-sekmeler]')!.innerHTML = ([['', 'Hepsi', hepsi], ...(Object.keys(ABONE_DURUM) as Abone['durum'][]).map((k) => [k, ABONE_DURUM[k][0], s[k]])] as [string, string, number][])
+    .map(([k, ad, n]) => `<button type="button" data-abone-durum="${k}" aria-selected="${aboneSuz.durum === k}">${ad[0].toLocaleUpperCase('tr') + ad.slice(1)} · ${n}</button>`).join('');
+  $('[data-aboneler]')!.innerHTML = `
+    ${aboneSuz.q || aboneSuz.durum ? `<h2>${j.toplam} sonuç</h2>` : ''}
+    ${aboneListe.map(aboneSatiri).join('') || '<p class="pn-bos">Kimse yok.</p>'}
+    ${j.devami ? '<div class="pn-hesap"><button type="button" class="pn-kucuk" data-abone-devam>Daha fazla göster</button></div>' : ''}`;
+}
+
+async function aboneEylem(t: HTMLElement): Promise<boolean> {
+  const sekme = t.closest<HTMLElement>('[data-abone-durum]');
+  if (sekme) { aboneSuz.durum = sekme.dataset.aboneDurum as typeof aboneSuz.durum; await abonelerSayfasi(); return true; }
+  if (t.closest('[data-abone-devam]')) { await abonelerSayfasi(true); return true; }
+  const d = t.closest<HTMLButtonElement>('[data-abone-islem]');
+  if (!d) return false;
+  const islem = d.dataset.aboneIslem!;
+  const adres = d.dataset.eposta!;
+  const sor: Record<string, string> = {
+    cikar: `${adres} listeden çıkarılsın mı? Bülten artık gitmez.`,
+    engelle: `${adres} engellensin mi? Bülten gitmez ve bu adresle siteden yeniden abone olunamaz.`,
+    sil: `${adres} tamamen silinsin mi? Kayıt geri gelmez (kişi isterse yeniden abone olabilir).`,
+    onayla: `${adres} onay bağlantısına dokunmadan onaylansın mı? Yalnızca kişi onay e-postasını alamadığını söylediyse yap.`,
+  };
+  if (sor[islem] && !confirm(sor[islem])) return true;
+  d.disabled = true;
+  try {
+    const j = await api<{ mesaj: string }>('aboneler/islem', { eposta: adres, islem });
+    toast(j.mesaj, 4200);
+    await abonelerSayfasi();
+  } catch (err) {
+    toast((err as Error).message, 5200);
+    if (d.isConnected) d.disabled = false;
   }
   return true;
 }
@@ -1539,6 +1630,7 @@ function ciz() {
     case 'arastirmalar': return arastirmalarSayfasi();
     case 'arastirma': return arastirmaFormu(arg || 'yeni');
     case 'bulten': return bultenSayfasi();
+    case 'aboneler': return abonelerSayfasi();
     case 'ekip': return ekipSayfasi();
     case 'hesaplar': return hesaplarSayfasi();
     case 'hesabim': return parolaSayfasi(false);
@@ -1563,6 +1655,11 @@ addEventListener('beforeunload', (ev) => { if (durum.kirli) ev.preventDefault();
 kok.addEventListener('input', (ev) => {
   const t = ev.target as HTMLInputElement;
   if (t.name === 'bultenSayi') { bultenSecili = Number(t.value); bultenOnizleme = null; return void bultenSayfasi(false); }
+  if (t.name === 'aboneAra') {
+    clearTimeout(aboneZaman);
+    aboneZaman = window.setTimeout(() => { aboneSuz.q = t.value.trim().toLowerCase(); abonelerSayfasi(); }, 300);
+    return;
+  }
   const f = t.closest<HTMLFormElement>('form[data-form="yazi"], form[data-form="sayi"], form[data-form="arastirma"], form[data-form="ekip"], form[data-form="yorum"]');
   if (f) durum.kirli = f.dataset.form !== 'yorum' || !!t.value.trim();
   // Yeni yazıda adres başlıktan oluşur (okur elle değiştirmediyse)
@@ -1618,6 +1715,7 @@ kok.addEventListener('click', async (ev) => {
   }
   if (t.closest('[data-yenile]')) { durum.yukHata = ''; ciz(); return icerikYukle(); }
   if (await bultenEylem(t)) return;
+  if (await aboneEylem(t)) return;
 
   const ekle = t.closest<HTMLElement>('[data-ekle]');
   if (ekle && f) {
@@ -1745,6 +1843,18 @@ kok.addEventListener('submit', async (ev) => {
       toast('Adın kaydedildi.');
       ciz();
     } catch (err) { toast((err as Error).message); }
+    return;
+  }
+  if (tur === 'abone-ekle') {
+    const dugme = $<HTMLButtonElement>('button[type=submit]', f)!;
+    dugme.disabled = true;
+    try {
+      const j = await api<{ mesaj: string }>('aboneler/ekle', { eposta: deger(f, 'eposta') });
+      toast(j.mesaj, 4200);
+      $<HTMLInputElement>('[name="eposta"]', f)!.value = '';
+      await abonelerSayfasi();
+    } catch (err) { toast((err as Error).message, 5200); }
+    finally { dugme.disabled = false; }
     return;
   }
   if (tur === 'hesap') {
