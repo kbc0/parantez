@@ -123,6 +123,7 @@ Pro plana geçin (ayda 50.000 e-posta). Sınır dolarsa gönderim durmaz, bekler
 - **Bülten** sayfası: abone sayısı, sıradaki gönderim ve gönderilenler.
 - Sayıyı seçin → **Önizle** e-postanın telefonda ve masaüstünde nasıl görüneceğini gösterir.
   **Deneme gönder** e-postayı yalnızca yazdığınız adrese yollar (varsayılan sizin adresiniz; son yazılan hatırlanır).
+  Adres abone listesindeyse e-postadaki "abonelikten çık" gerçekten çalışır, yani denerken listeden çıkarsınız.
 - **… 07:30'a planla:** sayının yayın günü (pazartesi) 07:30'da tüm abonelere gider.
   Sayı "Sitede gizli kalsın" işaretliyse 07:20'de kendiliğinden yayına çıkar; e-posta, sayı sitede görününce gider.
   Yani pazar akşamı her şeyi hazırlayıp planlamak yeterli; sabah kimsenin bir şeye basması gerekmez.

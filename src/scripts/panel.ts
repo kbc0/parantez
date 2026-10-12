@@ -1052,8 +1052,10 @@ async function bultenEylem(t: HTMLElement): Promise<boolean> {
       dugme.textContent = 'Gönderiliyor…';
       const adres = $<HTMLInputElement>('[name="denemeAdres"]')?.value.trim() || durum.ben?.eposta || '';
       try { localStorage.setItem('pn:deneme', adres); } catch { /* yok */ }
-      const j = await api<{ eposta: string }>('bulten/dene', { sayi: n, adres });
-      toast(`Deneme e-postası ${j.eposta} adresine gitti.`, 4200);
+      const j = await api<{ eposta: string; abone: boolean }>('bulten/dene', { sayi: n, adres });
+      toast(j.abone
+        ? `Deneme e-postası ${j.eposta} adresine gitti. İçindeki “abonelikten çık” bu adresi gerçekten listeden çıkarır.`
+        : `Deneme e-postası ${j.eposta} adresine gitti. Bu adres abone olmadığı için “abonelikten çık” bir şey yapmaz.`, 6000);
     } else if (d.bultenPlanla || d.bultenSimdi) {
       const j = await api<{ zaman: number }>('bulten/planla', { sayi: n, simdi: !!d.bultenSimdi });
       toast(d.bultenSimdi ? 'Gönderim başlıyor. Birkaç dakika içinde aboneler alır.' : `Planlandı: ${saatli(j.zaman)}.`, 4200);

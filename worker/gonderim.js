@@ -220,11 +220,14 @@ export async function bultenPanel(yol, yontem, veri, ben, env) {
       const v = await bultenVerisi(env, no);
       if (!v) return hata(404, `Sayı ${pad(no)} depoda yok.`);
       const b = bultenHtml(env, v);
-      const m = kisisel({ ...b, konu: `[deneme] ${b.konu}` }, adres, `${siteAdresi(env)}/abone/`);
-      delete m.headers; // deneme e-postasında tek tıkla çıkış yok
+      // Adres abone listesindeyse gerçek bültendeki gibi kendi çıkış bağlantısı konur (denemede çıkış da denenebilsin).
+      // Değilse bağlantı bir şey yapmaz: çıkış sayfası "bu adres listede değil" der.
+      const kayit = await db.prepare('SELECT anahtar FROM aboneler WHERE eposta = ?').bind(adres).first();
+      const m = kisisel({ ...b, konu: `[deneme] ${b.konu}` }, adres, kayit ? cikisAdresi(env, kayit.anahtar) : `${siteAdresi(env)}/abone/gecersiz/`);
+      if (!kayit) delete m.headers;
       await eposta(env).gonder(m);
       await db.prepare('INSERT OR REPLACE INTO ayarlar (ad, deger) VALUES (?, ?)').bind(ad, String(simdi)).run();
-      return json({ ok: true, eposta: adres });
+      return json({ ok: true, eposta: adres, abone: !!kayit });
     }
 
     if (yol === 'bulten/planla') {

@@ -1,0 +1,15 @@
+---
+// Çıkış bağlantısı eksik, bozuk ya da listede olmayan bir adrese ait (ör. abone olmayan birine giden deneme e-postası).
+import App from '../../layouts/App.astro';
+import Grp from '../../components/Grp.astro';
+import { PARANTEZ, SITE, guncelUrl } from '../../lib/site';
+import { genelChips } from '../../lib/chips';
+const buHafta = await guncelUrl();
+---
+<App title="Bağlantı geçersiz" gizli bar={{ baslik: '(parantez)', alt: 'abonelik', geri: '/' }} chips={genelChips(buHafta).filter((c) => c.ac !== 'abone')}>
+  <div class="day">abonelik</div>
+  <Grp k={PARANTEZ}>
+    <p class="b">bu bağlantıyla eşleşen bir abonelik bulamadım. ya eksik kopyalandı ya da bu adres zaten listede değil.</p>
+    <p class="b">bir bültenin en altındaki “abonelikten çık” bağlantısını yeniden açar mısın? olmazsa bize yaz: <a href={`mailto:${SITE.eposta}`}>{SITE.eposta}</a></p>
+  </Grp>
+</App>

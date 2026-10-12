@@ -133,9 +133,10 @@ export async function cik(request, env, url) {
   // E-posta güvenlik tarayıcıları bağlantıları açabildiği için çıkış yalnızca POST ile olur.
   if (request.method === 'GET' || request.method === 'HEAD') {
     const t = url.searchParams.get('t') || '';
+    if (!ANAHTAR.test(t)) return Response.redirect(new URL('/abone/gecersiz/', url), 303);
     const sayfa = await env.ASSETS.fetch(new Request(new URL('/abone/cik/', url)));
     const yeni = new HTMLRewriter()
-      .on('input[name="t"]', { element(el) { el.setAttribute('value', ANAHTAR.test(t) ? t : ''); } })
+      .on('input[name="t"]', { element(el) { el.setAttribute('value', t); } })
       .transform(sayfa);
     const r = new Response(yeni.body, yeni);
     r.headers.set('cache-control', 'no-store');
@@ -151,11 +152,14 @@ export async function cik(request, env, url) {
     if (form.get('t')) t = String(form.get('t'));
     tekTik = form.get('List-Unsubscribe') === 'One-Click';
   } catch { /* gövdesiz istek */ }
-  if (!env.DB || !ANAHTAR.test(t)) {
-    return new Response('bu bağlantı geçersiz. e-postanın en altındaki bağlantıyı yeniden açar mısın?', { status: 400, headers: { 'content-type': 'text/plain; charset=utf-8' } });
-  }
+  const gecersiz = () => (tekTik
+    ? new Response('geçersiz bağlantı', { status: 400, headers: { 'content-type': 'text/plain; charset=utf-8' } })
+    : Response.redirect(new URL('/abone/gecersiz/', url), 303));
+  if (!env.DB || !ANAHTAR.test(t)) return gecersiz();
   await abonelikSemasi(env.DB);
-  await env.DB.prepare("UPDATE aboneler SET durum = 'ayrildi', ayrilma = ? WHERE anahtar = ? AND durum != 'ayrildi'").bind(Date.now(), t).run();
+  const k = await env.DB.prepare('SELECT durum FROM aboneler WHERE anahtar = ?').bind(t).first();
+  if (!k) return gecersiz();
+  if (k.durum !== 'ayrildi') await env.DB.prepare("UPDATE aboneler SET durum = 'ayrildi', ayrilma = ? WHERE anahtar = ?").bind(Date.now(), t).run();
   if (tekTik) return new Response('ok', { headers: { 'content-type': 'text/plain; charset=utf-8' } });
   return Response.redirect(new URL('/abone/ayrildin/', url), 303);
 }
