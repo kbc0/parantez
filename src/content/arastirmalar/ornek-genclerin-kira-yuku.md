@@ -3,8 +3,11 @@ no: 1
 baslik: "Örnek: Gelirin ne kadarı kiraya gidiyor?"
 yayin: "2026-10-05"
 yazarlar:
-  - "Ece Arslan"
-  - "Deniz Kaya"
+  - "Kamil Berkay Çetin"
+  - "İdris Efe Demirel"
+  - "Barış Nuri Kavafoğlu"
+  - "Melih Dursun"
+  - "Selingül Pekşen"
 ozet: "Araştırma bölümünün nasıl görüneceğini göstermek için yazılmış örnek bir metin. Rakamlar gerçek bir ankete dayanmıyor."
 ---
 
