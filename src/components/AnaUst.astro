@@ -1,7 +1,7 @@
 ---
 // Ana sayfanın üst menüsü: solda logo, sağda Arşiv (çekmeceyi açar), Araştırma ve Hakkında.
 // Ana sayfa, araştırma ve hakkında aynı menüyü kullanır (layouts/Sayfa.astro); çekmece Arsiv.astro'da.
-// Telefonda görünmez: orada ana sayfanın barı durur (layouts/Sayfa.astro).
+// Telefonda yalnızca logo ve tek "Menü" düğmesi; Araştırma ve Hakkında çekmecenin içinde.
 interface Props { aktif?: 'arastirma' | 'hakkinda' }
 const { aktif } = Astro.props;
 ---
@@ -9,7 +9,7 @@ const { aktif } = Astro.props;
   <a class="brand" href="/"><b>(parantez)</b></a>
   <nav aria-label="Site">
     <button type="button" popovertarget="liste">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg>Arşiv
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg><span class="ana-ust__masa">Arşiv</span><span class="ana-ust__tel">Menü</span>
     </button>
     <a href="/arastirma/" aria-current={aktif === 'arastirma' ? 'page' : undefined}>Araştırma</a>
     <a href="/hakkinda/" aria-current={aktif === 'hakkinda' ? 'page' : undefined}>Hakkında</a>

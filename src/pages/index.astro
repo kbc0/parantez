@@ -1,7 +1,6 @@
 ---
-// Ana sayfa. Mobilde sohbet listesi: her sayı bir sohbet, okur buradan sayılara girer.
-// Masaüstünde ekranın tamamı bu haftanın kapağı ve sayfa kaymaz. Aynı liste orada
-// sağdan açılan bir çekmece olur (popover): üstteki "Arşiv" açar.
+// Ana sayfa: her ekranda bu haftanın kapağı. Masaüstünde tek ekrana sığar ve kaymaz; telefonda
+// alt alta dizilir. Bütün sayılar ve konular çekmecede (popover): üstteki "Arşiv" / "Menü" açar.
 import App from '../layouts/App.astro';
 import Av from '../components/Av.astro';
 import Arsiv from '../components/Arsiv.astro';
@@ -21,6 +20,12 @@ const editor = g ? kisi(g.data.imza.split(',')[0].trim()) : PARANTEZ;
 <App composer={false} ana
   bar={{ baslik: '(parantez)', alt: `her pazartesi 07:30 · ${liste.length} sayı`, kok: true }}>
   <Arsiv />
+  <script is:inline>
+    // Sohbetlerdeki "Tüm sayılar" /#liste'ye gelir: çekmece açık gelsin
+    function listeAc() { if (location.hash === '#liste') try { document.getElementById('liste').showPopover(); } catch (e) {} }
+    listeAc();
+    addEventListener('hashchange', listeAc);
+  </script>
 
   <AnaUst />
 

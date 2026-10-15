@@ -1,7 +1,7 @@
 ---
-// Ana sayfadaki "Arşiv" çekmecesi: bütün sayılar, konular ve diğer sayfalar.
-// Mobil ana sayfada sayfanın kendisi (sohbet listesi); masaüstünde ve araştırma
-// sayfalarında üstteki "Arşiv" düğmesiyle sağdan açılır (popover).
+// Üst menünün çekmecesi: bütün sayılar, konular ve diğer sayfalar. Ana sayfada, araştırmada ve
+// hakkında'da üstteki düğmeyle açılır (popover): masaüstünde "Arşiv", sağdan; telefonda "Menü", tam ekran.
+// Sohbetlerdeki "Tüm sayılar" /#liste adresine gider; ana sayfa çekmeceyi o zaman açık getirir.
 import { sayilar, yazilar, sayininYazilari, sayiUrl, pad, tarihKisa, aralik, arastirmalar, ayYil, SITE } from '../lib/site';
 import { KONULAR } from '../lib/konular';
 
@@ -13,7 +13,7 @@ const [sonArastirma] = await arastirmalar();
 ---
 <div class="liste" id="liste" popover>
   <div class="liste__bas">
-    <b>Arşiv</b>
+    <b><span class="ana-ust__masa">Arşiv</span><span class="ana-ust__tel">Menü</span></b>
     <button type="button" class="kapat" popovertarget="liste" popovertargetaction="hide" aria-label="Kapat">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
     </button>

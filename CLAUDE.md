@@ -14,14 +14,15 @@ Site sahibi bu çizgiyi çok seviyor; yeni işler bu çizgide kalsın:
   - aynı üst bar ve yazarın avatarı;
   - (parantez)'in "kısaca" ve "neden önemli?" not balonları;
   - sonda tek tepki satırı, sıradaki yazı ve sayfa içi abonelik.
-- **Masaüstü ana sayfa tek ekranlık bir kapaktır ve kaymaz.**
+- **Ana sayfa bu haftanın kapağıdır.** Masaüstünde tek ekranlıktır ve kaymaz; telefonda aynı kapak alt alta dizilir.
   - Editörün selam balonu, dev başlık, özet, chip düğmeler ve numaralı beş yazı.
-  - Logo sol üstte durur. Sağ üstte tek "Arşiv" düğmesi var; tüm sayılar ve konular sağdan açılan çekmecede.
+  - Logo sol üstte durur. Sağ üstte tek düğme var: masaüstünde "Arşiv", telefonda "Menü".
+    Tüm sayılar, konular, Araştırma, Abone ol ve Hakkında bu çekmecede (masaüstünde sağdan, telefonda tam ekran).
+    Sohbetlerdeki "Tüm sayılar" çekmeceyi açık getirir (`/#liste`).
   - "Abone ol" yerinde açılır.
-- **Mobil ana sayfa sohbet listesidir.**
 - **Araştırma (`/arastirma/`) sade ve renksizdir; makale gibi okunur.** Site sahibi kalabalık istemiyor.
   - İskeleti `src/layouts/Arastirma.astro` (Sayfa.astro üstüne), stili `src/styles/arastirma.css`. Üst menü ana sayfanınkinin
-    aynısıdır (logo; Arşiv · Araştırma · Hakkında; Arşiv aynı çekmeceyi açar; telefonda ana sayfanın barı: "(parantez) · her pazartesi 07:30", sağda "i"). Sohbet listesi, bar, balon,
+    aynısıdır (logo; Arşiv · Araştırma · Hakkında; Arşiv aynı çekmeceyi açar; telefonda logo ve tek "Menü" düğmesi). Sohbet listesi, bar, balon,
     tepki ve renk yok. Mürekkep, beyaz, griler.
   - Liste sayfası yalnızca başlık ve yayınlar (No. ve başlık). Tanıtım metni, süzgeç, özet yok.
   - Yazı sayfası: No., başlık, yazarlar ve tarih; sonra metin. Künye, bulgu kutusu, içindekiler, atıf gibi
