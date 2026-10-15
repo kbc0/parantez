@@ -607,7 +607,6 @@ html:not(.js) .b--aksiyon, .kutu-acik .b--aksiyon, .abone-oldu .b--aksiyon { dis
 /* ---------------------------------------------------------------- ana sayfa kapağı (masaüstü)
    Masaüstünde sohbet listesi solda durur; ortada bu haftanın sayısı açılır. */
 .kapak, .ana-ust, .liste__bas { display: none; }
-.ana-ust__tel { display: none; }
 /* Liste mobilde sayfanın kendisi; popover özniteliği yalnızca masaüstünde çekmece yapar */
 .liste[popover] { position: static; inset: auto; width: auto; height: auto; margin: 0; padding: 0 0 calc(24px + env(safe-area-inset-bottom)); border: 0; background: none; color: inherit; overflow: visible; display: block; }
 .chip--dolu { background: var(--me); color: #fff; }
@@ -795,22 +794,11 @@ html:not(.js) .b--aksiyon, .kutu-acik .b--aksiyon, .abone-oldu .b--aksiyon { dis
 .av--ar { background: var(--bubble); color: var(--ink); font-size: 17px; }
 
 /* Ana sayfanın üst menüsüyle açılan sade sayfalar (layouts/Sayfa.astro: araştırma, hakkında).
-   Ana sayfa telefonda menü yerine sohbet listesini gösterir; bu sayfalarda menü ve çekmece telefona da açılır. */
-@media (max-width: 899px) {
-  .ust-sayfa .ana-ust { display: flex; align-items: center; justify-content: space-between; gap: 12px; height: 64px; padding: 0 16px; }
-  .ust-sayfa .ana-ust .brand { padding: 0; font-size: 20px; }
-  .ust-sayfa .ana-ust nav { display: flex; align-items: center; gap: 16px; font-size: 14px; font-weight: 700; }
-  .ust-sayfa .ana-ust nav :is(a, button) { display: inline-flex; align-items: center; gap: 5px; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-decoration: none; cursor: pointer; }
-  .ust-sayfa .ana-ust nav svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; }
-  /* telefonda tek düğme: Araştırma ve Hakkında çekmecede */
-  .ust-sayfa .ana-ust nav a, .ust-sayfa .ana-ust__masa { display: none; } /* düğme ve çekmece başlığı "Menü" olur */
-  .ust-sayfa .ana-ust__tel { display: inline; }
-  .ust-sayfa .ana-ust nav button { gap: 7px; font-size: 15px; }
-
-  .ust-sayfa .liste[popover]:not(:popover-open) { display: none; }
-  .ust-sayfa .liste[popover] { position: fixed; inset: 0; width: 100vw; height: 100dvh; max-width: none; max-height: none; padding: 0 12px 32px; background: #fff; overflow-y: auto; overscroll-behavior: contain; }
-  .ust-sayfa .liste__bas { position: sticky; top: 0; z-index: 1; display: flex; align-items: center; justify-content: space-between; height: 64px; margin: 0 -12px; padding: 0 16px; border-bottom: 1px solid var(--line); background: #fff; }
-  .ust-sayfa .liste__bas b { font-size: 20px; font-weight: 800; letter-spacing: -0.02em; }
+   Masaüstünde ana sayfanın menüsü (AnaUst); telefonda ana sayfanın barı (.ust-bar), çekmece kapalı kalır. */
+.ust-bar .bar__k { color: inherit; text-decoration: none; }
+.ust-sayfa .liste[popover]:not(:popover-open) { display: none; }
+@media (min-width: 900px) {
+  .ust-bar { display: none; }
 }
 
 /* hakkında: sohbet balonları, sade sayfada (Sayfa.astro) */

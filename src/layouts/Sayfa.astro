@@ -1,12 +1,14 @@
 ---
 // Ana sayfanın üst menüsüyle açılan sade sayfalar (araştırma, hakkında): sol sohbet listesi,
 // üst bar ve mesaj kutusu yok. Üst menü AnaUst.astro, Arşiv çekmecesi Arsiv.astro.
-// İçeriği (<main>) sayfa kendisi verir.
+// Telefonda ana sayfa sohbet listesidir ve üstünde App.astro'nun barı durur; bu sayfalar da
+// telefonda aynı barı gösterir (logo ana sayfaya, yani listeye döner). İçeriği (<main>) sayfa kendisi verir.
 import '@fontsource-variable/hanken-grotesk';
 import '../styles/global.css';
 import Bas from '../components/Bas.astro';
 import AnaUst from '../components/AnaUst.astro';
 import Arsiv from '../components/Arsiv.astro';
+import { sayilar } from '../lib/site';
 
 interface Props {
   title?: string;
@@ -18,6 +20,7 @@ interface Props {
   sayfa?: string; // tepkilerin saklandığı sayfa anahtarı
 }
 const { title, description, image, type, aktif, sinif, sayfa } = Astro.props;
+const sayiAdedi = (await sayilar()).length;
 ---
 <!doctype html>
 <html lang="tr">
@@ -27,6 +30,14 @@ const { title, description, image, type, aktif, sinif, sayfa } = Astro.props;
 </head>
 <body class:list={['ust-sayfa', sinif]} data-sayfa={sayfa}>
   <a class="skip" href="#icerik">İçeriğe geç</a>
+  <header class="bar ust-bar">
+    <div class="bar__kim">
+      <a class="bar__k bar__k--marka" href="/"><span class="bar__t"><b>(parantez)</b><span>her pazartesi 07:30 · {sayiAdedi} sayı</span></span></a>
+    </div>
+    {aktif !== 'hakkinda' && (
+      <div class="bar__act"><a class="ib" href="/hakkinda/" title="Hakkında" aria-label="Hakkında"><span aria-hidden="true">i</span></a></div>
+    )}
+  </header>
   <AnaUst aktif={aktif} />
   <Arsiv />
   <slot />
