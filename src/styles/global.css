@@ -62,7 +62,7 @@ button { font: inherit; color: inherit; }
 @supports (-webkit-backdrop-filter: none) {
   .bar, .composer { -webkit-backdrop-filter: saturate(1.4) blur(14px); }
 }
-.bar__geri, .bar__liste {
+.bar__geri {
   flex: none;
   display: grid;
   place-items: center;
@@ -75,7 +75,11 @@ button { font: inherit; color: inherit; }
 }
 .bar__geri svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
 .bar__yan { display: none; }
-.bar__liste svg { width: 24px; height: 24px; fill: none; stroke: var(--ink); stroke-width: 2.2; stroke-linecap: round; }
+/* menü: ana sayfanın üst menüsündeki düğmenin aynısı */
+.bar__menu { display: inline-flex; align-items: center; gap: 7px; min-height: 36px; padding: 0 2px 0 6px; border: 0; background: none; color: var(--ink); font: inherit; font-size: 15px; font-weight: 700; cursor: pointer; }
+.bar__menu:hover { color: var(--me); }
+.bar__menu svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; }
+.bar__act { align-items: center; }
 /* Başlık alanı iki katmanlı: okuma sayfasında yazının başlığı kayınca ikinci katman gelir */
 .bar__kim { flex: 1; min-width: 0; display: grid; }
 .bar__k { grid-area: 1 / 1; display: flex; align-items: center; gap: 10px; min-width: 0; transition: opacity .22s, transform .22s; }
@@ -525,6 +529,7 @@ html:not(.js) .b--aksiyon, .kutu-acik .b--aksiyon, .abone-oldu .b--aksiyon { dis
 .bitti.okundu .bitti__ok { display: inline; }
 
 .yz-tepki { margin: 28px 0 0; text-align: center; }
+html:not(.js) .yz-tepki { display: none; } /* tepki vermek betik ister; sayılar sunucudan gelse de betiksiz gösterme */
 .yz-tepki p { margin: 0 0 12px; font-size: 16px; font-weight: 700; }
 .yz-tepki div { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
 .yz-tepki button {
@@ -593,7 +598,11 @@ html:not(.js) .b--aksiyon, .kutu-acik .b--aksiyon, .abone-oldu .b--aksiyon { dis
 
 /* sohbetteki kart görseli yazının görseline dönüşür (destekleyen tarayıcılarda) */
 @view-transition { navigation: auto; }
-.bar { view-transition-name: bar; }
+/* Üst menü (ana sayfada .ana-ust, sohbetlerde .bar) geçişte yerinde durur; yalnızca sayfanın içi değişir */
+.bar, .ana-ust { view-transition-name: ust; }
+::view-transition-group(ust) { animation: none; }
+::view-transition-old(ust) { display: none; }
+::view-transition-new(ust) { animation: none; }
 .side { view-transition-name: yan; }
 .lc__img img, .yz__foto img, .sonraki img { view-transition-class: foto; }
 ::view-transition-old(root) { animation: .16s ease-out both vt-cik; }
@@ -739,7 +748,6 @@ html:not(.js) .b--aksiyon, .kutu-acik .b--aksiyon, .abone-oldu .b--aksiyon { dis
     padding: 20px 0 18px;
     border-right: 1px solid var(--line);
   }
-  .bar__liste { display: none; }
   .bar { padding: 8px 20px; }
   .msgs { padding: 8px 28px 40px; }
   .chips { flex-wrap: wrap; overflow: visible; padding: 12px 20px 2px; }

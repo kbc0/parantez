@@ -3,7 +3,6 @@
 // alt alta dizilir. Bütün sayılar ve konular çekmecede (popover): üstteki "Arşiv" / "Menü" açar.
 import App from '../layouts/App.astro';
 import Av from '../components/Av.astro';
-import Arsiv from '../components/Arsiv.astro';
 import AnaUst from '../components/AnaUst.astro';
 import { sayilar, sayininYazilari, sayiUrl, yaziUrl, pad, tarihUzun, gunAdi, okumaSuresi, ilkAd, kisi, PARANTEZ } from '../lib/site';
 import { konuAdi, konuRenk } from '../lib/konular';
@@ -19,13 +18,6 @@ const editor = g ? kisi(g.data.imza.split(',')[0].trim()) : PARANTEZ;
 ---
 <App composer={false} ana
   bar={{ baslik: '(parantez)', alt: `her pazartesi 07:30 · ${liste.length} sayı`, kok: true }}>
-  <Arsiv />
-  <script is:inline>
-    // Sohbetlerdeki "Tüm sayılar" /#liste'ye gelir: çekmece açık gelsin
-    function listeAc() { if (location.hash === '#liste') try { document.getElementById('liste').showPopover(); } catch (e) {} }
-    listeAc();
-    addEventListener('hashchange', listeAc);
-  </script>
 
   <AnaUst />
 

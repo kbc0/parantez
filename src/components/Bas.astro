@@ -1,6 +1,9 @@
 ---
 // <head> içindeki ortak etiketler: başlık, açıklama, paylaşım kartı. App ve Arastirma düzenleri kullanır.
 import { SITE } from '../lib/site';
+// Türkçe metin bu iki dosyayla çizilir (latin + latin-ext). Erkenden istenirse sayfa yedek yazı tipiyle açılıp sonra değişmez.
+import yaziLatin from '@fontsource-variable/hanken-grotesk/files/hanken-grotesk-latin-wght-normal.woff2?url';
+import yaziLatinEk from '@fontsource-variable/hanken-grotesk/files/hanken-grotesk-latin-ext-wght-normal.woff2?url';
 
 // gizli: arama motorlarına kapalı sayfalar (ör. abonelik onayı ve çıkış)
 interface Props { title?: string; description?: string; image?: string; type?: 'website' | 'article'; ek?: string; gizli?: boolean }
@@ -16,7 +19,11 @@ const ogImage = new URL(image ?? '/og.png', Astro.site);
 <meta name="description" content={description}>
 {gizli && <meta name="robots" content="noindex">}
 <link rel="canonical" href={canonical}>
+<link rel="preload" href={yaziLatin} as="font" type="font/woff2" crossorigin>
+<link rel="preload" href={yaziLatinEk} as="font" type="font/woff2" crossorigin>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+{/* Okur bir bağlantıya yönelince (üstüne gelince ya da dokununca) sayfa önceden indirilir; tıklayınca hazır açılır */}
+<script type="speculationrules" is:inline>{"prefetch":[{"where":{"and":[{"href_matches":"/*"},{"not":{"href_matches":["/api/*","/admin/*","/rss.xml"]}}]},"eagerness":"moderate"}]}</script>
 <link rel="alternate" type="application/rss+xml" title={SITE.ad} href="/rss.xml">
 <meta name="theme-color" content="#ffffff">
 <meta property="og:type" content={type}>

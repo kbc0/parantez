@@ -1,0 +1,9 @@
+# Cloudflare'in statik dosya başlıkları (Workers static assets).
+# /_astro/ altındaki dosyaların adında içerik özeti var (ör. global.EUcj65ZQ.css); içerik değişince adı da
+# değişir. Bu yüzden tarayıcı bunları bir yıl saklayabilir ve her sayfa geçişinde sunucuya sormaz.
+# Sormadığı için CSS ve yazı tipleri anında gelir; sayfa önce yedek yazı tipiyle açılıp sonra değişmez.
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/gorseller/*
+  Cache-Control: public, max-age=604800

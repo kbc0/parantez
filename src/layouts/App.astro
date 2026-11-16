@@ -4,6 +4,7 @@ import '../styles/global.css';
 import Av from '../components/Av.astro';
 import Bas from '../components/Bas.astro';
 import Composer from '../components/Composer.astro';
+import Arsiv from '../components/Arsiv.astro';
 import type { Chip } from '../lib/chips';
 import { SITE, PARANTEZ, sayilar, sayiUrl, pad, tarihKisa, type Kisi } from '../lib/site';
 import { KONULAR } from '../lib/konular';
@@ -75,11 +76,7 @@ const guncel = liste[0]?.data.sayi;
             <svg viewBox="0 0 24 24" aria-hidden="true"><path class="bar__yan-dolu" d="M9.5 4.75H7a3.25 3.25 0 0 0-3.25 3.25v8A3.25 3.25 0 0 0 7 19.25h2.5z"/><rect x="3.75" y="4.75" width="16.5" height="14.5" rx="3.25"/><path d="M9.5 4.75v14.5"/></svg>
           </button>
         )}
-        {bar.kok ? null : bar.geri
-          ? <a class="bar__geri" href={bar.geri} aria-label="Geri"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 5.5L8 12l6.5 6.5"/></svg></a>
-          : <a class="bar__liste" href="/#liste" aria-label="Tüm sayılar">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg>
-            </a>}
+        {!bar.kok && <a class="bar__geri" href={bar.geri ?? '/'} aria-label="Geri"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 5.5L8 12l6.5 6.5"/></svg></a>}
         <div class="bar__kim">
           <div class:list={['bar__k', { 'bar__k--marka': markaBar }]}>
             {!markaBar && <Av k={bar.kisi ?? PARANTEZ} />}
@@ -99,11 +96,15 @@ const guncel = liste[0]?.data.sayi;
           )}
         </div>
         <div class="bar__act">
-          {bar.paylas
-            ? <button type="button" class="ib" data-paylas title="Paylaş" aria-label="Paylaş">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>
-              </button>
-            : <a class="ib" href="/hakkinda/" title="Hakkında" aria-label="Hakkında"><span aria-hidden="true">i</span></a>}
+          {bar.paylas && (
+            <button type="button" class="ib" data-paylas title="Paylaş" aria-label="Paylaş">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>
+            </button>
+          )}
+          {/* Ana sayfanın üst menüsündeki düğmenin aynısı: aynı çekmeceyi açar (Arsiv.astro) */}
+          <button type="button" class="bar__menu" popovertarget="liste">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg><span class="ana-ust__masa">Arşiv</span><span class="ana-ust__tel">Menü</span>
+          </button>
         </div>
         {okuma && <div class="bar__ilerleme" aria-hidden="true"></div>}
       </header>
@@ -117,6 +118,15 @@ const guncel = liste[0]?.data.sayi;
 
   </div>
 
+  <Arsiv />
+  <script is:inline>
+    // Sohbetlerdeki "Tüm sayılar" /#liste'ye gelir: çekmece açık gelsin
+    (function () {
+      function ac() { if (location.hash === '#liste') try { document.getElementById('liste').showPopover(); } catch (e) {} }
+      ac();
+      addEventListener('hashchange', ac);
+    })();
+  </script>
   <div class="picker" data-picker hidden role="dialog" aria-label="Tepki seç"></div>
   <div class="toast" data-toast hidden role="status"></div>
 

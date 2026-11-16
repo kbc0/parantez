@@ -30,6 +30,8 @@ Site sahibi bu çizgiyi çok seviyor; yeni işler bu çizgide kalsın:
   - Görseller gri tonlu.
 - **Hakkında (`/hakkinda/`) sohbet gibi konuşur ama sohbet düzeninde değildir.** Üst menü ana sayfanınki;
   sol liste, üst bar ve mesaj kutusu yok. Balonlar ve tepkiler aynen kalır; e-posta en altta mesajla alınır.
+- **Sohbet ve yazı sayfalarının barı:** solda geri, ortada başlık, sağda aynı "Menü" düğmesi (masaüstünde "Arşiv");
+  "i" yok. Sayfa geçişlerinde üst menü yerinde durur, yalnızca içerik değişir (`view-transition-name: ust`).
 - **Geri düğmesi** okuru geldiği yere götürür. Sohbete dönen okur kaldığı yerden devam eder.
 
 Kaçınılacaklar:
@@ -87,5 +89,9 @@ Yazı tipi: Hanken Grotesk.
     Sayfaları `/abone/son-adim/`, `/abone/tamam/`, `/abone/cik/`, `/abone/ayrildin/`, `/abone/gecersiz/`. KV `ABONELER` yalnızca eski kayıtlar için.
     Panelde abone listesi (arama, çıkarma, engelleme, silme, CSV) yalnızca yöneticiye açık (`/api/panel/aboneler/*`).
   - `/api/tepki`: tepkiler; D1 `parantez-tepkiler`. Yeni bir sayfa türü tepki alacaksa `SAYFA` kalıbına eklenmeli.
+  - Tepki alan sayfalar (`/sayi/*`, `/yazi/*`, `/hakkinda/`) önce Worker'dan geçer: sayılar HTML'e baştan yazılır
+    (`tepkiliSayfa`, HTMLRewriter), sayfa sonradan kaymaz. Yeni tepkili sayfa türü `TEPKILI` ve `run_worker_first`'e de eklenmeli.
+- Hız: `public/_headers` `/_astro/*` dosyalarını bir yıl önbellekte tutar (adları içerik özetli). Yazı tipi
+  `Bas.astro`'da önceden istenir; bağlantıya yönelince sayfa önceden indirilir (speculation rules).
 - Her şey JavaScript olmadan da çalışmalı. Formlar doğrudan `/api/abone`'ye gider; çıkış formu `/api/abone/cik`'e.
 - Yerelde deneme: `npx wrangler dev`. Derlemeyi kendisi yapar.
