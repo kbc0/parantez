@@ -56,6 +56,8 @@ Yazı tipi: Hanken Grotesk.
 ## Kod
 
 - İçerik: `src/content/sayilar/*.md`, `src/content/yazilar/*.md`, `src/content/arastirmalar/*.md` (şema `src/content.config.ts`).
+  - Yazının sayısı ve sırası yazının değil sayının dosyasındadır (`yazilar` listesi; `src/lib/yerlesim.ts`).
+    Listede olmayan yazı havuzda bekler, sitede görünmez. Site `lib/site.ts`'te, panel ve bülten aynı yardımcıyla hesaplar.
 - Markdown: Astro'nun Sätteri işlemcisi (`astro.config.mjs`).
   - ` ```grafik ` blokları çubuk grafiğe dönüşür (`src/lib/grafik.js`; panel önizlemesi de bunu kullanır).
   - `[^1]` dipnotları "Kaynaklar ve notlar" başlığıyla sonda toplanır.

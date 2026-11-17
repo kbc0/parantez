@@ -1,8 +1,10 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
 import ekip from '../data/ekip.json';
+import { yaziYerleri } from './yerlesim';
 
 export type Sayi = CollectionEntry<'sayilar'>;
-export type Yazi = CollectionEntry<'yazilar'>;
+// Sitedeki yazı: sayısı ve sırası, içinde bulunduğu sayının listesinden eklenmiş hâliyle
+export type Yazi = Omit<CollectionEntry<'yazilar'>, 'data'> & { data: CollectionEntry<'yazilar'>['data'] & { sayi: number; sira: number } };
 export type Arastirma = CollectionEntry<'arastirmalar'>;
 
 export const SITE = {
@@ -17,12 +19,14 @@ export async function sayilar(): Promise<Sayi[]> {
   return all.sort((a, b) => b.data.sayi - a.data.sayi);
 }
 
-// Yazı, kendisi ve sayısı yayındaysa görünür. Böylece bir sayı taslakken
-// yazıları da hazırlanabilir; sayı yayına alınınca hepsi birlikte çıkar.
+// Yazı, yayındaki bir sayının listesindeyse ve kendisi gizli değilse görünür. Listede olmayan yazılar
+// havuzda bekler; sayı taslakken yazıları da hazırlanır, sayı yayına alınınca hepsi birlikte çıkar.
 export async function yazilar(): Promise<Yazi[]> {
-  const yayinda = new Set((await sayilar()).map((s) => s.data.sayi));
-  const all = await getCollection('yazilar', (y) => !y.data.taslak && yayinda.has(y.data.sayi));
-  return all.sort((a, b) => b.data.sayi - a.data.sayi || a.data.sira - b.data.sira);
+  const yer = yaziYerleri((await sayilar()).map((s) => ({ sayi: s.data.sayi, yazilar: s.data.yazilar })));
+  const all = await getCollection('yazilar', (y) => !y.data.taslak && yer.has(y.id));
+  return all
+    .map((y) => ({ ...y, data: { ...y.data, ...yer.get(y.id)! } }))
+    .sort((a, b) => b.data.sayi - a.data.sayi || a.data.sira - b.data.sira);
 }
 
 export async function sayininYazilari(no: number): Promise<Yazi[]> {

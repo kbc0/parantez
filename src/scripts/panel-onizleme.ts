@@ -6,6 +6,7 @@ import { marked } from 'marked';
 import { KONULAR, KONU_RENK } from '../lib/konular';
 import { grafikHtml } from '../lib/grafik.js';
 import { FIILLER, type ArastirmaVeri, type Kayit, type Kisi, type SayiVeri, type YaziVeri } from './panel-icerik';
+import { yaziYerleri } from '../lib/yerlesim';
 
 // Ham HTML gösterilmez (yalnızca Markdown). ```grafik blokları sitedeki gibi çubuk grafik olur.
 marked.use({
@@ -68,6 +69,11 @@ export function okumaSuresi(v: YaziVeri, govde: string): number {
 
 const adOf = (yol: string) => yol.split('/').pop()!.replace(/\.md$/, '');
 const SVG_GERI = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 5.5L8 12l6.5 6.5"/></svg>';
+// Barın sağındaki "Menü" düğmesi (App.astro'daki gibi; masaüstünde "Arşiv")
+const MENU = '<button type="button" class="bar__menu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg><span class="ana-ust__masa">Arşiv</span><span class="ana-ust__tel">Menü</span></button>';
+// Bir sayının listesindeki yazılar, sırasıyla (henüz bulunmayanlar atlanır)
+export const sayininYazilari = (v: SayiVeri, yazilar: Kayit<YaziVeri>[]) =>
+  v.yazilar.map((ad) => yazilar.find((y) => adOf(y.yol) === ad)).filter((y): y is Kayit<YaziVeri> => !!y);
 const SVG_PAYLAS = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>';
 const SVG_GONDER = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg>';
 
@@ -76,7 +82,7 @@ function bar(baslik: string, alt: string, sag: string) {
     <header class="bar">
       <a class="bar__geri" href="#" aria-label="Geri">${SVG_GERI}</a>
       <div class="bar__kim"><div class="bar__k">${av(PARANTEZ)}<div class="bar__t"><b>${e(baslik)}</b><span>${e(alt)}</span></div></div></div>
-      <div class="bar__act">${sag}</div>
+      <div class="bar__act">${sag}${MENU}</div>
     </header>`;
 }
 
@@ -84,22 +90,26 @@ function bar(baslik: string, alt: string, sag: string) {
 
 export function yaziOnizleme(y: YaziTaslak, b: Baglam, gorselUrl?: string): string {
   const v = y.veri;
-  const sayi = b.sayilar.find((s) => s.veri.sayi === v.sayi);
-  const kardesler = [...b.yazilar.filter((x) => x.veri.sayi === v.sayi && !x.veri.taslak && x.yol !== y.yol), y]
-    .sort((a, c) => a.veri.sira - c.veri.sira);
+  // Yazı bir sayının listesindeyse o sayının içinde; değilse havuzda (yayına çıkmamış) gibi gösterilir
+  const yer = yaziYerleri(b.sayilar.map((s) => s.veri)).get(adOf(y.yol));
+  const sayi = yer ? b.sayilar.find((s) => s.veri.sayi === yer.sayi) : undefined;
+  const kardesler = sayi
+    ? sayi.veri.yazilar.map((ad) => (ad === adOf(y.yol) ? y : b.yazilar.find((x) => adOf(x.yol) === ad && !x.veri.taslak))).filter((x): x is YaziTaslak => !!x)
+    : [y];
   const i = kardesler.findIndex((x) => x.yol === y.yol);
   const n = kardesler.length;
   const sonraki = kardesler[i + 1];
+  const sayiAdi = yer ? `Sayı ${pad(yer.sayi)}` : 'Havuzda';
   const yazar = kisiBul(v.yazar, b.ekip);
   const dk = okumaSuresi(v, y.govde);
   const foto = gorselUrl ?? gorsel(v.gorsel, 1200, 632);
 
   return `<div class="app"><div class="main">
-    ${bar(`Sayı ${pad(v.sayi)}`, `yazı ${i + 1}/${n} · ${konuAdi(v.konu).toLocaleLowerCase('tr')}`, `<button type="button" class="ib" title="Paylaş" aria-label="Paylaş">${SVG_PAYLAS}</button>`)}
+    ${bar(sayiAdi, `yazı ${i + 1}/${n} · ${konuAdi(v.konu).toLocaleLowerCase('tr')}`, `<button type="button" class="ib" title="Paylaş" aria-label="Paylaş">${SVG_PAYLAS}</button>`)}
     <main class="oku">
       <article class="yz" style="--c:${konuRenk(v.konu)}">
         <header class="yz__bas">
-          <p class="yz__ust"><a class="yz__konu" href="#">${e(konuAdi(v.konu))}</a><span>Sayı ${pad(v.sayi)} · ${i + 1}/${n}</span></p>
+          <p class="yz__ust"><a class="yz__konu" href="#">${e(konuAdi(v.konu))}</a><span>${sayiAdi} · ${i + 1}/${n}</span></p>
           <h1 class="yz__baslik">${e(v.baslik)}</h1>
           <p class="yz__spot">${e(v.spot)}</p>
           <div class="yz__imza">${av(yazar)}<span><b>${e(yazar.ad)}</b><small>${sayi ? tarihUzun(sayi.veri.yayin) : 'yayın tarihi yok'} · ${dk} dk okuma</small></span></div>
@@ -128,7 +138,7 @@ export function yaziOnizleme(y: YaziTaslak, b: Baglam, gorselUrl?: string): stri
               <span class="sonraki__g"><img src="${e(gorsel(sonraki.veri.gorsel, 1200, 632))}" alt="" width="1200" height="632"></span>
             </a>` : `
             <a class="sonraki sonraki--son" href="#">
-              <span class="sonraki__t"><small>Bu sayının son yazısıydı</small><b>Sayı ${pad(v.sayi)} sohbetine dön</b><span>özet, öneriler ve etkinlikler orada</span></span>
+              <span class="sonraki__t"><small>Bu sayının son yazısıydı</small><b>${sayiAdi} sohbetine dön</b><span>özet, öneriler ve etkinlikler orada</span></span>
             </a>`}
           <section class="yz-abone" aria-label="Abone ol">
             <div class="not">${av(PARANTEZ)}<div class="not__b"><p>bu yazı her pazartesi 07:30’da gelen bültenimizden. sana da gelsin mi?</p></div></div>
@@ -150,7 +160,7 @@ const grp = (k: Kisi, ic: string, { isim = true, flow = false, cls = '' } = {}) 
   </div>`;
 
 export function sayiOnizleme(v: SayiVeri, govde: string, b: Baglam): string {
-  const liste = b.yazilar.filter((y) => y.veri.sayi === v.sayi && !y.veri.taslak).sort((a, c) => a.veri.sira - c.veri.sira);
+  const liste = sayininYazilari(v, b.yazilar).filter((y) => !y.veri.taslak);
   const sureler = liste.map((y) => okumaSuresi(y.veri, y.govde));
   const toplam = sureler.reduce((t, x) => t + x, 0);
   const editor = kisiBul(v.imza.split(',')[0].trim(), b.ekip);
@@ -160,14 +170,14 @@ export function sayiOnizleme(v: SayiVeri, govde: string, b: Baglam): string {
     <a class="lc" href="#" style="--c:${konuRenk(y.veri.konu)}">
       <span class="lc__img"><img src="${e(gorsel(y.veri.gorsel, 1200, 632))}" alt="" width="1200" height="632"></span>
       <span class="lc__body">
-        <small>${pad(y.veri.sira)} · ${e(konuAdi(y.veri.konu))} · ${sureler[i]} dk</small>
+        <small>${pad(i + 1)} · ${e(konuAdi(y.veri.konu))} · ${sureler[i]} dk</small>
         <b>${e(y.veri.baslik)}</b>
         <span class="lc__spot">${e(y.veri.spot)}</span>
       </span>
     </a>`;
 
   return `<div class="app"><div class="main">
-    ${bar(`Sayı ${pad(v.sayi)}`, v.baslik, '<a class="ib" href="#" title="Hakkında" aria-label="Hakkında"><span aria-hidden="true">i</span></a>')}
+    ${bar(`Sayı ${pad(v.sayi)}`, v.baslik, '')}
     <main class="msgs">
       <div class="sohbet">
         <div class="day">Sayı ${pad(v.sayi)} · ${gunAdi(v.yayin)}, ${tarihUzun(v.yayin)} · 07:30</div>
@@ -386,7 +396,7 @@ function alanlarFarki(eski: Alan[], yeni: Alan[], gorselUrl?: string): string {
 }
 
 const yaziAlanlari = (v: YaziVeri): Alan[] => [
-  ['Başlık', v.baslik], ['Sayı', `Sayı ${pad(v.sayi)}`], ['Sıra', String(v.sira)], ['Konu', konuAdi(v.konu)], ['Yazar', v.yazar],
+  ['Başlık', v.baslik], ['Konu', konuAdi(v.konu)], ['Yazar', v.yazar],
   ['Spot', v.spot], ['Görsel', v.gorsel, 'gorsel'], ['Görselde ne var?', v.gorselAlt], ['Görsel kaynağı', v.gorselKaynak],
   ['Kısaca', v.kisaca], ['Neden önemli?', v.neden], ['Sitede gizli', v.taslak ? 'evet' : 'hayır'],
 ];
@@ -394,6 +404,7 @@ const yaziAlanlari = (v: YaziVeri): Alan[] => [
 const sayiAlanlari = (v: SayiVeri): Alan[] => [
   ['Sayı no', String(v.sayi)], ['Haftanın cümlesi', v.baslik], ['Yayın', v.yayin], ['Kapsadığı hafta', `${v.baslangic} → ${v.bitis}`],
   ['İmza', v.imza], ['Sitede gizli', v.taslak ? 'evet' : 'hayır'],
+  ['Yazılar', v.yazilar.map((ad, i) => `${i + 1}. ${ad}`)],
   ['Kısa kısa', v.kisaKisa.map((k) => `${konuAdi(k.konu)}: ${k.metin}`)],
   ...FIILLER.map(([k, ad]): Alan => {
     const o = v.oneriler?.[k];

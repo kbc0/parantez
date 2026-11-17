@@ -55,17 +55,20 @@ export async function bultenVerisi(env, no) {
   const ic = await github(env).icerik();
   const sayi = ic.sayilar.filter(buSayinin(no)).map(sayiOku).find((s) => s.veri.sayi === no);
   if (!sayi) return null;
-  const yazilar = ic.yazilar.filter(buSayinin(no)).map(yaziOku)
-    .filter((y) => y.veri.sayi === no && !y.veri.taslak)
-    .sort((a, b) => a.veri.sira - b.veri.sira);
+  // Yazılar sayının listesinden, sırasıyla (src/lib/yerlesim.ts). Henüz onaylanmamış (depoda olmayan) yazılar atlanır.
+  const dosyalar = new Map(ic.yazilar.map((d) => [d.yol.split('/').pop().replace(/\.md$/, ''), d]));
+  const eksik = sayi.veri.yazilar.filter((ad) => !dosyalar.has(ad));
+  const yazilar = sayi.veri.yazilar.filter((ad) => dosyalar.has(ad)).map((ad) => yaziOku(dosyalar.get(ad)))
+    .filter((y) => !y.veri.taslak);
   let ekip = [];
   try { ekip = JSON.parse(ic.ekip?.metin || '[]'); } catch { /* bozuk liste */ }
-  return { sayi, yazilar, ekip };
+  return { sayi, yazilar, ekip, eksik };
 }
 
 // Göndermeden önce bakılacaklar (panelde gösterilir)
-export function bultenUyarilari({ sayi, yazilar }) {
+export function bultenUyarilari({ sayi, yazilar, eksik = [] }) {
   const u = [];
+  if (eksik.length) u.push(`${eksik.length} yazı henüz onaylanmadı; onaylanana kadar e-postada ve sitede görünmez.`);
   if (!yazilar.length) u.push('Bu sayıda yayına çıkacak yazı yok.');
   else if (yazilar.length !== 5) u.push(`Bu sayıda ${yazilar.length} yazı var.`);
   if (!sayi.govde.trim()) u.push('Haftanın özeti boş.');
@@ -97,11 +100,11 @@ const okur = (metin) => `<tr><td align="right" style="padding:16px 0 0"><div sty
 
 const kart = (ic, ust = '') => `<table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;max-width:460px;border:1px solid #e7e7e2;border-radius:18px;border-collapse:separate;background:#ffffff">${ust}<tr><td style="padding:12px 14px 13px">${ic}</td></tr></table>`;
 
-function yaziKarti(y, site) {
+function yaziKarti(y, i, site) {
   const v = y.veri;
   const adres = `${site}/yazi/${y.yol.split('/').pop().replace(/\.md$/, '')}/`;
   return kart(`
-<div style="font-size:12px;font-weight:700;color:#84847f">${pad(v.sira)} · ${h(konuAdi(v.konu))} · ${okumaSuresi(y)} dk</div>
+<div style="font-size:12px;font-weight:700;color:#84847f">${pad(i + 1)} · ${h(konuAdi(v.konu))} · ${okumaSuresi(y)} dk</div>
 <a href="${h(adres)}" style="display:block;margin-top:4px;font-size:17px;font-weight:800;line-height:1.22;letter-spacing:-0.01em;color:#111111;text-decoration:none">${h(v.baslik)}</a>
 <div style="margin-top:4px;font-size:14px;line-height:1.4;color:#55554f">${h(v.spot)}</div>`,
   `<tr><td style="height:5px;line-height:5px;font-size:5px;background:${h(konuRenk(v.konu))};border-radius:17px 17px 0 0">&nbsp;</td></tr>`);
@@ -161,7 +164,7 @@ export function bultenHtml(env, { sayi, yazilar, ekip }) {
     satirlar.push(okur('yazıları göster'));
     satirlar.push(grup(PARANTEZ, [
       balon(`bu sayıda ${yazilar.length} yazı, toplam ${toplam} dakika. birine dokun, okumaya başla:`),
-      ...yazilar.map((y) => yaziKarti(y, site)),
+      ...yazilar.map((y, i) => yaziKarti(y, i, site)),
     ]));
   }
   if (v.kisaKisa.length) {
@@ -202,7 +205,7 @@ ${satirlar.join('\n')}
   t.push('günaydın. bu hafta tek cümle:', v.baslik, '', ...ozet.map((p) => `${duzMetin(p)}\n`), `— ${v.imza}`, '');
   if (yazilar.length) {
     t.push('BU SAYININ YAZILARI', '');
-    for (const y of yazilar) t.push(`${pad(y.veri.sira)} · ${konuAdi(y.veri.konu)} · ${okumaSuresi(y)} dk`, y.veri.baslik, y.veri.spot, `${site}/yazi/${y.yol.split('/').pop().replace(/\.md$/, '')}/`, '');
+    for (const [i, y] of yazilar.entries()) t.push(`${pad(i + 1)} · ${konuAdi(y.veri.konu)} · ${okumaSuresi(y)} dk`, y.veri.baslik, y.veri.spot, `${site}/yazi/${y.yol.split('/').pop().replace(/\.md$/, '')}/`, '');
   }
   if (v.kisaKisa.length) {
     t.push('BU HAFTA NE OLDU?', '');

@@ -1,6 +1,7 @@
 // (parantez) — yazı paneli (/admin). Tek sayfalık küçük bir uygulama.
 // Sunucu: worker/panel.js (/api/panel/*). Dosya biçimi ve denetim: panel-icerik.ts.
 import { KONULAR } from '../lib/konular';
+import { yaziYerleri } from '../lib/yerlesim';
 import {
   FIILLER, KONU_LISTESI, adres, arastirmaDenetle, arastirmaMetni, arastirmaOku, blobSha, gunEkle, kisaltma,
   sayiDenetle, sayiMetni, sayiOku, sonrakiPazartesi, yaziDenetle, yaziMetni, yaziOku,
@@ -100,11 +101,21 @@ const yeniSayilar = () => durum.oneriler.acik
 const yeniArastirmalar = () => durum.oneriler.acik
   .filter((o) => o.tur === 'arastirma' && o.islem === 'kaydet' && o.metin && !durum.arastirmalar.some((a) => a.yol === o.yol))
   .map((o) => ({ oneri: o, kayit: arastirmaOku({ yol: o.yol, sha: '', metin: o.metin! }) }));
-// Önizleme için: yayındakiler ve önerilen yeni sayılar
+// Önizleme için: yayındakiler ve önerilen yeni sayı ve yazılar
 const baglam = (): Baglam => ({
-  sayilar: [...durum.sayilar, ...yeniSayilar().map((x) => x.kayit)], yazilar: durum.yazilar,
+  sayilar: [...durum.sayilar, ...yeniSayilar().map((x) => x.kayit)], yazilar: [...durum.yazilar, ...yeniYazilar().map((x) => x.kayit)],
   arastirmalar: durum.arastirmalar, ekip: durum.ekip.liste,
 });
+// Sayıların en son hâli: açık önerisi olanın önerideki hâli, yeni önerilenler de dahil.
+// Hangi yazının hangi sayıda olduğu buradan çıkar (yazı dosyasında sayı yok; src/lib/yerlesim.ts).
+const guncelSayilar = (): Kayit<SayiVeri>[] => {
+  const acik = durum.oneriler.acik.filter((o) => o.tur === 'sayi' && o.islem === 'kaydet' && o.metin);
+  return [
+    ...durum.sayilar.map((s) => { const o = acik.find((x) => x.yol === s.yol); return o ? sayiOku({ yol: s.yol, sha: s.sha, metin: o.metin! }) : s; }),
+    ...yeniSayilar().map((x) => x.kayit),
+  ];
+};
+const yazininYeri = (yol: string) => yaziYerleri(guncelSayilar().map((s) => s.veri)).get(yol.split('/').pop()!.replace(/\.md$/, ''));
 const TUR_ADI: Record<OneriTur, string> = { yazi: 'yazı', sayi: 'sayı', arastirma: 'araştırma' };
 const buyukHarf = (s: string) => s.charAt(0).toLocaleUpperCase('tr') + s.slice(1);
 const turListesi = (tur: OneriTur) => (tur === 'yazi' ? durum.yazilar : tur === 'sayi' ? durum.sayilar : durum.arastirmalar) as Kayit<unknown>[];
@@ -290,13 +301,12 @@ function yazilarSayfasi() {
   if (!durum.yuklendi) return iskelet('yazilar', yukleniyor());
   type Satir = { kayit: Kayit<YaziVeri>; oneri?: OneriOzet };
   const satirlar: Satir[] = [...durum.yazilar.map((kayit) => ({ kayit, oneri: acikOneri(kayit.yol) })), ...yeniYazilar()];
-  const gruplar = new Map<number, Satir[]>();
-  for (const x of satirlar) gruplar.set(x.kayit.veri.sayi, [...(gruplar.get(x.kayit.veri.sayi) ?? []), x]);
-  const tum = baglam().sayilar;
-  const nolar = [...new Set([...tum.map((s) => s.veri.sayi), ...gruplar.keys()])].sort((a, b) => b - a);
+  const tum = guncelSayilar().sort((a, b) => b.veri.sayi - a.veri.sayi);
+  const yer = yaziYerleri(tum.map((s) => s.veri));
+  const havuz = satirlar.filter((x) => !yer.has(adOf(x.kayit.yol)));
   const satir = ({ kayit: y, oneri: o }: Satir) => `
     <a class="pn-satir-link" href="${o ? `#/oneri/${o.id}` : `#/yazi/${e(adOf(y.yol))}`}">
-      <span class="pn-no">${pad(y.veri.sira)}</span>
+      <span class="pn-no">${yer.has(adOf(y.yol)) ? pad(yer.get(adOf(y.yol))!.sira) : '·'}</span>
       <span class="pn-satir-t"><b>${e(y.veri.baslik)}</b><small>${e(KONULAR[y.veri.konu] ?? (y.veri.konu || 'konu yok'))} · ${e(y.veri.yazar)}${o ? ` · öneren ${e(o.yazan_ad)}` : ''}</small></span>
       ${o ? rozet(o) : y.veri.taslak ? '<em class="pn-rozet">gizli</em>' : ''}
     </a>`;
@@ -305,16 +315,20 @@ function yazilarSayfasi() {
       <h1>Yazılar</h1>
       <a class="chip chip--dolu" href="#/yazi/yeni">+ Yeni yazı</a>
     </div>
-    ${nolar.map((n) => {
-      const s = tum.find((x) => x.veri.sayi === n);
-      const sOneri = s ? acikOneri(s.yol) : undefined;
-      const liste = (gruplar.get(n) ?? []).sort((a, b) => a.kayit.veri.sira - b.kayit.veri.sira);
+    <p class="pn-not pn-not--ust">Yazılar sayı seçmeden yüklenir. Onaylanınca havuzda bekler; sayıyı hazırlayan, sayının sayfasından havuzdan seçip sıralar. Sayı yayına çıkınca yazıları da çıkar.</p>
+    <section class="pn-grup">
+      <h2>Havuz · henüz bir sayıda değil</h2>
+      ${havuz.length ? havuz.map(satir).join('') : '<p class="pn-bos">Havuzda yazı yok.</p>'}
+    </section>
+    ${tum.map((s) => {
+      const sOneri = acikOneri(s.yol) ?? yeniSayilar().find((x) => x.kayit.yol === s.yol)?.oneri;
+      const liste = s.veri.yazilar.map((ad) => satirlar.find((x) => adOf(x.kayit.yol) === ad)).filter((x): x is Satir => !!x);
       return `
         <section class="pn-grup">
-          <h2>Sayı ${pad(n)}${s ? ` · ${e(s.veri.baslik)}` : ''} ${sOneri ? rozet(sOneri) : s?.veri.taslak ? '<em class="pn-rozet">sayı gizli</em>' : ''}</h2>
-          ${liste.length ? liste.map(satir).join('') : '<p class="pn-bos">Bu sayıda henüz yazı yok.</p>'}
+          <h2>Sayı ${pad(s.veri.sayi)}${s.veri.baslik ? ` · ${e(s.veri.baslik)}` : ''} ${sOneri ? rozet(sOneri) : s.veri.taslak ? '<em class="pn-rozet">sayı gizli</em>' : ''}</h2>
+          ${liste.length ? liste.map(satir).join('') : '<p class="pn-bos">Bu sayıya henüz yazı seçilmedi.</p>'}
         </section>`;
-    }).join('') || '<p class="pn-bos">Henüz yazı yok.</p>'}`);
+    }).join('')}`);
 }
 
 let yeniGorsel: { yol: string; base64: string; url: string } | null = null;
@@ -341,11 +355,10 @@ function yaziFormu(slug: string, oneriId?: number) {
   const eskimis = !!oneri && (oneri.temel ?? null) !== (kayit?.sha ?? null);
   yeniGorsel = null;
 
-  const tum = baglam().sayilar.sort((a, b) => b.veri.sayi - a.veri.sayi);
-  const son = tum[0]?.veri.sayi ?? 1;
   const benKisi = kisiler().find((k) => k.ad === durum.ben?.ad)?.ad ?? kisiler()[0]?.ad ?? '';
+  const yer = yol ? yazininYeri(yol) : undefined;
   const v: YaziVeri = kaynak?.veri ?? {
-    baslik: '', sayi: son, sira: durum.yazilar.filter((y) => y.veri.sayi === son).length + 1, konu: '', yazar: benKisi,
+    baslik: '', konu: '', yazar: benKisi,
     spot: '', gorsel: '', gorselAlt: '', gorselKaynak: '', neden: '', kisaca: ['', '', ''],
   };
   const govde = kaynak?.govde ?? '';
@@ -370,11 +383,11 @@ function yaziFormu(slug: string, oneriId?: number) {
             <div class="pn-adres-gir"><span>parantezbulten.com/yazi/</span><input name="adres" pattern="[a-z0-9-]+" maxlength="60" data-adres-elle="0"><span>/</span></div></label>`}
 
       <div class="pn-izgara">
-        <label class="pn-alan"><span>Sayı</span><select name="sayi">${tum.map((s) => `<option value="${s.veri.sayi}"${s.veri.sayi === v.sayi ? ' selected' : ''}>Sayı ${pad(s.veri.sayi)}${!s.sha ? ' (öneri)' : s.veri.taslak ? ' (gizli)' : ''}</option>`).join('')}</select></label>
-        <label class="pn-alan"><span>Sıra</span><input name="sira" type="number" min="1" max="9" value="${v.sira}"></label>
         <label class="pn-alan"><span>Konu</span><select name="konu"><option value="">Seç</option>${KONU_LISTESI.map(([k, ad]) => `<option value="${k}"${k === v.konu ? ' selected' : ''}>${ad}</option>`).join('')}</select></label>
         <label class="pn-alan"><span>Yazar</span><select name="yazar">${yazarlar.map((k) => `<option${k.ad === v.yazar ? ' selected' : ''}>${e(k.ad)}</option>`).join('')}</select></label>
       </div>
+
+      <p class="pn-yer">${yer ? `<b>Sayı ${pad(yer.sayi)} · ${yer.sira}. yazı.</b> Sayısını ve sırasını sayının sayfasından değiştirebilirsin.` : '<b>Havuzda.</b> Onaylanınca burada bekler; sayıyı hazırlayan seçince o sayıyla yayına çıkar.'}</p>
 
       <label class="pn-alan"><span>Spot <small>başlığın altındaki bir-iki cümle</small></span><textarea name="spot" rows="3">${e(v.spot)}</textarea></label>
 
@@ -448,7 +461,7 @@ function yaziOkuForm(f: HTMLFormElement): YaziVeri {
   const oneri = formOnerisi(f);
   const kaynak = oneri?.metin ? yaziOku({ yol: oneri.yol, sha: '', metin: oneri.metin }) : durum.yazilar.find((y) => adOf(y.yol) === f.dataset.slug);
   return {
-    baslik: deger(f, 'baslik'), sayi: Number(deger(f, 'sayi')), sira: Number(deger(f, 'sira')),
+    baslik: deger(f, 'baslik'),
     konu: deger(f, 'konu'), yazar: deger(f, 'yazar'), spot: deger(f, 'spot'), gorsel: deger(f, 'gorsel'),
     gorselAlt: deger(f, 'gorselAlt'), gorselKaynak: deger(f, 'gorselKaynak'), neden: deger(f, 'neden'),
     kisaca: $$<HTMLInputElement>('[name="kisaca"]', f).map((i) => i.value.trim()).filter(Boolean),
@@ -477,11 +490,6 @@ async function yaziKaydet(f: HTMLFormElement, gonder: boolean, dogrudan: boolean
   if (!sabit) {
     if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(ad)) hatalar.push('Adres yalnızca küçük harf, rakam ve tire içerebilir.');
     else if (kayit || acikOneri(yol)) hatalar.push('Bu adresle bir yazı ya da öneri zaten var; adresi değiştir.');
-  }
-  if (gonder) {
-    const ayniSira = [...durum.yazilar, ...yeniYazilar().map((x) => x.kayit)]
-      .find((y) => y.yol !== yol && y.veri.sayi === v.sayi && y.veri.sira === v.sira && !y.veri.taslak);
-    if (ayniSira) hatalar.push(`Sayı ${pad(v.sayi)}'te ${v.sira}. sırada zaten “${ayniSira.veri.baslik}” var.`);
   }
   if (hataGoster(f, hatalar)) return;
   if (dogrudan && kayit) return dogrudanYayinla(f, 'yazi', kayit, yaziMetni(v, govde), yaziMetni(kayit.veri, kayit.govde), v.baslik, gorselIstegi(v.gorsel, oneri));
@@ -547,7 +555,7 @@ function sayilarSayfasi() {
       ${satirlar.map(({ kayit: s, oneri: o }) => `
         <a class="pn-satir-link" href="${o ? `#/oneri/${o.id}` : `#/sayi/${s.veri.sayi}`}">
           <span class="pn-no">${pad(s.veri.sayi)}</span>
-          <span class="pn-satir-t"><b>${e(s.veri.baslik || 'Başlıksız')}</b><small>yayın ${e(s.veri.yayin)} · ${durum.yazilar.filter((y) => y.veri.sayi === s.veri.sayi).length} yazı${o ? ` · öneren ${e(o.yazan_ad)}` : ''}</small></span>
+          <span class="pn-satir-t"><b>${e(s.veri.baslik || 'Başlıksız')}</b><small>yayın ${e(s.veri.yayin)} · ${s.veri.yazilar.length} yazı${o ? ` · öneren ${e(o.yazan_ad)}` : ''}</small></span>
           ${o ? rozet(o) : s.veri.taslak ? '<em class="pn-rozet">gizli</em>' : ''}
         </a>`).join('') || '<p class="pn-bos">Henüz sayı yok.</p>'}
     </section>`);
@@ -613,11 +621,10 @@ function sayiFormu(arg: string, oneriId?: number) {
   const v: SayiVeri = kaynak?.veri ?? {
     sayi: enBuyuk + 1, baslik: '', yayin, baslangic: gunEkle(yayin, -6), bitis: yayin,
     imza: editor ? `${editor.ad}, ${editor.rol}` : '', kisaKisa: [{ konu: '', metin: '' }, { konu: '', metin: '' }, { konu: '', metin: '' }],
-    oneriler: {}, etkinlikler: [], taslak: true,
+    oneriler: {}, etkinlikler: [], yazilar: [], taslak: true,
   };
   const imzalar = kisiler().map((k) => `${k.ad}, ${k.rol}`);
   if (v.imza && !imzalar.includes(v.imza)) imzalar.push(v.imza);
-  const yazilari = durum.yazilar.filter((y) => y.veri.sayi === v.sayi).length;
   const yol = oneri?.yol ?? kayit?.yol ?? '';
 
   iskelet('sayilar', `
@@ -646,6 +653,8 @@ function sayiFormu(arg: string, oneriId?: number) {
         <button type="button" class="pn-ekle" data-ekle="kisaKisa">+ madde ekle</button>
       </fieldset>
 
+      ${yaziSecimi(v, yol)}
+
       <h2 class="pn-ara">Parantez dışı</h2>
       ${FIILLER.map(([k, ad]) => oneriAlani(k, ad, v.oneriler?.[k])).join('')}
 
@@ -657,9 +666,58 @@ function sayiFormu(arg: string, oneriId?: number) {
 
       <label class="pn-onay"><input type="checkbox" name="taslak"${v.taslak ? ' checked' : ''}> Sitede gizli kalsın <small>sayı ve yazıları onaylansa da görünmez; hepsi hazır olunca işareti kaldır, birlikte yayına çıksınlar</small></label>
 
-      ${eylemler(oneri, kayit && !yazilari ? 'Silinmesini öner' : '', '#/sayilar', !!kayit)}
-      ${kayit && yazilari && !oneri ? `<p class="pn-not">Bu sayıyı silmek için önce içindeki ${yazilari} yazının silinmesi ya da başka sayıya taşınması gerekiyor.</p>` : ''}
+      ${eylemler(oneri, kayit ? 'Silinmesini öner' : '', '#/sayilar', !!kayit)}
     </form>`);
+  const secim = $('[data-yazi-secimi]');
+  if (secim) yaziSecimiNumarala(secim);
+}
+
+// Sayının yazıları: seçilenler sırasıyla üstte, havuzdakiler altta. Bir yazı yalnızca bir sayıda olabilir;
+// başka bir sayıya seçilmiş yazılar burada görünmez. Onay bekleyen yazılar da seçilebilir: onaylanınca sayıda belirir.
+const yaziBasligi = (ad: string) => [...durum.yazilar, ...yeniYazilar().map((x) => x.kayit)].find((y) => adOf(y.yol) === ad)?.veri.baslik ?? ad;
+function yaziSecimi(v: SayiVeri, yol: string) {
+  const baskalari = yaziYerleri(guncelSayilar().filter((s) => s.yol !== yol).map((s) => s.veri));
+  const adaylar = [
+    ...durum.yazilar.map((kayit) => ({ kayit, oneri: acikOneri(kayit.yol) as OneriOzet | undefined })),
+    ...yeniYazilar(),
+  ];
+  const bul = (ad: string) => adaylar.find((x) => adOf(x.kayit.yol) === ad);
+  const satir = (ad: string, secili: boolean) => {
+    const x = bul(ad);
+    const y = x?.kayit.veri;
+    const durumu = !x ? '<em class="pn-rozet pn-rozet--degisiklik">bulunamadı</em>'
+      : !durum.yazilar.some((k) => k.yol === x.kayit.yol) ? rozet(x.oneri!)
+      : y!.taslak ? '<em class="pn-rozet">gizli</em>' : '';
+    return `
+      <li class="pn-yazisec" data-ad="${e(ad)}">
+        <label>
+          <input type="checkbox" name="yazilar" value="${e(ad)}"${secili ? ' checked' : ''}>
+          <span class="pn-yazisec__no" aria-hidden="true"></span>
+          <span class="pn-satir-t"><b>${e(y?.baslik || ad)}</b><small>${y ? `${e(KONULAR[y.konu] ?? (y.konu || 'konu yok'))} · ${e(y.yazar)}` : 'silinmiş ya da adı değişmiş'}</small></span>
+          ${durumu}
+        </label>
+        <span class="pn-yazisec__oklar">
+          <button type="button" class="pn-kucuk" data-yazi-yukari aria-label="Yukarı taşı">↑</button>
+          <button type="button" class="pn-kucuk" data-yazi-asagi aria-label="Aşağı taşı">↓</button>
+        </span>
+      </li>`;
+  };
+  const havuz = adaylar.map((x) => adOf(x.kayit.yol)).filter((ad) => !v.yazilar.includes(ad) && !baskalari.has(ad));
+  return `
+    <fieldset class="pn-kutu" data-yazi-secimi>
+      <legend>Bu sayının yazıları <small>işaretle, oklarla sırala · genelde 5 yazı</small></legend>
+      <ol class="pn-yazisec-liste">${[...v.yazilar.map((ad) => satir(ad, true)), ...havuz.map((ad) => satir(ad, false))].join('') || '<p class="pn-bos">Havuzda yazı yok. Yazılar yüklenince burada görünür.</p>'}</ol>
+    </fieldset>`;
+}
+
+// Seçili yazılara sıra numarası; seçilenler hep üstte durur
+function yaziSecimiNumarala(kutu: Element) {
+  let n = 0;
+  for (const li of $$<HTMLLIElement>('.pn-yazisec', kutu as HTMLElement)) {
+    const sec = $<HTMLInputElement>('input', li)!.checked;
+    li.classList.toggle('pn-yazisec--secili', sec);
+    $('.pn-yazisec__no', li)!.textContent = sec ? String(++n) : '';
+  }
 }
 
 function sayiOkuForm(f: HTMLFormElement): SayiVeri {
@@ -680,6 +738,7 @@ function sayiOkuForm(f: HTMLFormElement): SayiVeri {
     bitis: deger(f, 'bitis'), imza: deger(f, 'imza'),
     kisaKisa: $$('.pn-satir--konu', f).map((r) => ({ konu: deger(r, 'kkKonu'), metin: deger(r, 'kkMetin') })).filter((k) => k.metin || k.konu),
     oneriler, etkinlikler: etkinlikler.sort((a, b) => a.tarih.localeCompare(b.tarih)),
+    yazilar: $$<HTMLInputElement>('[name="yazilar"]:checked', f).map((i) => i.value),
     taslak: $<HTMLInputElement>('[name="taslak"]', f)!.checked,
   };
 }
@@ -694,7 +753,17 @@ async function sayiKaydet(f: HTMLFormElement, gonder: boolean, dogrudan: boolean
   const hatalar = gonder ? sayiDenetle(v) : v.sayi > 0 ? [] : ['Sayı numarası geçersiz.'];
   if (gonder && !govde.trim()) hatalar.push('Haftanın özeti boş.');
   if (!f.dataset.yol && v.sayi > 0 && (baglam().sayilar.some((s) => s.veri.sayi === v.sayi) || acikOneri(yol))) hatalar.push(`Sayı ${pad(v.sayi)} zaten var ya da önerilmiş.`);
+  // Bir yazı tek bir sayıda olabilir
+  const baskalari = yaziYerleri(guncelSayilar().filter((s) => s.yol !== yol).map((s) => s.veri));
+  for (const ad of v.yazilar) {
+    const b = baskalari.get(ad);
+    if (b) hatalar.push(`“${yaziBasligi(ad)}” Sayı ${pad(b.sayi)}'te de seçili; önce oradan çıkar.`);
+  }
+  const yayinlanacak = (gonder || dogrudan) && !v.taslak;
+  if (yayinlanacak && !v.yazilar.length) hatalar.push('Sayıya hiç yazı seçilmedi.');
   if (hataGoster(f, hatalar)) return;
+  const onaysiz = v.yazilar.filter((ad) => !durum.yazilar.some((y) => adOf(y.yol) === ad));
+  if (yayinlanacak && onaysiz.length && !confirm(`${onaysiz.length} yazı henüz onaylanmadı (${onaysiz.map(yaziBasligi).join(', ')}). Sayı yayına çıkınca onlar görünmez, onaylandıkları an eklenir. Devam edilsin mi?`)) return;
   const baslik = `Sayı ${pad(v.sayi)}${v.baslik ? ` · ${v.baslik}` : ''}`;
   if (dogrudan && kayit) return dogrudanYayinla(f, 'sayi', kayit, sayiMetni(v, govde), sayiMetni(kayit.veri, kayit.govde), baslik);
   await oneriKaydet(f, {
@@ -1392,7 +1461,8 @@ function siteAdresi(o: Pick<OneriOzet, 'tur' | 'islem' | 'yol' | 'metin'>): stri
   }
   if (o.tur === 'arastirma') return arastirmaOku({ yol: o.yol, sha: '', metin: o.metin }).veri.taslak ? undefined : `/arastirma/${adOf(o.yol)}/`;
   const v = yaziOku({ yol: o.yol, sha: '', metin: o.metin }).veri;
-  const s = sayiBul(v.sayi);
+  const yer = yaziYerleri(durum.sayilar.map((s) => s.veri)).get(adOf(o.yol));
+  const s = yer ? sayiBul(yer.sayi) : undefined;
   return !v.taslak && s && !s.veri.taslak ? `/yazi/${adOf(o.yol)}/` : undefined;
 }
 
@@ -1654,6 +1724,14 @@ addEventListener('beforeunload', (ev) => { if (durum.kirli) ev.preventDefault();
 
 kok.addEventListener('input', (ev) => {
   const t = ev.target as HTMLInputElement;
+  // Sayının yazı seçimi: işaretlenen yazı seçililerin sonuna, kaldırılan havuzun başına
+  if (t.name === 'yazilar') {
+    const li = t.closest('li')!;
+    const secililer = [...li.parentElement!.children].filter((x) => x !== li && $('input:checked', x as HTMLElement));
+    const son = secililer[secililer.length - 1];
+    if (son) son.after(li); else li.parentElement!.prepend(li);
+    yaziSecimiNumarala(li.closest('[data-yazi-secimi]')!);
+  }
   if (t.name === 'bultenSayi') { bultenSecili = Number(t.value); bultenOnizleme = null; return void bultenSayfasi(false); }
   if (t.name === 'aboneAra') {
     clearTimeout(aboneZaman);
@@ -1717,6 +1795,19 @@ kok.addEventListener('click', async (ev) => {
   if (await bultenEylem(t)) return;
   if (await aboneEylem(t)) return;
 
+  const ok = t.closest<HTMLElement>('[data-yazi-yukari], [data-yazi-asagi]');
+  if (ok) {
+    const li = ok.closest('li')!;
+    const yukari = ok.hasAttribute('data-yazi-yukari');
+    const komsu = (yukari ? li.previousElementSibling : li.nextElementSibling) as HTMLElement | null;
+    // Sıra yalnızca seçililer arasında değişir
+    if (komsu && $<HTMLInputElement>('input', komsu)!.checked === $<HTMLInputElement>('input', li)!.checked) {
+      if (yukari) komsu.before(li); else komsu.after(li);
+      yaziSecimiNumarala(li.closest('[data-yazi-secimi]')!);
+      durum.kirli = true;
+    }
+    return;
+  }
   const ekle = t.closest<HTMLElement>('[data-ekle]');
   if (ekle && f) {
     const tur = ekle.dataset.ekle!;

@@ -39,17 +39,17 @@ const sayilar = defineCollection({
     kisaKisa: z.array(z.object({ konu: z.enum(konuKeys), metin: z.string() })).min(3).max(5),
     oneriler: z.object({ dinle: oneri, izle: oneri, oku: oneri }).partial().optional(),
     etkinlikler: z.array(etkinlik).max(6).optional(),
+    // Bu sayının yazıları, sırasıyla (yazı dosyalarının adları). Listede olmayan yazı "havuzda" bekler, sitede görünmez.
+    yazilar: z.array(z.string()).default([]),
     taslak: z.boolean().default(false),
   }),
 });
 
-// Yazı: her sayıda 5 tane, `sira` ile dizilir.
+// Yazı: sayısı ve sırası sayının `yazilar` listesinden gelir (src/lib/yerlesim.ts).
 const yazilar = defineCollection({
   loader: glob({ pattern: '*.md', base: './src/content/yazilar' }),
   schema: z.object({
     baslik: z.string(),
-    sayi: z.number().int().positive(),
-    sira: z.number().int().min(1).max(9),
     konu: z.enum(konuKeys),
     yazar: z.string(),
     spot: z.string(),

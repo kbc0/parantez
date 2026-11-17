@@ -81,7 +81,9 @@ Pro plana geçin (ayda 50.000 e-posta). Sınır dolarsa gönderim durmaz, bekler
 
 ### Yazmak
 
-- **Yeni yazı:** **Yazılar** → **+ Yeni yazı**, sayıyı seçin. Var olan bir yazıyı düzenlemek için listeden açın.
+- **Yeni yazı:** **Yazılar** → **+ Yeni yazı**. Sayı seçilmez: yazı onaylanınca **havuzda** bekler, sitede görünmez.
+  Sayıyı hazırlayan onu havuzdan seçince o sayıyla yayına çıkar. Var olan bir yazıyı düzenlemek için listeden açın.
+- **Yazılar** sayfasında en üstte havuz, altında sayılar ve içlerindeki yazılar (sırasıyla) durur.
 - Formun altındaki düğmeler:
   - **Önizle:** okurun göreceği hâli telefon ya da masaüstü ekranında gösterir. Hiçbir şey kaydedilmez.
   - **Taslak olarak sakla:** kaydeder ama kimseye göndermez. Ekip görebilir, onaylayamaz.
@@ -111,9 +113,15 @@ Pro plana geçin (ayda 50.000 e-posta). Sınır dolarsa gönderim durmaz, bekler
 ### Sayılar
 
 - **Yeni sayı:** **Sayılar** → **+ Yeni sayı**. "Sitede gizli kalsın" işaretli gelir:
-  sayı ve içindeki yazılar onaylansa bile sitede görünmez. Böylece yazılar hafta içinde tek tek incelenip onaylanabilir.
-- **Sayıyı yayınlamak:** Bütün yazılar onaylanınca sayıyı açıp "Sitede gizli kalsın" işaretini kaldırın;
-  incelemeye gönderin ya da doğrudan yayınlayın. Sayı ve bütün yazıları birlikte yayına çıkar.
+  sayı ve içindeki yazılar onaylansa bile sitede görünmez.
+- **Sayının yazıları:** sayı formundaki **Bu sayının yazıları** bölümünde havuzdaki yazılar listelenir.
+  İşaretlediğiniz yazılar üste geçer ve numaralanır; sırayı ↑ ↓ ile değiştirin. İşareti kaldırılan yazı havuza döner.
+  Bir yazı tek bir sayıda olabilir; başka sayıya seçilmiş yazı listede görünmez.
+  Henüz onaylanmamış yazılar da seçilebilir: sayı yayındaysa, onaylandıkları an sayıda belirirler.
+  Yazıların sırası ve hangi sayıda oldukları sayının dosyasında tutulur (`yazilar` listesi); yazı dosyasında sayı yoktur.
+- **Sayıyı yayınlamak:** Yazıları seçip "Sitede gizli kalsın" işaretini kaldırın; incelemeye gönderin, doğrudan
+  yayınlayın ya da **Bülten**'den pazartesi 07:30'a planlayın. Sayı ve seçili yazıları birlikte yayına çıkar.
+  Onaylanmamış yazı varsa panel sorar.
 - **Yayındaki sayıyı düzeltmek:** (ör. selamı veren editörün imzası) sayıyı açın, değiştirin, **Doğrudan yayınla**.
 - Sohbetteki her şey (haftanın cümlesi, editörün notu, kısa kısa, dinle/izle/oku önerileri, etkinlikler) sayı formundadır.
   Önizleme, sayının sohbet hâlini gösterir.
