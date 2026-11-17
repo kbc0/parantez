@@ -9,27 +9,44 @@ import { PARANTEZ } from '../lib/site';
   aktif="hakkinda" sayfa="hakkinda">
 <main id="icerik" class="msgs hk">
   <div class="day">hakkında</div>
-  {/* Metni ekip yazdı; balonlara yalnızca cümle aralarından bölündü, kelimelerine dokunulmadı. */}
+  {/* Metni ekip yazdı; balonlara yalnızca cümle aralarından bölündü, kelimelerine dokunulmadı.
+      Sağdaki mavi balonlar okurun soruları; sohbet havası versin diye eklendi. */}
+  <div class="me"><p class="b">Merhaba, siz kimsiniz?</p></div>
   <Grp k={PARANTEZ}>
     <h1 class="b b--baslik" data-tepki="neyiz">Biz Neyiz? Ne Olacağız?</h1>
     <p class="b" data-tepki="degiliz">Büyük savaşlar, çağı değiştiren liderler, tarihe yön veren icatlar… Biz bunlar değiliz.</p>
+  </Grp>
+  <div class="me"><p class="b">Peki nesiniz o zaman?</p></div>
+  <Grp k={PARANTEZ}>
     <p class="b" data-tepki="bir-seyler">İnsanlığın binlerce yıllık yolculuğunu nasıl özetleyeceğimizi bize sorsaydınız “Bir şeyler olmuş” derdik. Bugünü nasıl anlamlandırdığımızı sorduğunuzda da “Bir şeyler oluyor” diyeceğiz.</p>
+  </Grp>
+  <div class="me"><p class="b">Şaka yapıyorsunuz herhalde.</p></div>
+  <Grp k={PARANTEZ}>
     <p class="b" data-tepki="saka">Bu bir şaka veya sadelik süsü değil. Gerçekten de sürekli bir şeyler oluyor ve hepsine aynı anda şahit olmak çok zor. Bir şey duyanlar duymayanlara, bir şey düşünenler düşünmeyenlere anlatacak.</p>
     <p class="b" data-tepki="arkadas">Bir arkadaşınız vardır: borsaya, ahşap işçiliğine veya atlara çok meraklıdır; hem sıkılırsınız hem de hoşunuza gider, ona maruz kalmasanız bu kadar saçma şeyleri nereden bilecektiniz?</p>
+  </Grp>
+  <div class="me"><p class="b">Var öyle bir arkadaşım, evet.</p></div>
+  <Grp k={PARANTEZ}>
     <p class="b" data-tepki="o-arkadaslar">Biz o arkadaşlarız.</p>
+  </Grp>
+  <div class="me"><p class="b">Ne olacaksınız peki?</p></div>
+  <Grp k={PARANTEZ}>
     <p class="b" data-tepki="ne-olacak">Peki ne olacak: Kimisi için kendini ifade edecek bir kanal, kimisi için otistik bir arkadaş, kimisi için de “bir makalede okumuştum” diye anlatacak bir sürü şey…</p>
     <p class="b" data-tepki="unutmadan">Unutmadan… Yazının başında ne olmadığımızdan çok kısa bahsetmiştik. Birer AI Agent olmadığımızı da eklemek isteriz; yazılarımızı kendimiz yazıyor, birisi okuyunca kendimiz mutlu oluyoruz.</p>
+  </Grp>
+  <div class="me"><p class="b">İyi ki söylediniz.</p></div>
+  <Grp k={PARANTEZ}>
     <p class="b" data-tepki="tanistik">Tanıştığımıza çok memnun olduk.</p>
   </Grp>
   <section class="hk-abone" data-abone-kutu data-abone-gizle aria-label="Abone ol">
     <Grp k={PARANTEZ} isim={false} cls="grp--devam">
-      <p class="b">bülten için e-posta adresini aşağıya yazman yeterli.</p>
+      <p class="b">Bülten için e-posta adresinizi aşağıya yazmanız yeterli.</p>
     </Grp>
     <form class="yz-abone__form" action="/api/abone" method="post">
       <input type="hidden" name="kaynak" value="hakkinda">
       <input class="hp" type="text" name="web" tabindex="-1" autocomplete="off" aria-hidden="true">
-      <label class="sr" for="hk-eposta">E-posta adresin</label>
-      <input id="hk-eposta" name="eposta" type="email" inputmode="email" autocomplete="email" enterkeyhint="send" autocapitalize="off" spellcheck="false" placeholder="e-posta adresin" required>
+      <label class="sr" for="hk-eposta">E-posta adresiniz</label>
+      <input id="hk-eposta" name="eposta" type="email" inputmode="email" autocomplete="email" enterkeyhint="send" autocapitalize="off" spellcheck="false" placeholder="e-posta adresiniz" required>
       <button class="send" type="submit" aria-label="Abone ol">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
       </button>
