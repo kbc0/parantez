@@ -3,34 +3,23 @@
 // (balonlar, tepkiler) ama sohbet düzeni yok: sol liste, üst bar ve mesaj kutusu yok.
 import Sayfa from '../layouts/Sayfa.astro';
 import Grp from '../components/Grp.astro';
-import { SITE, PARANTEZ } from '../lib/site';
+import { PARANTEZ } from '../lib/site';
 ---
-<Sayfa title="Hakkında" description="Birkaç kişilik genç bir ekip. Gündem uzun, biz kısaltıyoruz. Ara sıra da uzatıyoruz."
+<Sayfa title="Hakkında" description="Büyük savaşlar, çağı değiştiren liderler, tarihe yön veren icatlar… Biz bunlar değiliz."
   aktif="hakkinda" sayfa="hakkinda">
 <main id="icerik" class="msgs hk">
   <div class="day">hakkında</div>
-  <div class="me"><p class="b">siz kimsiniz?</p></div>
+  {/* Metni ekip yazdı; balonlara yalnızca cümle aralarından bölündü, kelimelerine dokunulmadı. */}
   <Grp k={PARANTEZ}>
-    <p class="b b--baslik" data-tepki="biz">birkaç kişilik genç bir ekip.</p>
-    <p class="b" data-tepki="slogan">gündem uzun, biz kısaltıyoruz. ara sıra da uzatıyoruz.</p>
-  </Grp>
-  <div class="me"><p class="b">ne yapıyorsunuz peki?</p></div>
-  <Grp k={PARANTEZ}>
-    <p class="b" data-tepki="ne">her pazartesi sabahı gelen kutuna bir bülten bırakıyoruz. içinde haftanın kısa bir özeti ve beş yazı var. haftayı kaçırdıysan on dakikada yakalarsın.</p>
-    <p class="b" data-tepki="nasil">bir hafta bekliyoruz. herkes bağırıp çağırmayı bitirince oturup yazıyoruz: ne oldu, neden önemli, sana nereden dokunuyor.</p>
-    <p class="b" data-tepki="uzun">bazı konular beş paragrafa sığmıyor. o zaman uzatıyoruz. söz, sıkmayacağız.</p>
-    <p class="b" data-tepki="arastirma">ayda bir de bir konuyu sonuna kadar kurcalıyoruz: soruyor, okuyor, sayıyoruz. onlar <a href="/arastirma/">araştırma</a> bölümünde.</p>
-  </Grp>
-  <div class="me"><p class="b">bunları yapay zekâ mı yazıyor?</p></div>
-  <Grp k={PARANTEZ}>
-    <p class="b" data-tepki="insan">hayır. burada okuduğun her cümleyi bir insan yazıyor.</p>
-    <p class="b" data-tepki="emek">insan emeğinin değerli olduğunu düşünüyoruz. bir konuyu okumak, birilerine sormak, kendi aramızda tartışmak, sonra da sana anlatmak. bu kısmı bir makineye bırakmak istemiyoruz.</p>
-    <p class="b" data-tepki="karsi">yapay zekâya karşı değiliz, hatta hakkında yazıyoruz da. ama yazıyı yazan, neyin önemli olduğuna karar veren ve yanılınca özür dileyen biziz.</p>
-    <p class="b" data-tepki="hata">yani bir hata görürsen, o da insan hatası. söyle, düzeltelim.</p>
-  </Grp>
-  <div class="me"><p class="b">size nasıl ulaşırım?</p></div>
-  <Grp k={PARANTEZ}>
-    <p class="b">fikrin, itirazın ya da bir sorun mu var? <a href={`mailto:${SITE.eposta}`}>{SITE.eposta}</a></p>
+    <h1 class="b b--baslik" data-tepki="neyiz">Biz Neyiz? Ne Olacağız?</h1>
+    <p class="b" data-tepki="degiliz">Büyük savaşlar, çağı değiştiren liderler, tarihe yön veren icatlar… Biz bunlar değiliz.</p>
+    <p class="b" data-tepki="bir-seyler">İnsanlığın binlerce yıllık yolculuğunu nasıl özetleyeceğimizi bize sorsaydınız “Bir şeyler olmuş” derdik. Bugünü nasıl anlamlandırdığımızı sorduğunuzda da “Bir şeyler oluyor” diyeceğiz.</p>
+    <p class="b" data-tepki="saka">Bu bir şaka veya sadelik süsü değil. Gerçekten de sürekli bir şeyler oluyor ve hepsine aynı anda şahit olmak çok zor. Bir şey duyanlar duymayanlara, bir şey düşünenler düşünmeyenlere anlatacak.</p>
+    <p class="b" data-tepki="arkadas">Bir arkadaşınız vardır: borsaya, ahşap işçiliğine veya atlara çok meraklıdır; hem sıkılırsınız hem de hoşunuza gider, ona maruz kalmasanız bu kadar saçma şeyleri nereden bilecektiniz?</p>
+    <p class="b" data-tepki="o-arkadaslar">Biz o arkadaşlarız.</p>
+    <p class="b" data-tepki="ne-olacak">Peki ne olacak: Kimisi için kendini ifade edecek bir kanal, kimisi için otistik bir arkadaş, kimisi için de “bir makalede okumuştum” diye anlatacak bir sürü şey…</p>
+    <p class="b" data-tepki="unutmadan">Unutmadan… Yazının başında ne olmadığımızdan çok kısa bahsetmiştik. Birer AI Agent olmadığımızı da eklemek isteriz; yazılarımızı kendimiz yazıyor, birisi okuyunca kendimiz mutlu oluyoruz.</p>
+    <p class="b" data-tepki="tanistik">Tanıştığımıza çok memnun olduk.</p>
   </Grp>
   <section class="hk-abone" data-abone-kutu data-abone-gizle aria-label="Abone ol">
     <Grp k={PARANTEZ} isim={false} cls="grp--devam">
