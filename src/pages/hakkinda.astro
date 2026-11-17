@@ -31,7 +31,7 @@ import { PARANTEZ } from '../lib/site';
   </Grp>
   <div class="me"><p class="b">Ne olacaksınız peki?</p></div>
   <Grp k={PARANTEZ}>
-    <p class="b" data-tepki="ne-olacak">Peki ne olacak: Kimisi için kendini ifade edecek bir kanal, kimisi için otistik bir arkadaş, kimisi için de “bir makalede okumuştum” diye anlatacak bir sürü şey…</p>
+    <p class="b" data-tepki="ne-olacak">Peki ne olacak: Kimisi için kendini ifade edecek bir kanal, kimisi için tuhaf zevkleri olan bir arkadaş, kimisi için de “bir makalede okumuştum” diye anlatacak bir sürü şey…</p>
     <p class="b" data-tepki="unutmadan">Unutmadan… Yazının başında ne olmadığımızdan çok kısa bahsetmiştik. Birer AI Agent olmadığımızı da eklemek isteriz; yazılarımızı kendimiz yazıyor, birisi okuyunca kendimiz mutlu oluyoruz.</p>
   </Grp>
   <div class="me"><p class="b">İyi ki söylediniz.</p></div>
@@ -40,13 +40,13 @@ import { PARANTEZ } from '../lib/site';
   </Grp>
   <section class="hk-abone" data-abone-kutu data-abone-gizle aria-label="Abone ol">
     <Grp k={PARANTEZ} isim={false} cls="grp--devam">
-      <p class="b">Bülten için e-posta adresinizi aşağıya yazmanız yeterli.</p>
+      <p class="b">Her hafta bültenimizi yollamamızı istersen de e-posta adresini aşağıya yazman yeterli.</p>
     </Grp>
     <form class="yz-abone__form" action="/api/abone" method="post">
       <input type="hidden" name="kaynak" value="hakkinda">
       <input class="hp" type="text" name="web" tabindex="-1" autocomplete="off" aria-hidden="true">
-      <label class="sr" for="hk-eposta">E-posta adresiniz</label>
-      <input id="hk-eposta" name="eposta" type="email" inputmode="email" autocomplete="email" enterkeyhint="send" autocapitalize="off" spellcheck="false" placeholder="e-posta adresiniz" required>
+      <label class="sr" for="hk-eposta">E-posta adresin</label>
+      <input id="hk-eposta" name="eposta" type="email" inputmode="email" autocomplete="email" enterkeyhint="send" autocapitalize="off" spellcheck="false" placeholder="e-posta adresin" required>
       <button class="send" type="submit" aria-label="Abone ol">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
       </button>
