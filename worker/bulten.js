@@ -30,8 +30,8 @@ const buyuk = (s) => s.toLocaleUpperCase('tr');
 const konuAdi = (k) => KONULAR[k] ?? k;
 const konuRenk = (k) => KONU_RENK[k] ?? '#8b8b86';
 
-// Sayının yayın günü, Türkiye saatiyle 07:30 (UTC+3)
-export const gonderimZamani = (yayin) => Date.parse(`${yayin}T04:30:00Z`);
+// Sayının yayın günü, Türkiye saatiyle 09:00 (UTC+3)
+export const gonderimZamani = (yayin) => Date.parse(`${yayin}T06:00:00Z`);
 
 // Ham HTML yazılmaz; yalnızca kalın, italik ve bağlantı
 const md = new Marked({ renderer: { html: () => '' } });
@@ -152,7 +152,7 @@ export function bultenHtml(env, { sayi, yazilar, ekip }) {
     `<tr><td style="padding:0"><table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
 <td style="font-size:22px;font-weight:800;letter-spacing:-0.02em"><a href="${h(site)}/" style="color:#111111;text-decoration:none">(parantez)</a></td>
 <td align="right" style="font-size:13px;font-weight:600;color:#84847f">Sayı ${pad(v.sayi)}</td></tr></table></td></tr>`,
-    `<tr><td align="center" style="padding:22px 0 0;font-size:12px;font-weight:700;letter-spacing:.05em;color:#84847f">${h(buyuk(`Sayı ${pad(v.sayi)} · ${gunAdi(v.yayin)}, ${tarihUzun(v.yayin)} · 07:30`))}</td></tr>`,
+    `<tr><td align="center" style="padding:22px 0 0;font-size:12px;font-weight:700;letter-spacing:.05em;color:#84847f">${h(buyuk(`Sayı ${pad(v.sayi)} · ${gunAdi(v.yayin)}, ${tarihUzun(v.yayin)} · 09:00`))}</td></tr>`,
     grup(editor, [
       balon('günaydın. bu hafta tek cümle:'),
       balon(h(v.baslik), 'font-size:27px;font-weight:800;line-height:1.08;letter-spacing:-0.03em;padding:13px 16px'),
@@ -183,7 +183,7 @@ export function bultenHtml(env, { sayi, yazilar, ekip }) {
   }
   satirlar.push(`<tr><td style="padding:22px 0 0 44px"><a href="${h(sayiAdresi)}" style="display:inline-block;padding:11px 18px;border:1.5px solid #2a35ff;border-radius:999px;color:#2a35ff;font-size:15px;font-weight:700;text-decoration:none">sohbette aç →</a></td></tr>`);
   satirlar.push(`<tr><td style="padding:36px 0 0"><div style="border-top:1px solid #e7e7e2;padding-top:16px;font-size:13px;line-height:1.6;color:#84847f">
-(parantez) · her pazartesi 07:30’da haftanın özeti ve beş yazı.<br>
+(parantez) · her pazar 09:00’da haftanın özeti ve beş yazı.<br>
 bu e-postayı <a href="${h(site)}/" style="color:#84847f">parantezbulten.com</a>’a abone olduğun için aldın.
 <a href="${CIK}" style="color:#84847f">abonelikten çık</a> · <a href="${h(sayiAdresi)}" style="color:#84847f">tarayıcıda aç</a></div></td></tr>`);
 

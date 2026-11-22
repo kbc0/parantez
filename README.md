@@ -1,6 +1,6 @@
 # (parantez)
 
-Genç okurlar için haftalık bülten. Her pazartesi 07:30: haftanın özeti + 5 yazı. Gündem uzun, biz kısaltıyoruz. Bazen de uzatıyoruz.
+Genç okurlar için haftalık bülten. Her pazar 09:00: haftanın özeti + 5 yazı. Gündem uzun, biz kısaltıyoruz. Bazen de uzatıyoruz.
 
 Site bir mesajlaşma uygulaması gibi çalışır: her sayı bir sohbet, her yazı bir konuşma. Okur hazır cevaplarla ("Ne oldu?", "Yazılar", "Bu hafta ne yapsam?", "Abone ol") ilerler, mesajlara sabit emojilerle tepki bırakır ve e-postasını mesaj kutusuna yazarak abone olur. Yazılarda "Aa" düğmesi balonları kapatıp düz okuma moduna geçer.
 
@@ -26,7 +26,7 @@ Sayfalar JavaScript olmadan da okunur ve abonelik formu yine çalışır.
 ## Yeni sayı yayınlamak
 
 1. `src/content/sayilar/` içine yeni bir dosya ekle (ör. `04.md`). Var olan bir sayıyı kopyalayıp düzenlemek en kolayı:
-   - `sayi`, `baslik`, `yayin` (pazartesi), `baslangic` / `bitis` (haftanın aralığı), `imza`
+   - `sayi`, `baslik`, `yayin` (pazar), `baslangic` / `bitis` (haftanın aralığı), `imza`
    - `kisaKisa`: 3–5 kısa haber (`konu` + `metin`), sohbette "Ne oldu?" mesajları
    - `oneriler` (isteğe bağlı, "Parantez dışı"): `dinle`, `izle`, `oku`; her biri `baslik`, `kimden`, `tur`, `not` (en fazla 200 karakter), isteğe bağlı `link` + `linkMetni`
    - `etkinlikler` (isteğe bağlı, en fazla 6): `tarih`, `saat` (ör. "20:00"), `ad`, `tur`, `yer`, `sehir`, `ucret` ("Ücretsiz" yazılırsa işaretlenir), isteğe bağlı `link`. Tarihe göre kendiliğinden sıralanır.

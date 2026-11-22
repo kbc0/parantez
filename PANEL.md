@@ -120,7 +120,7 @@ Pro plana geçin (ayda 50.000 e-posta). Sınır dolarsa gönderim durmaz, bekler
   Henüz onaylanmamış yazılar da seçilebilir: sayı yayındaysa, onaylandıkları an sayıda belirirler.
   Yazıların sırası ve hangi sayıda oldukları sayının dosyasında tutulur (`yazilar` listesi); yazı dosyasında sayı yoktur.
 - **Sayıyı yayınlamak:** Yazıları seçip "Sitede gizli kalsın" işaretini kaldırın; incelemeye gönderin, doğrudan
-  yayınlayın ya da **Bülten**'den pazartesi 07:30'a planlayın. Sayı ve seçili yazıları birlikte yayına çıkar.
+  yayınlayın ya da **Bülten**'den pazar 09:00'a planlayın. Sayı ve seçili yazıları birlikte yayına çıkar.
   Onaylanmamış yazı varsa panel sorar.
 - **Yayındaki sayıyı düzeltmek:** (ör. selamı veren editörün imzası) sayıyı açın, değiştirin, **Doğrudan yayınla**.
 - Sohbetteki her şey (haftanın cümlesi, editörün notu, kısa kısa, dinle/izle/oku önerileri, etkinlikler) sayı formundadır.
@@ -132,8 +132,8 @@ Pro plana geçin (ayda 50.000 e-posta). Sınır dolarsa gönderim durmaz, bekler
 - Sayıyı seçin → **Önizle** e-postanın telefonda ve masaüstünde nasıl görüneceğini gösterir.
   **Deneme gönder** e-postayı yalnızca yazdığınız adrese yollar (varsayılan sizin adresiniz; son yazılan hatırlanır).
   Adres abone listesindeyse e-postadaki "abonelikten çık" gerçekten çalışır, yani denerken listeden çıkarsınız.
-- **… 07:30'a planla:** sayının yayın günü (pazartesi) 07:30'da tüm abonelere gider.
-  Sayı "Sitede gizli kalsın" işaretliyse 07:20'de kendiliğinden yayına çıkar; e-posta, sayı sitede görününce gider.
+- **… 09:00'a planla:** sayının yayın günü (pazar) 09:00'da tüm abonelere gider.
+  Sayı "Sitede gizli kalsın" işaretliyse 08:50'de kendiliğinden yayına çıkar; e-posta, sayı sitede görününce gider.
   Yani pazar akşamı her şeyi hazırlayıp planlamak yeterli; sabah kimsenin bir şeye basması gerekmez.
 - **Şimdi gönder:** yayın saati geçmiş bir sayı için. Birkaç dakika içinde gider.
 - Plan, gönderim başlamadan ya da sürerken **iptal** edilebilir. Sayı yayına çıkmışsa sitede kalır.

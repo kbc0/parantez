@@ -1,6 +1,6 @@
 # (parantez)
 
-Gençler için haftalık bülten. Her pazartesi 07:30: haftanın özeti ve beş yazı.
+Gençler için haftalık bülten. Her pazar 09:00: haftanın özeti ve beş yazı.
 Astro (statik) + Cloudflare Workers. `main`'e push edilen her commit Workers Builds ile yayına çıkar.
 
 ## Tasarım yönü

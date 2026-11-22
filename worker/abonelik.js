@@ -80,9 +80,9 @@ export async function abone(request, env) {
 
   let kayit = await db.prepare('SELECT * FROM aboneler WHERE eposta = ?').bind(adres).first();
   if (!kayit && env.ABONELER && (await env.ABONELER.get(adres))) {
-    return yanit(200, 'sen zaten abonesin. bülten her pazartesi 07:30’da gelen kutunda.'); // henüz taşınmamış eski kayıt
+    return yanit(200, 'sen zaten abonesin. bülten her pazar 09:00’da gelen kutunda.'); // henüz taşınmamış eski kayıt
   }
-  if (kayit?.durum === 'onayli') return yanit(200, 'sen zaten abonesin. bülten her pazartesi 07:30’da gelen kutunda.');
+  if (kayit?.durum === 'onayli') return yanit(200, 'sen zaten abonesin. bülten her pazar 09:00’da gelen kutunda.');
   // Engellenen adres: cevap aynı, ama hiçbir şey gönderilmez ve kayıt değişmez
   if (kayit?.durum === 'engelli') return yanit(201, ONAY_BEKLE, '/abone/son-adim/');
 
@@ -94,7 +94,7 @@ export async function abone(request, env) {
     if (kayit) await db.prepare("UPDATE aboneler SET durum = 'onayli', onay = ?, ayrilma = NULL WHERE eposta = ?").bind(simdi, adres).run();
     else await db.prepare("INSERT INTO aboneler (eposta, durum, anahtar, kaynak, ulke, olusturma, onay) VALUES (?, 'onayli', ?, ?, ?, ?, ?)")
       .bind(adres, yeniAnahtar(), kaynak, ulke, simdi, simdi).run();
-    return yanit(201, 'tamamdır, kaydettim. pazartesi 07:30’da gelen kutundayız.');
+    return yanit(201, 'tamamdır, kaydettim. pazar 09:00’da gelen kutundayız.');
   }
 
   const bekle = ONAY_BEKLE;
@@ -322,10 +322,10 @@ export function onayEpostasi(env, anahtar) {
 <tr><td style="padding:0 0 4px 44px;font-size:12px;font-weight:600;color:#84847f">(parantez)</td></tr>
 <tr><td style="padding:0"><table role="presentation" cellpadding="0" cellspacing="0"><tr><td valign="top" style="padding:0 8px 0 0"><div style="width:36px;height:36px;border-radius:50%;background:#111111;color:#ffffff;font-size:12px;font-weight:800;line-height:36px;text-align:center">(p)</div></td>
 <td><div style="display:inline-block;max-width:460px;padding:10px 14px;border-radius:20px;background:#f1f1ed;font-size:17px;line-height:1.5">selam! bu adresi (parantez)’e abone olmak için yazdın.</div></td></tr></table></td></tr>
-${balon('bir dokunuşla onaylar mısın? sonra her pazartesi 07:30’da haftanın özeti ve beş yazı gelir.')}
+${balon('bir dokunuşla onaylar mısın? sonra her pazar 09:00’da haftanın özeti ve beş yazı gelir.')}
 <tr><td style="padding:14px 0 0 44px"><a href="${h(baglanti)}" style="display:inline-block;padding:12px 20px;border-radius:999px;background:#2a35ff;color:#ffffff;font-size:16px;font-weight:700;text-decoration:none">aboneliğimi onayla →</a></td></tr>
 <tr><td style="padding:28px 0 0 44px;font-size:13px;line-height:1.5;color:#84847f">bunu sen yazmadıysan e-postayı görmezden gel; başka bir şey gelmez.<br><a href="${h(site)}" style="color:#84847f">parantezbulten.com</a></td></tr>
 </table></td></tr></table></body></html>`;
-  const text = `selam! bu adresi (parantez)'e abone olmak için yazdın.\n\nonaylamak için: ${baglanti}\n\nsonra her pazartesi 07:30'da haftanın özeti ve beş yazı gelir. bunu sen yazmadıysan e-postayı görmezden gel; başka bir şey gelmez.`;
+  const text = `selam! bu adresi (parantez)'e abone olmak için yazdın.\n\nonaylamak için: ${baglanti}\n\nsonra her pazar 09:00'da haftanın özeti ve beş yazı gelir. bunu sen yazmadıysan e-postayı görmezden gel; başka bir şey gelmez.`;
   return { subject: 'aboneliğini onaylar mısın?', html, text };
 }

@@ -229,9 +229,9 @@ export function gunEkle(tarih: string, gun: number): string {
   return d.toISOString().slice(0, 10);
 }
 
-export function sonrakiPazartesi(): string {
+export function sonrakiPazar(): string {
   const d = new Date();
-  const fark = (8 - d.getDay()) % 7 || 7;
+  const fark = (7 - d.getDay()) % 7 || 7;
   d.setDate(d.getDate() + fark);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }

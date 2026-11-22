@@ -141,7 +141,7 @@ export function yaziOnizleme(y: YaziTaslak, b: Baglam, gorselUrl?: string): stri
               <span class="sonraki__t"><small>Bu sayının son yazısıydı</small><b>${sayiAdi} sohbetine dön</b><span>özet, öneriler ve etkinlikler orada</span></span>
             </a>`}
           <section class="yz-abone" aria-label="Abone ol">
-            <div class="not">${av(PARANTEZ)}<div class="not__b"><p>bu yazı her pazartesi 07:30’da gelen bültenimizden. sana da gelsin mi?</p></div></div>
+            <div class="not">${av(PARANTEZ)}<div class="not__b"><p>bu yazı her pazar 09:00’da gelen bültenimizden. sana da gelsin mi?</p></div></div>
             <form class="yz-abone__form"><input name="eposta" type="email" placeholder="e-posta adresin"><button class="send" type="button" aria-label="Abone ol">${SVG_GONDER}</button></form>
           </section>
         </footer>
@@ -180,7 +180,7 @@ export function sayiOnizleme(v: SayiVeri, govde: string, b: Baglam): string {
     ${bar(`Sayı ${pad(v.sayi)}`, v.baslik, '')}
     <main class="msgs">
       <div class="sohbet">
-        <div class="day">Sayı ${pad(v.sayi)} · ${gunAdi(v.yayin)}, ${tarihUzun(v.yayin)} · 07:30</div>
+        <div class="day">Sayı ${pad(v.sayi)} · ${gunAdi(v.yayin)}, ${tarihUzun(v.yayin)} · 09:00</div>
         ${grp(editor, `<p class="b">günaydın. bu hafta tek cümle:</p><h1 class="b b--baslik">${e(v.baslik)}</h1>`)}
         ${grp(editor, metinHtml(govde), { isim: false, flow: true, cls: 'grp--devam' })}
         ${grp(PARANTEZ, `<p class="b">bu sayıda ${liste.length} yazı var, toplam ${toplam} dakika. nereden başlayalım?</p>`)}
@@ -217,7 +217,7 @@ export function sayiOnizleme(v: SayiVeri, govde: string, b: Baglam): string {
         <section class="dal" aria-label="Abone ol">
           <div class="me"><p class="b">bülten bana da gelsin</p></div>
           ${grp(PARANTEZ, `
-            <p class="b">çok iyi. her pazartesi 07:30’da tek bir e-posta: haftanın özeti ve beş yazı. ücretsiz.</p>
+            <p class="b">çok iyi. her pazar 09:00’da tek bir e-posta: haftanın özeti ve beş yazı. ücretsiz.</p>
             <p class="b">istediğin an, her e-postanın en altındaki bağlantıyla tek tıkla abonelikten çıkabilirsin.</p>
             <p class="b">e-posta adresini aşağıya yazar mısın?</p>`)}
         </section>

@@ -108,7 +108,7 @@ function aboneModu(ac: boolean, odak = true) {
   document.body.classList.toggle('kutu-acik', ac);
   girdi.type = ac ? 'email' : 'text';
   girdi.inputMode = ac ? 'email' : 'text';
-  girdi.placeholder = ac ? 'e-posta adresin' : 'e-postanı yaz, her pazartesi sana da gelsin';
+  girdi.placeholder = ac ? 'e-posta adresin' : 'e-postanı yaz, her pazar sana da gelsin';
   if (ac && odak) girdi.focus({ preventScroll: true });
   if (!ac) girdi.blur();
   chipGuncelle();
@@ -155,7 +155,7 @@ if (form && girdi) form.addEventListener('submit', async (e) => {
   if (form.dataset.mod === 'abone') return botSoyle(['bu bir e-posta adresine benzemiyor. <b>ornek@site.com</b> gibi yazar mısın?']);
   return botSoyle([
     'şimdilik sadece aşağıdaki seçeneklerle konuşabiliyorum.',
-    'ama e-posta adresini yazarsan bülteni her pazartesi sana da gönderirim.',
+    'ama e-posta adresini yazarsan bülteni her pazar sana da gönderirim.',
   ]);
 });
 
@@ -307,7 +307,7 @@ chipler?.addEventListener('click', async (e) => {
     benSoyle(c.dataset.soz ?? 'abone olmak istiyorum');
     aboneModu(true);
     await botSoyle([
-      'çok iyi. her pazartesi 07:30’da tek bir e-posta: haftanın özeti ve beş yazı. ücretsiz.',
+      'çok iyi. her pazar 09:00’da tek bir e-posta: haftanın özeti ve beş yazı. ücretsiz.',
       'istediğin an, her e-postanın en altındaki bağlantıyla tek tıkla abonelikten çıkabilirsin.',
       'e-posta adresini aşağıya yazar mısın?',
     ]);

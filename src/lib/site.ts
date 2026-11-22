@@ -10,7 +10,7 @@ export type Arastirma = CollectionEntry<'arastirmalar'>;
 export const SITE = {
   ad: '(parantez)',
   slogan: 'Gündem uzun. Biz kısaltıyoruz. Bazen de uzatıyoruz.',
-  aciklama: 'Her pazartesi 07:30’da gelen kutuna: haftanın özeti ve beş yazı. Gündem uzun, biz kısaltıyoruz. Bazen de uzatıyoruz.',
+  aciklama: 'Her pazar 09:00’da gelen kutuna: haftanın özeti ve beş yazı. Gündem uzun, biz kısaltıyoruz. Bazen de uzatıyoruz.',
   eposta: 'baris@parantezbulten.com',
 };
 

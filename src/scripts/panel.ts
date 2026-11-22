@@ -4,7 +4,7 @@ import { KONULAR } from '../lib/konular';
 import { yaziYerleri } from '../lib/yerlesim';
 import {
   FIILLER, KONU_LISTESI, adres, arastirmaDenetle, arastirmaMetni, arastirmaOku, blobSha, gunEkle, kisaltma,
-  sayiDenetle, sayiMetni, sayiOku, sonrakiPazartesi, yaziDenetle, yaziMetni, yaziOku,
+  sayiDenetle, sayiMetni, sayiOku, sonrakiPazar, yaziDenetle, yaziMetni, yaziOku,
   type ArastirmaVeri, type Etkinlik, type Kayit, type Kisi, type Oneri, type SayiVeri, type YaziVeri,
 } from './panel-icerik';
 import {
@@ -615,7 +615,7 @@ function sayiFormu(arg: string, oneriId?: number) {
   }
   const kaynak = oneri ? sayiOku({ yol: oneri.yol, sha: '', metin: oneri.metin ?? '' }) : kayit;
   const eskimis = !!oneri && (oneri.temel ?? null) !== (kayit?.sha ?? null);
-  const yayin = sonrakiPazartesi();
+  const yayin = sonrakiPazar();
   const editor = kisiler()[0];
   const enBuyuk = Math.max(0, ...baglam().sayilar.map((s) => s.veri.sayi));
   const v: SayiVeri = kaynak?.veri ?? {
@@ -638,7 +638,7 @@ function sayiFormu(arg: string, oneriId?: number) {
 
       <div class="pn-izgara">
         <label class="pn-alan"><span>Sayı no</span><input name="sayi" type="number" min="1" value="${v.sayi}"${yol ? ' readonly' : ''}></label>
-        <label class="pn-alan"><span>Yayın (pazartesi)</span><input name="yayin" type="date" value="${e(v.yayin)}"></label>
+        <label class="pn-alan"><span>Yayın (pazar)</span><input name="yayin" type="date" value="${e(v.yayin)}"></label>
         <label class="pn-alan"><span>Kapsadığı hafta: başlangıç</span><input name="baslangic" type="date" value="${e(v.baslangic)}"></label>
         <label class="pn-alan"><span>Bitiş</span><input name="bitis" type="date" value="${e(v.bitis)}"></label>
       </div>
@@ -812,7 +812,7 @@ function arastirmaFormu(slug: string, oneriId?: number) {
   const enBuyuk = Math.max(0, ...[...durum.arastirmalar, ...yeniArastirmalar().map((x) => x.kayit)].map((a) => a.veri.no));
   const benKisi = kisiler().find((k) => k.ad === durum.ben?.ad)?.ad;
   const v: ArastirmaVeri = kaynak?.veri ?? {
-    no: enBuyuk + 1, baslik: '', yayin: sonrakiPazartesi(), yazarlar: benKisi ? [benKisi] : [], ozet: '',
+    no: enBuyuk + 1, baslik: '', yayin: sonrakiPazar(), yazarlar: benKisi ? [benKisi] : [], ozet: '',
     gorsel: '', gorselAlt: '', gorselKaynak: '',
   };
   const govde = kaynak?.govde ?? '';
@@ -977,7 +977,7 @@ const denemeAlani = (n: number) => `
     <button type="button" class="chip" data-bulten-dene="${n}">Deneme gönder</button>
   </div>`;
 const saatli = (t: number) => new Date(t).toLocaleString('tr-TR', { weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Istanbul' });
-const yayinAni = (yayin: string) => Date.parse(`${yayin}T04:30:00Z`); // pazartesi 07:30, Türkiye saati
+const yayinAni = (yayin: string) => Date.parse(`${yayin}T06:00:00Z`); // pazar 09:00, Türkiye saati
 
 function gonderimMetni(g: Gonderim) {
   const simdi = Date.now();
@@ -1043,7 +1043,7 @@ async function bultenSayfasi(yenile = true) {
         <p class="pn-not">${not}</p>
         <div class="pn-eylem">
           <button type="button" class="chip" data-bulten-onizle="${sec.veri.sayi}">Önizle</button>
-          ${b.resend && !gitti && ileride ? `<button type="button" class="chip chip--dolu" data-bulten-planla="${sec.veri.sayi}">${new Date(zaman).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', timeZone: 'Europe/Istanbul' })} 07:30’a planla</button>` : ''}
+          ${b.resend && !gitti && ileride ? `<button type="button" class="chip chip--dolu" data-bulten-planla="${sec.veri.sayi}">${new Date(zaman).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', timeZone: 'Europe/Istanbul' })} 09:00’a planla</button>` : ''}
           ${b.resend && !gitti ? `<button type="button" class="chip${ileride ? '' : ' chip--dolu'}" data-bulten-simdi="${sec.veri.sayi}">Şimdi gönder</button>` : ''}
         </div>
         ${b.resend ? denemeAlani(sec.veri.sayi) : ''}
@@ -1055,7 +1055,7 @@ async function bultenSayfasi(yenile = true) {
   const o = bultenOnizleme;
   iskelet('bulten', `
     <div class="pn-bas" data-bulten-sayfa><h1>Bülten</h1></div>
-    <p class="pn-not pn-not--ust">Her sayı pazartesi 07:30’da e-postayla gider. Planlanan sayı gizliyse 07:20’de sitede görünür olur; 07:30’da gönderim başlar. Gönderen: ${e(b.kimden)}.</p>
+    <p class="pn-not pn-not--ust">Her sayı pazar 09:00’da e-postayla gider. Planlanan sayı gizliyse 08:50’de sitede görünür olur; 09:00’da gönderim başlar. Gönderen: ${e(b.kimden)}.</p>
     ${b.resend ? '' : '<p class="pn-uyari">E-posta gönderimi henüz kurulmadı: Cloudflare’de <b>RESEND_API_KEY</b> tanımlanmalı (PANEL.md). Önizleme çalışır; deneme ve gönderim çalışmaz.</p>'}
     <section class="pn-grup">
       <h2>Aboneler</h2>
