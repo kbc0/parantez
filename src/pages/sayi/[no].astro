@@ -1,7 +1,7 @@
 ---
 import App from '../../layouts/App.astro';
 import IssueChat from '../../components/IssueChat.astro';
-import { sayilar, pad, guncelUrl, type Sayi } from '../../lib/site';
+import { sayilar, pad, guncelUrl, kisaMetin, type Sayi } from '../../lib/site';
 import { sayiChips } from '../../lib/chips';
 
 export async function getStaticPaths() {
@@ -16,7 +16,7 @@ const disari = !!(s.oneriler && Object.keys(s.oneriler).length) || !!s.etkinlikl
 ---
 <App
   title={`Sayı ${pad(s.sayi)}: ${s.baslik}`}
-  description={`Sayı ${pad(s.sayi)}: ${s.baslik}`}
+  description={kisaMetin((sayi.body ?? '').trim().split(/\n\s*\n/)[0] ?? '') || `Sayı ${pad(s.sayi)}: ${s.baslik}`}
   sayfa={`sayi-${s.sayi}`}
   aktif={`sayi-${s.sayi}`}
   bar={{ baslik: `Sayı ${pad(s.sayi)}`, alt: guncel ? `${s.baslik} · bu hafta` : s.baslik, geri: '/' }}

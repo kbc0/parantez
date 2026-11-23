@@ -85,7 +85,10 @@ Yazı tipi: Hanken Grotesk.
     Bu şablonlar değişirse önizleme de güncellenmeli.
 - Bülten e-postası (Resend): `worker/bulten.js` şablonu sayının sohbet hâlinin e-posta karşılığıdır;
   `IssueChat.astro` değişirse o da gözden geçirilmeli. Gönderim `worker/gonderim.js` (her dakika çalışan zamanlayıcı;
-  panelde **Bülten**), e-posta istemcisi `worker/eposta.js`.
+  panelde **Bülten**), e-posta istemcisi `worker/eposta.js`. Sayı onaylanınca gönderimi yayın günü 09:00'a kendiliğinden
+  planlanır (`sayiyiPlanla`; `inceleme.js` ve `panel.js` kaydet çağırır).
+- Arama motorları: `Bas.astro` açıklama, paylaşım kartı, ikonlar ve `meta.ld` ile yapısal veri (`src/lib/yapisal.ts`:
+  ana sayfada WebSite + Organization, yazıda NewsArticle, araştırmada Article). `public/robots.txt` site haritasını gösterir.
 - Worker: `worker/index.js`.
   - `/api/abone/*`: çift onaylı abonelik ve tek tıkla çıkış (`worker/abonelik.js`; D1 `aboneler`).
     Sayfaları `/abone/son-adim/`, `/abone/tamam/`, `/abone/cik/`, `/abone/ayrildin/`, `/abone/gecersiz/`. KV `ABONELER` yalnızca eski kayıtlar için.

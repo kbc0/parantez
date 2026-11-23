@@ -3,7 +3,8 @@
 // Metnin içinde ara başlık, tablo, ```grafik ve dipnot olabilir. Renk yok.
 import { render } from 'astro:content';
 import Arastirma from '../../layouts/Arastirma.astro';
-import { arastirmalar, gorsel, pad, tarihUzun, type Arastirma as Yayin } from '../../lib/site';
+import { arastirmalar, gorsel, pad, tarihUzun, yayinAni, type Arastirma as Yayin } from '../../lib/site';
+import { makaleLd } from '../../lib/yapisal';
 
 export async function getStaticPaths() {
   return (await arastirmalar()).map((a) => ({ params: { slug: a.id }, props: { a } }));
@@ -12,9 +13,17 @@ export async function getStaticPaths() {
 const { a } = Astro.props as { a: Yayin };
 const d = a.data;
 const { Content } = await render(a);
+const kart = d.gorsel ? gorsel(d.gorsel, 1200, 630) : undefined;
+const meta = {
+  gorselAlt: d.gorselAlt, yayin: yayinAni(d.yayin), yazarlar: d.yazarlar, bolum: 'Araştırma',
+  ld: makaleLd({
+    tur: 'Article', yol: Astro.url.pathname, baslik: d.baslik, aciklama: d.ozet, gorsel: kart,
+    yayin: yayinAni(d.yayin), yazarlar: d.yazarlar, bolum: 'Araştırma',
+  }, Astro.site!),
+};
 const adlar = (l: string[]) => (l.length < 2 ? l[0] : `${l.slice(0, -1).join(', ')} ve ${l[l.length - 1]}`);
 ---
-<Arastirma title={d.baslik} description={d.ozet} image={d.gorsel ? gorsel(d.gorsel, 1200, 630) : undefined} type="article">
+<Arastirma title={d.baslik} description={d.ozet} image={kart} type="article" meta={meta}>
   <article class="ar-yazi">
     <header>
       <p class="ar-no">No. {pad(d.no)}</p>

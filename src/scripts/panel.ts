@@ -529,12 +529,12 @@ async function dogrudanYayinla(f: HTMLFormElement, tur: OneriTur, kayit: { yol: 
   await kaydet(f, {
     mesaj: `Küçük düzeltme: ${baslik}`, dosyalar: [{ yol: kayit.yol, metin }, ...(gorsel ? [gorsel] : [])],
     beklenen: { [kayit.yol]: kayit.sha }, oneri: oneri?.id,
-  }, async (commit) => {
+  }, async (commit, bulten) => {
     const yeni = { tur, islem: 'kaydet' as const, yol: kayit.yol, metin };
     await yayinaIsle(yeni);
     if (oneri) await onerileriYukle().catch(() => {});
     bekleyenEkle(commit, baslik, siteAdresi(yeni));
-    toast('Yayınlandı. Birkaç dakika içinde sitede olur.', 3800);
+    toast(bulten ? `Yayınlandı. ${bulten}` : 'Yayınlandı. Birkaç dakika içinde sitede olur.', bulten ? 7000 : 3800);
     location.hash = { yazi: '#/yazilar', sayi: '#/sayilar', arastirma: '#/arastirmalar' }[tur];
   });
 }
@@ -638,7 +638,7 @@ function sayiFormu(arg: string, oneriId?: number) {
 
       <div class="pn-izgara">
         <label class="pn-alan"><span>Sayı no</span><input name="sayi" type="number" min="1" value="${v.sayi}"${yol ? ' readonly' : ''}></label>
-        <label class="pn-alan"><span>Yayın (pazar)</span><input name="yayin" type="date" value="${e(v.yayin)}"></label>
+        <label class="pn-alan"><span>Yayın (pazar, bülten 09:00’da)</span><input name="yayin" type="date" value="${e(v.yayin)}"></label>
         <label class="pn-alan"><span>Kapsadığı hafta: başlangıç</span><input name="baslangic" type="date" value="${e(v.baslangic)}"></label>
         <label class="pn-alan"><span>Bitiş</span><input name="bitis" type="date" value="${e(v.bitis)}"></label>
       </div>
@@ -1055,7 +1055,7 @@ async function bultenSayfasi(yenile = true) {
   const o = bultenOnizleme;
   iskelet('bulten', `
     <div class="pn-bas" data-bulten-sayfa><h1>Bülten</h1></div>
-    <p class="pn-not pn-not--ust">Her sayı pazar 09:00’da e-postayla gider. Planlanan sayı gizliyse 08:50’de sitede görünür olur; 09:00’da gönderim başlar. Gönderen: ${e(b.kimden)}.</p>
+    <p class="pn-not pn-not--ust">Her sayı yayın günü (pazar) 09:00’da e-postayla gider. Sayı onaylanınca gönderimi kendiliğinden planlanır; buradan iptal edebilir, elle planlayabilir ya da hemen gönderebilirsin. Planlanan sayı gizliyse 08:50’de sitede görünür olur; 09:00’da gönderim başlar. Gönderen: ${e(b.kimden)}.</p>
     ${b.resend ? '' : '<p class="pn-uyari">E-posta gönderimi henüz kurulmadı: Cloudflare’de <b>RESEND_API_KEY</b> tanımlanmalı (PANEL.md). Önizleme çalışır; deneme ve gönderim çalışmaz.</p>'}
     <section class="pn-grup">
       <h2>Aboneler</h2>
@@ -1481,11 +1481,12 @@ async function yorumGonder(f: HTMLFormElement, islem: string) {
   try {
     if (islem === 'onayla') {
       const oncesi = await surum();
-      const j = await api<{ commit: string }>('oneri/onayla', { id: o.id, metin, surum: o.surum });
+      const j = await api<{ commit: string; bulten?: string | null }>('oneri/onayla', { id: o.id, metin, surum: o.surum });
       sonOncesi = oncesi;
       await yayinaIsle(o);
       bekleyenEkle(j.commit, o.baslik, siteAdresi(o));
-      toast(o.islem === 'sil' ? 'Onaylandı. 1–2 dakika içinde siteden kalkar.' : 'Onaylandı. Sitede 1–2 dakika içinde görünür.', 4000);
+      const ilk = o.islem === 'sil' ? 'Onaylandı. 1–2 dakika içinde siteden kalkar.' : 'Onaylandı. Sitede 1–2 dakika içinde görünür.';
+      toast(j.bulten ? `${ilk} ${j.bulten}` : ilk, j.bulten ? 7000 : 4000);
     } else {
       await api(islem === 'degisiklik' ? 'oneri/degisiklik' : 'oneri/yorum', { id: o.id, metin });
     }
@@ -1583,7 +1584,7 @@ function hataGoster(f: HTMLFormElement, hatalar: string[], baglanti?: string): b
 async function kaydet(
   f: HTMLFormElement,
   istek: { mesaj: string; dosyalar: { yol: string; metin?: string; base64?: string }[]; sil?: string[]; beklenen: Record<string, string | null>; oneri?: number },
-  sonra: (commit: string) => Promise<void>,
+  sonra: (commit: string, bulten: string | null) => Promise<void>,
 ) {
   const dugmeler = $$<HTMLButtonElement>('.pn-eylem button', f);
   const dugme = $<HTMLButtonElement>('[data-kaydet], [data-dogrudan]', f);
@@ -1592,10 +1593,10 @@ async function kaydet(
   if (dugme) dugme.textContent = dugme.hasAttribute('data-dogrudan') ? 'Yayınlanıyor…' : 'Kaydediliyor…';
   try {
     const oncesi = await surum();
-    const { commit } = await api<{ commit: string }>('kaydet', istek);
+    const { commit, bulten } = await api<{ commit: string; bulten?: string | null }>('kaydet', istek);
     durum.kirli = false;
     sonOncesi = oncesi;
-    await sonra(commit);
+    await sonra(commit, bulten ?? null);
   } catch (err) {
     const a = err as ApiHatasi;
     hataGoster(f, [a.message], a.veri?.id ? `#/oneri/${a.veri.id}` : undefined);

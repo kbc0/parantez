@@ -1,6 +1,7 @@
 // (parantez) — bültenin gönderimi.
 //
-// Panelden bir sayı planlanır (Bülten sayfası). Sonrasını her dakika çalışan zamanlayıcı yürütür:
+// Bir sayı onaylanıp kaydedilince gönderimi yayın günü 09:00'a kendiliğinden planlanır (sayiyiPlanla);
+// Bülten sayfasından elle de planlanabilir, iptal edilebilir. Sonrasını her dakika çalışan zamanlayıcı yürütür:
 //   planli       → yayın saatinden 10 dakika önce sayı gizliyse görünür yapılır (GitHub'a commit)
 //   yayinda      → yayın saatinde, site yeni hâliyle yayına çıktıysa e-posta hazırlanır ve dondurulur
 //   gonderiliyor → her dakika 2 × 50 aboneye; hepsine gidince
@@ -66,6 +67,47 @@ function hataDegerlendir(e) {
     return { metin: 'GitHub şu an cevap vermiyor; birazdan yeniden denenecek.', sure: 5 };
   }
   return { metin: String(e.message || e), sure: 10 };
+}
+
+// ------------------------------------------------------------------ kendiliğinden planlama
+
+const tarihYazisi = (zaman) => new Date(zaman).toLocaleString('tr-TR', {
+  timeZone: 'Europe/Istanbul', weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit',
+});
+
+// Sayı onaylanıp (ya da doğrudan düzeltilip) kaydedilince çağrılır. Gönderimi yoksa yayın günü 09:00'a planlar;
+// planlıysa ve yayın günü değiştiyse saati günceller. Gönderilmiş, gönderilmekte olan ya da panelden iptal edilmiş
+// bir sayıya dokunmaz; yayın saati geçmişse de planlamaz. Planlandıysa okunur bir cümle döner.
+export async function sayiyiPlanla(env, metin, kim) {
+  const db = env.DB;
+  if (!db || typeof metin !== 'string') return null;
+  await gonderimSemasi(db);
+  const v = sayiOku({ yol: '', sha: '', metin }).veri;
+  const zaman = gonderimZamani(v.yayin);
+  if (!Number.isInteger(v.sayi) || v.sayi < 1 || !v.yazilar.length || !Number.isFinite(zaman)) return null;
+  const simdi = Date.now();
+  const son = await db.prepare('SELECT id, durum, zaman FROM gonderimler WHERE sayi = ? ORDER BY id DESC LIMIT 1').bind(v.sayi).first();
+  if (son?.durum === 'planli') {
+    // "Şimdi gönder" ile planlanmış olanın saatine dokunulmaz
+    if (son.zaman === zaman || son.zaman <= simdi + 60e3 || zaman <= simdi + 60e3) return null;
+    await db.prepare("UPDATE gonderimler SET zaman = ? WHERE id = ? AND durum = 'planli'").bind(zaman, son.id).run();
+    return `Bülten gönderimi ${tarihYazisi(zaman)} olarak güncellendi.`;
+  }
+  if (son || zaman <= simdi + 60e3) return null;
+  const acik = await db.prepare("SELECT sayi FROM gonderimler WHERE durum IN ('planli', 'yayinda', 'gonderiliyor') LIMIT 1").first();
+  if (acik) return null;
+  await db.prepare(`INSERT INTO gonderimler (sayi, durum, zaman, planlayan, planlayan_ad, olusturma) VALUES (?, 'planli', ?, ?, ?, ?)`)
+    .bind(v.sayi, zaman, kim.eposta, kim.ad, simdi).run();
+  return `Bülten gönderimi planlandı: ${tarihYazisi(zaman)}.`;
+}
+
+// Sayı silinince planlı gönderimi de iptal edilir
+export async function sayiSilindi(env, yol, kim) {
+  const no = Number(String(yol).match(/sayilar\/0*(\d+)\.md$/)?.[1]);
+  if (!env.DB || !Number.isInteger(no) || no < 1) return null;
+  await gonderimSemasi(env.DB);
+  const r = await env.DB.prepare("UPDATE gonderimler SET durum = 'iptal', iptal_eden = ? WHERE sayi = ? AND durum = 'planli'").bind(kim.ad, no).run();
+  return r.meta.changes ? 'Planlı bülten gönderimi iptal edildi.' : null;
 }
 
 // ------------------------------------------------------------------ zamanlayıcı

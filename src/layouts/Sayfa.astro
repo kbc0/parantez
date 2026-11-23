@@ -4,7 +4,7 @@
 // İçeriği (<main>) sayfa kendisi verir.
 import '@fontsource-variable/hanken-grotesk';
 import '../styles/global.css';
-import Bas from '../components/Bas.astro';
+import Bas, { type Meta } from '../components/Bas.astro';
 import AnaUst from '../components/AnaUst.astro';
 import Arsiv from '../components/Arsiv.astro';
 
@@ -16,13 +16,14 @@ interface Props {
   aktif?: 'arastirma' | 'hakkinda';
   sinif?: string; // body'ye eklenecek sınıf, ör. ar-sayfa
   sayfa?: string; // tepkilerin saklandığı sayfa anahtarı
+  meta?: Meta; // paylaşım kartı ve yapısal veri (Bas.astro)
 }
-const { title, description, image, type, aktif, sinif, sayfa } = Astro.props;
+const { title, description, image, type, aktif, sinif, sayfa, meta } = Astro.props;
 ---
 <!doctype html>
 <html lang="tr">
 <head>
-  <Bas title={title} description={description} image={image} type={type} />
+  <Bas title={title} description={description} image={image} type={type} meta={meta} />
   <script is:inline>document.documentElement.classList.add('js');</script>
 </head>
 <body class:list={['ust-sayfa', sinif]} data-sayfa={sayfa}>

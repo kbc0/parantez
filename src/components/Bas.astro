@@ -1,27 +1,42 @@
 ---
-// <head> içindeki ortak etiketler: başlık, açıklama, paylaşım kartı. App ve Arastirma düzenleri kullanır.
+// <head> içindeki ortak etiketler: başlık, açıklama, paylaşım kartı, ikonlar ve arama motorları için yapısal veri.
+// App ve Sayfa düzenleri kullanır.
 import { SITE } from '../lib/site';
 // Türkçe metin bu iki dosyayla çizilir (latin + latin-ext). Erkenden istenirse sayfa yedek yazı tipiyle açılıp sonra değişmez.
 import yaziLatin from '@fontsource-variable/hanken-grotesk/files/hanken-grotesk-latin-wght-normal.woff2?url';
 import yaziLatinEk from '@fontsource-variable/hanken-grotesk/files/hanken-grotesk-latin-ext-wght-normal.woff2?url';
 
+// meta: yazı ve araştırma sayfalarının paylaşım kartı ve yapısal verisi
+export interface Meta {
+  gorselAlt?: string;
+  yayin?: string; // ISO zaman, ör. 2026-11-29T09:00:00+03:00
+  yazarlar?: string[];
+  bolum?: string; // konu
+  ld?: Record<string, unknown> | Record<string, unknown>[]; // schema.org (JSON-LD)
+}
 // gizli: arama motorlarına kapalı sayfalar (ör. abonelik onayı ve çıkış)
-interface Props { title?: string; description?: string; image?: string; type?: 'website' | 'article'; ek?: string; gizli?: boolean }
-const { title, description = SITE.aciklama, image, type = 'website', ek, gizli = false } = Astro.props;
+interface Props { title?: string; description?: string; image?: string; type?: 'website' | 'article'; ek?: string; gizli?: boolean; meta?: Meta }
+const { title, description = SITE.aciklama, image, type = 'website', ek, gizli = false, meta = {} } = Astro.props;
 // ek: başlığın sonundaki bölüm adı, ör. "(parantez) araştırma"
 const fullTitle = title ? `${title} — ${ek ?? SITE.ad}` : `${SITE.ad} — ${SITE.slogan}`;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 const ogImage = new URL(image ?? '/og.png', Astro.site);
+const gorselAlt = meta.gorselAlt || (image ? '' : `${SITE.ad} — ${SITE.slogan}`);
+// "</script>" metnin içinde geçerse etiketi kapatmasın
+const ld = meta.ld ? JSON.stringify(meta.ld).replace(/</g, '\\u003c') : '';
 ---
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>{fullTitle}</title>
 <meta name="description" content={description}>
-{gizli && <meta name="robots" content="noindex">}
+<meta name="robots" content={gizli ? 'noindex' : 'max-image-preview:large'}>
 <link rel="canonical" href={canonical}>
 <link rel="preload" href={yaziLatin} as="font" type="font/woff2" crossorigin>
 <link rel="preload" href={yaziLatinEk} as="font" type="font/woff2" crossorigin>
+<link rel="icon" href="/favicon.ico" sizes="48x48">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/icon-192.png" type="image/png" sizes="192x192">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 {/* Okur bir bağlantıya yönelince (üstüne gelince ya da dokununca) sayfa önceden indirilir; tıklayınca hazır açılır */}
 <script type="speculationrules" is:inline>{"prefetch":[{"where":{"and":[{"href_matches":"/*"},{"not":{"href_matches":["/api/*","/admin/*","/rss.xml"]}}]},"eagerness":"moderate"}]}</script>
 <link rel="alternate" type="application/rss+xml" title={SITE.ad} href="/rss.xml">
@@ -33,4 +48,12 @@ const ogImage = new URL(image ?? '/og.png', Astro.site);
 <meta property="og:description" content={description}>
 <meta property="og:url" content={canonical}>
 <meta property="og:image" content={ogImage}>
+{!image && <meta property="og:image:width" content="1200">}
+{!image && <meta property="og:image:height" content="630">}
+{gorselAlt && <meta property="og:image:alt" content={gorselAlt}>}
+{meta.yayin && <meta property="article:published_time" content={meta.yayin}>}
+{meta.yazarlar?.map((a) => <meta property="article:author" content={a}>)}
+{meta.bolum && <meta property="article:section" content={meta.bolum}>}
 <meta name="twitter:card" content="summary_large_image">
+{gorselAlt && <meta name="twitter:image:alt" content={gorselAlt}>}
+{ld && <script type="application/ld+json" is:inline set:html={ld} />}

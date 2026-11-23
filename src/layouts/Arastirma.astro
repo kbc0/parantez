@@ -3,11 +3,12 @@
 // Renk, balon ve betik yok.
 import '../styles/arastirma.css';
 import Sayfa from './Sayfa.astro';
+import type { Meta } from '../components/Bas.astro';
 
-interface Props { title?: string; description?: string; image?: string; type?: 'website' | 'article' }
-const { title, description, image, type } = Astro.props;
+interface Props { title?: string; description?: string; image?: string; type?: 'website' | 'article'; meta?: Meta }
+const { title, description, image, type, meta } = Astro.props;
 ---
-<Sayfa title={title} description={description} image={image} type={type} aktif="arastirma" sinif="ar-sayfa">
+<Sayfa title={title} description={description} image={image} type={type} meta={meta} aktif="arastirma" sinif="ar-sayfa">
   <main id="icerik" class="ar-kap ar-ana">
     <slot />
   </main>

@@ -132,9 +132,13 @@ Pro plana geçin (ayda 50.000 e-posta). Sınır dolarsa gönderim durmaz, bekler
 - Sayıyı seçin → **Önizle** e-postanın telefonda ve masaüstünde nasıl görüneceğini gösterir.
   **Deneme gönder** e-postayı yalnızca yazdığınız adrese yollar (varsayılan sizin adresiniz; son yazılan hatırlanır).
   Adres abone listesindeyse e-postadaki "abonelikten çık" gerçekten çalışır, yani denerken listeden çıkarsınız.
-- **… 09:00'a planla:** sayının yayın günü (pazar) 09:00'da tüm abonelere gider.
+- **Kendiliğinden planlama:** bir sayı onaylanınca (ya da doğrudan düzeltilince) gönderimi yayın gününün
+  09:00'ına kendiliğinden planlanır; onaylayana ve öneriye not düşülür. Yayın günü sonradan değişirse plan da kayar.
+  Panelden iptal edilen bir sayı yeniden kendiliğinden planlanmaz; silinen sayının planı iptal olur.
+  Yayın saati geçmiş ya da yazısı olmayan sayı planlanmaz.
+- **… 09:00'a planla:** aynısını elle yapar: sayının yayın günü (pazar) 09:00'da tüm abonelere gider.
   Sayı "Sitede gizli kalsın" işaretliyse 08:50'de kendiliğinden yayına çıkar; e-posta, sayı sitede görününce gider.
-  Yani pazar akşamı her şeyi hazırlayıp planlamak yeterli; sabah kimsenin bir şeye basması gerekmez.
+  Yani sayıyı hafta içinde hazırlayıp onaylatmak yeterli; pazar sabahı kimsenin bir şeye basması gerekmez.
 - **Şimdi gönder:** yayın saati geçmiş bir sayı için. Birkaç dakika içinde gider.
 - Plan, gönderim başlamadan ya da sürerken **iptal** edilebilir. Sayı yayına çıkmışsa sitede kalır.
 - Bir sayı yalnızca bir kez gönderilir. Aynı anda tek bir gönderim planlanabilir.

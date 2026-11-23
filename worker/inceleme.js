@@ -13,6 +13,7 @@
 // Öneriler ve yorumlar D1'de (DB) durur. Onaya kadar GitHub'a hiçbir şey gitmez.
 
 import { github, GithubHatasi, yetkiHatasi } from './github.js';
+import { sayiyiPlanla, sayiSilindi } from './gonderim.js';
 
 const ACIK = ['taslak', 'inceleme', 'degisiklik'];
 const YOLLAR = {
@@ -226,7 +227,14 @@ export async function inceleme(yol, yontem, veri, ben, env, url) {
       .bind(ben.eposta, ben.ad, commit, simdi, id).run();
     const not = String(veri.metin || '').trim();
     await yorumEkle(db, id, ben, not ? `onayladı ve yayınladı: ${not}` : 'onayladı ve yayınladı', 'onay');
-    return json({ ok: true, commit });
+    // Sayıysa bülteni yayın günü 09:00'a planla (ya da silindiyse planı iptal et)
+    let bulten = null;
+    if (o.tur === 'sayi') {
+      bulten = await (o.islem === 'sil' ? sayiSilindi(env, o.yol, ben) : sayiyiPlanla(env, o.metin, ben))
+        .catch((e) => { console.error('bülten planı:', e.message); return null; });
+      if (bulten) await yorumEkle(db, id, ben, bulten.replace(/^B/, 'b').replace(/\.$/, ''), 'olay');
+    }
+    return json({ ok: true, commit, bulten });
   }
 
   return hata(404, 'Bulunamadı.');

@@ -4,7 +4,8 @@
 import { render } from 'astro:content';
 import App from '../../layouts/App.astro';
 import Av from '../../components/Av.astro';
-import { yazilar, sayilar, sayininYazilari, okumaSuresi, gorsel, pad, tarihUzun, sayiUrl, yaziUrl, kisi, ilkAd, PARANTEZ, type Yazi, type Sayi } from '../../lib/site';
+import { yazilar, sayilar, sayininYazilari, okumaSuresi, gorsel, pad, tarihUzun, sayiUrl, yaziUrl, kisi, ilkAd, yayinAni, PARANTEZ, type Yazi, type Sayi } from '../../lib/site';
+import { makaleLd } from '../../lib/yapisal';
 import { konuAdi, konuRenk } from '../../lib/konular';
 
 export async function getStaticPaths() {
@@ -24,12 +25,21 @@ const sayiLink = sayiUrl(d.sayi);
 const EMOJI = ['❤️', '😂', '😮', '😢', '🔥'];
 // Sohbetteki link kartıyla aynı görsel: önbellekten gelir, kart görsele dönüşür
 const foto = (y: Yazi) => gorsel(y.data.gorsel, 1200, 632);
+const kart = gorsel(d.gorsel, 1200, 630);
+const meta = {
+  gorselAlt: d.gorselAlt, yayin: yayinAni(sayi.data.yayin), yazarlar: [yazar.ad], bolum: konuAdi(d.konu),
+  ld: makaleLd({
+    tur: 'NewsArticle', yol: yaziUrl(yazi), baslik: d.baslik, aciklama: d.spot, gorsel: kart,
+    yayin: yayinAni(sayi.data.yayin), yazarlar: [yazar.ad], bolum: konuAdi(d.konu),
+  }, Astro.site!),
+};
 ---
 <App
   title={d.baslik}
   description={d.spot}
-  image={gorsel(d.gorsel, 1200, 630)}
+  image={kart}
   type="article"
+  meta={meta}
   sayfa={`yazi-${yazi.id}`}
   aktif={`sayi-${d.sayi}`}
   bar={{

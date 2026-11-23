@@ -2,7 +2,7 @@
 import '@fontsource-variable/hanken-grotesk';
 import '../styles/global.css';
 import Av from '../components/Av.astro';
-import Bas from '../components/Bas.astro';
+import Bas, { type Meta } from '../components/Bas.astro';
 import Composer from '../components/Composer.astro';
 import Arsiv from '../components/Arsiv.astro';
 import type { Chip } from '../lib/chips';
@@ -25,9 +25,10 @@ interface Props {
   ana?: boolean; // ana sayfa: mobilde sohbet listesi, masaüstünde solda liste + sağda bu haftanın kapağı
   okuma?: boolean; // yazı sayfası: balonsuz, rahat okunan düzen
   gizli?: boolean; // arama motorlarına kapalı
+  meta?: Meta; // paylaşım kartı ve yapısal veri (Bas.astro)
 }
 
-const { title, description, image, type = 'website', sayfa, aktif, bar, chips, mod, kaynak, composer = true, ana = false, okuma = false, gizli = false } = Astro.props;
+const { title, description, image, type = 'website', sayfa, aktif, bar, chips, mod, kaynak, composer = true, ana = false, okuma = false, gizli = false, meta } = Astro.props;
 // Başlığı (parantez) olan barlarda (p) ikonu yok; yazının kendisi logo gibi durur
 const markaBar = bar.baslik === SITE.ad && !bar.kisi;
 const liste = await sayilar();
@@ -36,7 +37,7 @@ const guncel = liste[0]?.data.sayi;
 <!doctype html>
 <html lang="tr">
 <head>
-  <Bas title={title} description={description} image={image} type={type} gizli={gizli} />
+  <Bas title={title} description={description} image={image} type={type} gizli={gizli} meta={meta} />
   <script is:inline>
     document.documentElement.classList.add('js');
     // Masaüstünde sohbet listesi okur açmadıkça kapalı gelir

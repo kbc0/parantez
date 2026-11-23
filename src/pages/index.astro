@@ -6,6 +6,7 @@ import Av from '../components/Av.astro';
 import AnaUst from '../components/AnaUst.astro';
 import { sayilar, sayininYazilari, sayiUrl, yaziUrl, pad, tarihUzun, gunAdi, okumaSuresi, ilkAd, kisi, PARANTEZ } from '../lib/site';
 import { konuAdi, konuRenk } from '../lib/konular';
+import { siteLd } from '../lib/yapisal';
 
 const liste = await sayilar();
 
@@ -16,7 +17,7 @@ const gDk = gYazilar.reduce((t, y) => t + okumaSuresi(y), 0);
 const ozet = (g?.body ?? '').trim().split(/\n\s*\n/)[0]?.replace(/[*_`#>]/g, '').trim();
 const editor = g ? kisi(g.data.imza.split(',')[0].trim()) : PARANTEZ;
 ---
-<App composer={false} ana
+<App composer={false} ana meta={{ ld: siteLd(Astro.site!) }}
   bar={{ baslik: '(parantez)', alt: `her pazar 09:00 · ${liste.length} sayı`, kok: true }}>
 
   <AnaUst />

@@ -10,7 +10,9 @@ export type Arastirma = CollectionEntry<'arastirmalar'>;
 export const SITE = {
   ad: '(parantez)',
   slogan: 'Gündem uzun. Biz kısaltıyoruz. Bazen de uzatıyoruz.',
-  aciklama: 'Her pazar 09:00’da gelen kutuna: haftanın özeti ve beş yazı. Gündem uzun, biz kısaltıyoruz. Bazen de uzatıyoruz.',
+  aciklama: 'Gençler için haftalık bülten. Her pazar 09:00’da gelen kutuna: haftanın özeti ve beş yazı. Gündem uzun, biz kısaltıyoruz.',
+  // Aramalarda markanın öbür yazılışları (yapısal veri)
+  digerAdlar: ['Parantez', 'Parantez Bülten'],
   eposta: 'baris@parantezbulten.com',
 };
 
@@ -52,6 +54,15 @@ const tr = (d: Date) => new Date(d.getTime() + 3 * 3600 * 1000);
 export const tarihUzun = (d: Date) => { const t = tr(d); return `${t.getUTCDate()} ${AYLAR[t.getUTCMonth()]} ${t.getUTCFullYear()}`; };
 const GUNLER = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'];
 export const gunAdi = (d: Date) => GUNLER[tr(d).getUTCDay()];
+// Yayın anı (sayının günü, Türkiye saatiyle 09:00): yapısal veri ve paylaşım kartı için
+export const yayinAni = (d: Date) => `${d.toISOString().slice(0, 10)}T09:00:00+03:00`;
+// Arama sonuçlarındaki açıklama için düz ve kısa metin
+export function kisaMetin(md: string, sinir = 160): string {
+  const duz = md.replace(/\[([^\]]*)\]\([^)]*\)/g, '$1').replace(/[*_`#>]/g, '').replace(/\s+/g, ' ').trim();
+  if (duz.length <= sinir) return duz;
+  const kes = duz.slice(0, sinir - 1);
+  return `${kes.slice(0, Math.max(kes.lastIndexOf(' '), sinir * 0.6)).trim()}…`;
+}
 export const tarihKisa = (d: Date) => { const t = tr(d); return `${pad(t.getUTCDate())}.${pad(t.getUTCMonth() + 1)}`; };
 export const aralik = (a: Date, b: Date) => {
   const x = tr(a), y = tr(b);

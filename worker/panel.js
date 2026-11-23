@@ -9,7 +9,7 @@
 
 import { github, GithubHatasi, yetkiHatasi } from './github.js';
 import { inceleme, incelemeSemasi, dogrudanDenetle, dogrudanYayinlandi } from './inceleme.js';
-import { bultenPanel } from './gonderim.js';
+import { bultenPanel, sayiyiPlanla } from './gonderim.js';
 import { abonePanel } from './abonelik.js';
 
 const EPOSTA = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -334,7 +334,11 @@ async function icerik(yol, yontem, veri, ben, env, url) {
       const mesaj = `${String(veri.mesaj || 'Panelden güncelleme').slice(0, 120)}\n\nPanelden: ${ben.ad} <${ben.eposta}>`;
       const commit = await gh.yaz({ mesaj, yazar: ben, dosyalar, sil, beklenen });
       if (oneri) await dogrudanYayinlandi(env.DB, oneri.id, ben, commit);
-      return json({ ok: true, commit });
+      // Sayının yayın günü değiştiyse planlı bülten de kayar; hiç planlanmamışsa planlanır
+      const bulten = icerikler[0]?.yol.startsWith('src/content/sayilar/')
+        ? await sayiyiPlanla(env, icerikler[0].metin, ben).catch((e) => { console.error('bülten planı:', e.message); return null; })
+        : null;
+      return json({ ok: true, commit, bulten });
     }
   } catch (e) {
     if (e instanceof GithubHatasi) {
