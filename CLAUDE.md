@@ -30,7 +30,7 @@ Site sahibi bu çizgiyi çok seviyor; yeni işler bu çizgide kalsın:
   - "Abone ol" yerinde açılır.
 - **Araştırma (`/arastirma/`) sade ve renksizdir; makale gibi okunur.** Site sahibi kalabalık istemiyor.
   - İskeleti `src/layouts/Arastirma.astro` (Sayfa.astro üstüne), stili `src/styles/arastirma.css`. Üst menü ana sayfanınkinin
-    aynısıdır (logo; Arşiv · Araştırma · Hakkında; Arşiv aynı çekmeceyi açar; telefonda logo ve tek "Menü" düğmesi). Sohbet listesi, bar, balon,
+    aynısıdır (logo; Araştırma · Hakkında · Arşiv, Arşiv en sağda ve aynı çekmeceyi açar; telefonda logo ve tek "Menü" düğmesi). Sohbet listesi, bar, balon,
     tepki ve renk yok. Mürekkep, beyaz, griler.
   - Liste sayfası yalnızca başlık ve yayınlar (No. ve başlık). Tanıtım metni, süzgeç, özet yok.
   - Yazı sayfası: No., başlık, yazarlar ve tarih; sonra metin. Künye, bulgu kutusu, içindekiler, atıf gibi

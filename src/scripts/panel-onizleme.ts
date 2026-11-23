@@ -152,8 +152,8 @@ export function yaziOnizleme(y: YaziTaslak, b: Baglam, gorselUrl?: string): stri
 // ------------------------------------------------------------------ sayının kapağı (SayiKapak.astro)
 
 const ANA_UST = `<header class="ana-ust"><a class="brand" href="#"><b>(parantez)</b></a><nav aria-label="Site">
-  <button type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg><span class="ana-ust__masa">Arşiv</span><span class="ana-ust__tel">Menü</span></button>
-  <a href="#">Araştırma</a><a href="#">Hakkında</a></nav></header>`;
+  <a href="#">Araştırma</a><a href="#">Hakkında</a>
+  <button type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg><span class="ana-ust__masa">Arşiv</span><span class="ana-ust__tel">Menü</span></button></nav></header>`;
 const ilkAd = (ad: string) => ad.split(/\s+/)[0];
 const AY_KUCUK = AYLAR.map((a) => a.toLocaleLowerCase('tr'));
 
