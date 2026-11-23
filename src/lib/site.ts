@@ -15,7 +15,7 @@ export const SITE = {
   digerAdlar: ['Parantez', 'Parantez Bülten'],
   // Resmî hesaplar (yapısal veride sameAs)
   hesaplar: ['https://www.instagram.com/parantezbulten/'],
-  eposta: 'baris@parantezbulten.com',
+  eposta: 'iletisim@parantezbulten.com', // sitede iletişim adresi
 };
 
 export async function sayilar(): Promise<Sayi[]> {
