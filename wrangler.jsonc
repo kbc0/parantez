@@ -26,7 +26,7 @@
     "GITHUB_DAL": "main",
     "SITE_ADRESI": "https://parantezbulten.com",
     "BULTEN_KIMDEN": "(parantez) <bulten@parantezbulten.com>",
-    "BULTEN_YANIT": "baris@parantezbulten.com"
+    "BULTEN_YANIT": "iletisim@parantezbulten.com"
   },
   // Her dakika: planlanan bülteni yayınlar ve gönderir (worker/gonderim.js)
   "triggers": { "crons": ["* * * * *"] },

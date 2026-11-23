@@ -69,7 +69,7 @@ Bülten ve abonelik onay e-postaları [Resend](https://resend.com) ile gider.
 5. Panelde **Bülten** → **Deneme gönder** ile kendi adresinize deneyin. Onay e-postasını görmek için sitede
    kendi adresinizle abone olun.
 
-Gönderen `(parantez) <bulten@parantezbulten.com>`, cevaplar `baris@parantezbulten.com`'a gider
+Gönderen `(parantez) <bulten@parantezbulten.com>`, cevaplar `iletisim@parantezbulten.com`'a gider
 (`wrangler.jsonc` → `BULTEN_KIMDEN`, `BULTEN_YANIT`).
 
 Resend'in ücretsiz planı **günde 100 e-posta** gönderir (onay e-postaları dahil). Abone sayısı 90'ı geçince
