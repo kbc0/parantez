@@ -109,7 +109,11 @@ function balon(sinif: string, metin: string, av = '') {
 }
 
 const aboneyim = () => ls.get('p:abone') === '1';
-if (aboneyim()) for (const el of $$('[data-abone-gizle]')) el.hidden = true;
+// Bu tarayıcıdan abone olunduysa abone ol düğmeleri gizlenir; kapakta yerine kısa bir not çıkar
+if (aboneyim()) {
+  for (const el of $$('[data-abone-gizle]')) el.hidden = true;
+  for (const el of $$('[data-abone-not]')) el.hidden = false;
+}
 
 for (const kutu of $$('[data-abone-kutu]')) {
   const form = $<HTMLFormElement>('form', kutu)!;

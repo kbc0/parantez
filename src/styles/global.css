@@ -925,3 +925,7 @@ html:not(.js) .yz-tepki { display: none; } /* tepki vermek betik ister; sayılar
   .sc__tarih b { font-size: clamp(38px, 6vh, 56px); }
   .sc--yer .sc__baslik { margin-top: clamp(6px, 1.2vh, 12px); font-size: clamp(19px, 2.8vh, 26px); }
 }
+
+/* Abone olan okurun kapağında "Abone ol" yerine duran not */
+.kapak__abone-not { margin: 0; padding: 11px 0; font-size: 16px; color: var(--mute); }
+.kapak__abone-not b { color: var(--me); }

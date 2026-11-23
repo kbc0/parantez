@@ -34,6 +34,8 @@ const gunAy = (d: Date) => { const t = new Date(d.getTime() + 3 * 3600e3); retur
       {ozet && <p class="kapak__ozet">{ozet}</p>}
       <div class="kapak__cta" data-abone-yerine="hizli-abone">
         <a class="chip chip--dolu" href="/abone/" data-abone-ac="hizli-abone" data-abone-gizle>Abone ol</a>
+        {/* Bu tarayıcıdan abone olunduysa düğmenin yerine bu not görünür (ortak.ts) */}
+        <p class="kapak__abone-not" data-abone-not hidden><b>✓</b> abonesin, her pazar 09:00’da gelen kutundayız.</p>
       </div>
       <div class="yz-abone hizli-abone" id="hizli-abone" data-abone-kutu hidden>
         <div class="not">
