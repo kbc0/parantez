@@ -1,0 +1,124 @@
+---
+// Bir sayının kapağı: ana sayfa bu haftanınkini, /sayi/<no>/ her sayınınkini gösterir.
+// Solda editörün selamı, dev başlık, özet ve abonelik; sağda sekmeler: yazılar, ne oldu, ne yapsam.
+// Sekmeler radyo düğmeleriyle çalışır; JavaScript gerekmez. Masaüstünde tek ekrana sığar.
+import Av from './Av.astro';
+import { sayininYazilari, okumaSuresi, yaziUrl, sayiUrl, pad, tarihUzun, gunAdi, ilkAd, kisi, PARANTEZ, type Sayi } from '../lib/site';
+import { konuAdi, konuRenk } from '../lib/konular';
+
+interface Props { sayi: Sayi; guncel: boolean }
+const { sayi, guncel } = Astro.props;
+const s = sayi.data;
+const yazilar = await sayininYazilari(s.sayi);
+const dk = yazilar.reduce((t, y) => t + okumaSuresi(y), 0);
+// Editörün notunun ilk paragrafı kapakta özet olur
+const ozet = (sayi.body ?? '').trim().split(/\n\s*\n/)[0]?.replace(/[*_`#>]/g, '').trim();
+const editor = kisi(s.imza.split(',')[0].trim());
+
+const FIIL = { dinle: 'Dinle', izle: 'İzle', oku: 'Oku' } as const;
+const oneriler = (Object.keys(FIIL) as (keyof typeof FIIL)[]).map((k) => ({ k, fiil: FIIL[k], o: s.oneriler?.[k] })).filter((x) => x.o);
+const etkinlikler = [...(s.etkinlikler ?? [])].sort((a, b) => a.tarih.getTime() - b.tarih.getTime());
+const disari = oneriler.length > 0 || etkinlikler.length > 0;
+const AYK = ['ocak', 'şubat', 'mart', 'nisan', 'mayıs', 'haziran', 'temmuz', 'ağustos', 'eylül', 'ekim', 'kasım', 'aralık'];
+const gunAy = (d: Date) => { const t = new Date(d.getTime() + 3 * 3600e3); return `${t.getUTCDate()} ${AYK[t.getUTCMonth()]}`; };
+---
+<section class="kapak" aria-labelledby="kapak-baslik">
+  <div class="kapak__ic">
+    <div class="kapak__sol">
+      <p class="kapak__ust">Sayı {pad(s.sayi)} · {gunAdi(s.yayin)}, {tarihUzun(s.yayin)} {guncel ? <em class="rozet">bu hafta</em> : <em class="rozet rozet--arsiv">arşiv</em>}</p>
+      <div class="kapak__selam">
+        <Av k={editor} />
+        <p>günaydın. bu hafta tek cümle:</p>
+      </div>
+      <h1 class="kapak__baslik" id="kapak-baslik">{s.baslik}</h1>
+      {ozet && <p class="kapak__ozet">{ozet}</p>}
+      <div class="kapak__cta" data-abone-yerine="hizli-abone">
+        <a class="chip chip--dolu" href="/abone/" data-abone-ac="hizli-abone" data-abone-gizle>Abone ol</a>
+      </div>
+      <div class="yz-abone hizli-abone" id="hizli-abone" data-abone-kutu hidden>
+        <div class="not">
+          <Av k={PARANTEZ} />
+          <div class="not__b"><p>her pazar 09:00’da tek bir e-posta: haftanın özeti ve beş yazı. ücretsiz, istediğin an tek tıkla abonelikten çıkabilirsin. adresin?</p></div>
+        </div>
+        <form class="yz-abone__form" action="/api/abone" method="post">
+          <button type="button" class="kapat" data-kapat aria-label="Vazgeç">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+          </button>
+          <input type="hidden" name="kaynak" value={guncel ? 'ana-sayfa' : `sayi-${s.sayi}`}>
+          <input class="hp" type="text" name="web" tabindex="-1" autocomplete="off" aria-hidden="true">
+          <label class="sr" for="hizli-eposta">E-posta adresin</label>
+          <input id="hizli-eposta" name="eposta" type="email" inputmode="email" autocomplete="email" enterkeyhint="send" autocapitalize="off" spellcheck="false" placeholder="e-posta adresin" required>
+          <button class="send" type="submit" aria-label="Abone ol">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
+          </button>
+        </form>
+        <p class="yz-abone__uyari" data-uyari hidden role="status"></p>
+      </div>
+    </div>
+
+    <div class="kapak__sag sek">
+      <input type="radio" name="sek" id="sek-yazilar" checked>
+      <input type="radio" name="sek" id="sek-ne-oldu">
+      {disari && <input type="radio" name="sek" id="sek-ne-yapsam">}
+      <div class="sek__d" role="presentation">
+        <label class="chip" for="sek-yazilar">Yazılar <span class="sek__say">{yazilar.length}</span></label>
+        <label class="chip" for="sek-ne-oldu">Ne oldu?</label>
+        {disari && <label class="chip" for="sek-ne-yapsam">Haftalık seçki</label>}
+      </div>
+
+      <div class="sek__p sek__p--yazilar">
+        <h2 class="sr">Bu sayıda · {yazilar.length} yazı · {dk} dk</h2>
+        <ol class="kapak__yazilar">
+          {yazilar.map((y, i) => (
+            <li>
+              <a href={yaziUrl(y)} data-slug={y.id} style={`--c:${konuRenk(y.data.konu)}`}>
+                <span class="kapak__no">{pad(i + 1)}</span>
+                <span class="kapak__t">
+                  <b>{y.data.baslik}</b>
+                  <small><i aria-hidden="true"></i>{konuAdi(y.data.konu)} · {okumaSuresi(y)} dk · {ilkAd(y.data.yazar)}</small>
+                </span>
+              </a>
+            </li>
+          ))}
+        </ol>
+      </div>
+
+      <div class="sek__p sek__p--ne-oldu">
+        <h2 class="sr">Bu hafta ne oldu?</h2>
+        <ol class="kisa">
+          {s.kisaKisa.map((k) => (
+            <li style={`--c:${konuRenk(k.konu)}`}><span class="kisa__k"><i aria-hidden="true"></i>{konuAdi(k.konu)}</span><span>{k.metin}</span></li>
+          ))}
+        </ol>
+      </div>
+
+      {disari && (
+        <div class="sek__p sek__p--ne-yapsam">
+          <h2 class="sr">Haftalık seçki</h2>
+          <ul class="yapsam">
+            {oneriler.map(({ fiil, o }) => (
+              <li>
+                <span class="yapsam__e">{fiil}</span>
+                <span class="yapsam__t">
+                  <b>{o!.link ? <a href={o!.link} target="_blank" rel="noopener">{o!.baslik}</a> : o!.baslik}</b>
+                  <small>{o!.kimden} · {o!.tur}</small>
+                  <span class="yapsam__n">{o!.not}</span>
+                </span>
+              </li>
+            ))}
+            {etkinlikler.map((e) => (
+              <li>
+                <span class="yapsam__e">Git</span>
+                <span class="yapsam__t">
+                  <b>{e.link ? <a href={e.link} target="_blank" rel="noopener">{e.ad}</a> : e.ad}</b>
+                  <small>{gunAy(e.tarih)} {gunAdi(e.tarih)}{e.saat && ` ${e.saat}`} · {e.yer}, {e.sehir} · {e.ucret}</small>
+                </span>
+              </li>
+            ))}
+          </ul>
+          <a class="sek__devam" href={`${sayiUrl(s.sayi)}secki/`}>Seçkiyi incele →</a>
+        </div>
+      )}
+    </div>
+  </div>
+</section>

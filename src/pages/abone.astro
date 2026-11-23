@@ -1,16 +1,21 @@
 ---
-import App from '../layouts/App.astro';
+// Abone ol: Hakkında gibi sade sayfa. Form JavaScript'le yerinde, olmadan /api/abone'ye gider.
+import Sayfa from '../layouts/Sayfa.astro';
 import Grp from '../components/Grp.astro';
-import { PARANTEZ, guncelUrl } from '../lib/site';
-const buHafta = await guncelUrl();
+import SadeAbone from '../components/SadeAbone.astro';
+import { PARANTEZ } from '../lib/site';
 ---
-<App title="Abone ol" description="Her pazar 09:00’da haftanın özeti ve beş yazı. Ücretsiz."
-  aktif="abone" bar={{ baslik: '(parantez)', alt: 'abone ol', geri: '/' }} mod="abone" kaynak="abone-sayfasi"
-  chips={[{ metin: 'Abone ol', ac: 'abone' }, { metin: 'Bu haftanın sayısı', href: buHafta }, { metin: 'Hakkında', href: '/hakkinda/' }]}>
+<Sayfa title="Abone ol" description="Her pazar 09:00’da haftanın özeti ve beş yazı. Ücretsiz.">
+<main id="icerik" class="msgs hk">
   <div class="day">abone ol</div>
+  <h1 class="sr">Abone ol</h1>
   <Grp k={PARANTEZ}>
     <p class="b">her pazar 09:00’da tek bir e-posta: haftanın özeti ve beş yazı.</p>
     <p class="b">ücretsiz ve reklamsız. istediğin an, her e-postanın en altındaki bağlantıyla tek tıkla abonelikten çıkabilirsin. e-postan başka hiçbir şey için kullanılmaz.</p>
     <p class="b">e-posta adresini aşağıya yazar mısın?</p>
   </Grp>
-</App>
+  <section class="hk-abone" data-abone-kutu aria-label="Abone ol"><SadeAbone kaynak="abone-sayfasi" /></section>
+</main>
+<div class="toast" data-toast hidden role="status"></div>
+<script>import '../scripts/ortak';</script>
+</Sayfa>

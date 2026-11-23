@@ -1,6 +1,6 @@
 // Panel: okurun göreceği hâliyle önizleme ve iki sürüm arasındaki farklar.
 // Şablonlar sitedekilerin aynısı olmalı: src/pages/yazi/[slug].astro, src/pages/arastirma/[slug].astro,
-// src/components/IssueChat.astro (Grp, LinkCard, Av) ve src/layouts/App.astro'nun üst barı.
+// src/components/SayiKapak.astro (sayının kapağı) ve src/layouts/App.astro'nun üst barı.
 // Biri değişirse buradaki karşılığı da güncellenmeli.
 import { marked } from 'marked';
 import { KONULAR, KONU_RENK } from '../lib/konular';
@@ -53,7 +53,6 @@ export function kisiBul(ad: string, ekip: Kisi[]): Kisi {
 export const av = (k: Kisi) => `<span class="av av--o" style="--av:${e(k.renk)}" aria-hidden="true">${e(k.kisa)}</span>`;
 
 const AYLAR = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
-const AYK = ['OCA', 'ŞUB', 'MAR', 'NİS', 'MAY', 'HAZ', 'TEM', 'AĞU', 'EYL', 'EKİ', 'KAS', 'ARA'];
 const GUNLER = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'];
 const tarih = (t: string) => new Date(`${t || '2000-01-01'}T12:00:00Z`);
 const tarihUzun = (t: string) => { const d = tarih(t); return `${d.getUTCDate()} ${AYLAR[d.getUTCMonth()]} ${d.getUTCFullYear()}`; };
@@ -150,80 +149,62 @@ export function yaziOnizleme(y: YaziTaslak, b: Baglam, gorselUrl?: string): stri
   </div></div>`;
 }
 
-// ------------------------------------------------------------------ sayı sohbeti
+// ------------------------------------------------------------------ sayının kapağı (SayiKapak.astro)
 
-const grp = (k: Kisi, ic: string, { isim = true, flow = false, cls = '' } = {}) => `
-  <div class="grp${cls ? ` ${cls}` : ''}" data-kim="${e(k.kisa)}">
-    <div class="grp__av">${av(k)}</div>
-    ${isim ? `<div class="grp__ad">${e(k.ad)}${k.kisa === '(p)' ? '' : ` · ${e(k.rol)}`}</div>` : ''}
-    <div class="bs${flow ? ' flow' : ''}"${flow ? ' data-flow="not"' : ''}>${ic}</div>
-  </div>`;
+const ANA_UST = `<header class="ana-ust"><a class="brand" href="#"><b>(parantez)</b></a><nav aria-label="Site">
+  <button type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg><span class="ana-ust__masa">Arşiv</span><span class="ana-ust__tel">Menü</span></button>
+  <a href="#">Araştırma</a><a href="#">Hakkında</a></nav></header>`;
+const ilkAd = (ad: string) => ad.split(/\s+/)[0];
+const AY_KUCUK = AYLAR.map((a) => a.toLocaleLowerCase('tr'));
 
+// Sekmeler radyo düğmeleriyle çalışır; önizlemede betik olmasa da tıklanınca değişir
 export function sayiOnizleme(v: SayiVeri, govde: string, b: Baglam): string {
   const liste = sayininYazilari(v, b.yazilar).filter((y) => !y.veri.taslak);
   const sureler = liste.map((y) => okumaSuresi(y.veri, y.govde));
-  const toplam = sureler.reduce((t, x) => t + x, 0);
   const editor = kisiBul(v.imza.split(',')[0].trim(), b.ekip);
+  const ozet = govde.trim().split(/\n\s*\n/)[0]?.replace(/[*_`#>]/g, '').trim() ?? '';
   const oneriler = FIILLER.map(([k, fiil]) => ({ k, fiil, o: v.oneriler?.[k] })).filter((x) => x.o);
   const etkinlikler = [...(v.etkinlikler ?? [])].sort((a, c) => a.tarih.localeCompare(c.tarih));
-  const kart = (y: Kayit<YaziVeri>, i: number) => `
-    <a class="lc" href="#" style="--c:${konuRenk(y.veri.konu)}">
-      <span class="lc__img"><img src="${e(gorsel(y.veri.gorsel, 1200, 632))}" alt="" width="1200" height="632"></span>
-      <span class="lc__body">
-        <small>${pad(i + 1)} · ${e(konuAdi(y.veri.konu))} · ${sureler[i]} dk</small>
-        <b>${e(y.veri.baslik)}</b>
-        <span class="lc__spot">${e(y.veri.spot)}</span>
-      </span>
-    </a>`;
+  const disari = oneriler.length > 0 || etkinlikler.length > 0;
+  // Daha yeni bir sayı varsa bu sayı sitede "arşiv" olarak görünür
+  const guncel = !b.sayilar.some((s) => !s.veri.taslak && s.veri.sayi > v.sayi);
 
-  return `<div class="app"><div class="main">
-    ${bar(`Sayı ${pad(v.sayi)}`, v.baslik, '')}
-    <main class="msgs">
-      <div class="sohbet">
-        <div class="day">Sayı ${pad(v.sayi)} · ${gunAdi(v.yayin)}, ${tarihUzun(v.yayin)} · 09:00</div>
-        ${grp(editor, `<p class="b">günaydın. bu hafta tek cümle:</p><h1 class="b b--baslik">${e(v.baslik)}</h1>`)}
-        ${grp(editor, metinHtml(govde), { isim: false, flow: true, cls: 'grp--devam' })}
-        ${grp(PARANTEZ, `<p class="b">bu sayıda ${liste.length} yazı var, toplam ${toplam} dakika. nereden başlayalım?</p>`)}
-
-        <section class="dal" aria-label="Ne oldu?">
-          <div class="me"><p class="b">bu hafta ne oldu?</p></div>
-          ${grp(PARANTEZ, `<p class="b">kısaca ${v.kisaKisa.length} şey:</p>${v.kisaKisa.map((k) => `<p class="b"><span class="kt">${e(konuAdi(k.konu))}</span>${e(k.metin)}</p>`).join('')}`)}
-        </section>
-
-        <section class="dal" aria-label="Bu sayının yazıları">
-          <div class="me"><p class="b">yazıları göster</p></div>
-          ${grp(PARANTEZ, `<p class="b">bu sayıda ${liste.length} yazı, toplam ${toplam} dakika. birine dokun, okumaya başla:</p>${liste.map(kart).join('')}`)}
-        </section>
-
-        ${oneriler.length || etkinlikler.length ? `
-        <section class="dal" aria-label="Parantez dışı">
-          <div class="me"><p class="b">bu hafta ne yapsam?</p></div>
-          ${grp(PARANTEZ, `
-            ${oneriler.length ? '<p class="b">gündemin dışında kalanlar. dinle, izle, oku:</p>' : ''}
-            ${oneriler.map(({ fiil, o }) => `
-              <div class="b onr">
-                <small>${fiil} · ${e(o!.tur)}</small><b>${e(o!.baslik)}</b><span class="onr__kim">${e(o!.kimden)}</span><p>${e(o!.not)}</p>
-                ${o!.link ? `<a href="#">${e(o!.linkMetni ?? `${fiil} →`)}</a>` : ''}
-              </div>`).join('')}
-            ${etkinlikler.length ? '<p class="b">bir de bu hafta gidilecek yerler:</p>' : ''}
-            ${etkinlikler.map((x) => `
-              <div class="b ev">
-                <span class="ev__d"><b>${tarih(x.tarih).getUTCDate()}</b><small>${AYK[tarih(x.tarih).getUTCMonth()]}</small></span>
-                <span class="ev__t"><small>${e(x.tur)} · ${gunAdi(x.tarih)}${x.saat ? ` ${e(x.saat)}` : ''}</small><b>${x.link ? `<a href="#">${e(x.ad)}</a>` : e(x.ad)}</b><span>${e(x.yer)} · ${e(x.sehir)}</span></span>
-                <span class="ev__u${/ücretsiz|bedava/i.test(x.ucret) ? ' is-free' : ''}">${e(x.ucret)}</span>
-              </div>`).join('')}`)}
-        </section>` : ''}
-
-        <section class="dal" aria-label="Abone ol">
-          <div class="me"><p class="b">bülten bana da gelsin</p></div>
-          ${grp(PARANTEZ, `
-            <p class="b">çok iyi. her pazar 09:00’da tek bir e-posta: haftanın özeti ve beş yazı. ücretsiz.</p>
-            <p class="b">istediğin an, her e-postanın en altındaki bağlantıyla tek tıkla abonelikten çıkabilirsin.</p>
-            <p class="b">e-posta adresini aşağıya yazar mısın?</p>`)}
-        </section>
+  return `<div class="app app--ana"><div class="main"><main class="msgs">
+    ${ANA_UST}
+    <section class="kapak"><div class="kapak__ic">
+      <div class="kapak__sol">
+        <p class="kapak__ust">Sayı ${pad(v.sayi)} · ${gunAdi(v.yayin)}, ${tarihUzun(v.yayin)} ${guncel ? '<em class="rozet">bu hafta</em>' : '<em class="rozet rozet--arsiv">arşiv</em>'}</p>
+        <div class="kapak__selam">${av(editor)}<p>günaydın. bu hafta tek cümle:</p></div>
+        <h1 class="kapak__baslik">${e(v.baslik)}</h1>
+        ${ozet ? `<p class="kapak__ozet">${e(ozet)}</p>` : ''}
+        <div class="kapak__cta"><a class="chip chip--dolu" href="#">Abone ol</a></div>
       </div>
-    </main>
-  </div></div>`;
+      <div class="kapak__sag sek">
+        <input type="radio" name="sek" id="sek-yazilar" checked>
+        <input type="radio" name="sek" id="sek-ne-oldu">
+        ${disari ? '<input type="radio" name="sek" id="sek-ne-yapsam">' : ''}
+        <div class="sek__d">
+          <label class="chip" for="sek-yazilar">Yazılar <span class="sek__say">${liste.length}</span></label>
+          <label class="chip" for="sek-ne-oldu">Ne oldu?</label>
+          ${disari ? '<label class="chip" for="sek-ne-yapsam">Haftalık seçki</label>' : ''}
+        </div>
+        <div class="sek__p sek__p--yazilar"><ol class="kapak__yazilar">
+          ${liste.map((y, i) => `<li><a href="#" style="--c:${konuRenk(y.veri.konu)}"><span class="kapak__no">${pad(i + 1)}</span>
+            <span class="kapak__t"><b>${e(y.veri.baslik)}</b><small><i aria-hidden="true"></i>${e(konuAdi(y.veri.konu))} · ${sureler[i]} dk · ${e(ilkAd(y.veri.yazar))}</small></span></a></li>`).join('')}
+        </ol></div>
+        <div class="sek__p sek__p--ne-oldu"><ol class="kisa">
+          ${v.kisaKisa.map((k) => `<li style="--c:${konuRenk(k.konu)}"><span class="kisa__k"><i aria-hidden="true"></i>${e(konuAdi(k.konu))}</span><span>${e(k.metin)}</span></li>`).join('')}
+        </ol></div>
+        ${disari ? `<div class="sek__p sek__p--ne-yapsam"><ul class="yapsam">
+          ${oneriler.map(({ fiil, o }) => `<li><span class="yapsam__e">${fiil}</span><span class="yapsam__t">
+            <b>${o!.link ? `<a href="#">${e(o!.baslik)}</a>` : e(o!.baslik)}</b><small>${e(o!.kimden)} · ${e(o!.tur)}</small><span class="yapsam__n">${e(o!.not)}</span></span></li>`).join('')}
+          ${etkinlikler.map((x) => `<li><span class="yapsam__e">Git</span><span class="yapsam__t">
+            <b>${x.link ? `<a href="#">${e(x.ad)}</a>` : e(x.ad)}</b>
+            <small>${tarih(x.tarih).getUTCDate()} ${AY_KUCUK[tarih(x.tarih).getUTCMonth()]} ${gunAdi(x.tarih)}${x.saat ? ` ${e(x.saat)}` : ''} · ${e(x.yer)}, ${e(x.sehir)} · ${e(x.ucret)}</small></span></li>`).join('')}
+        </ul><a class="sek__devam" href="#">Seçkiyi incele →</a></div>` : ''}
+      </div>
+    </div></section>
+  </main></div></div>`;
 }
 
 // ------------------------------------------------------------------ araştırma
@@ -261,8 +242,8 @@ export function cihazTercihi(): Cihaz {
 }
 
 function belge(govde: string): string {
-  // Sitenin stil dosyaları panelinkilerle aynı; önizleme onları kullanır. Betik çalışmaz,
-  // bu yüzden sohbetin tüm dalları açık görünür (JavaScript'siz okurdaki gibi).
+  // Sitenin stil dosyaları panelinkilerle aynı; önizleme onları kullanır. Betik çalışmaz;
+  // kapaktaki sekmeler radyo düğmeleriyle olduğu için yine de değişir.
   const stiller = [...document.querySelectorAll('link[rel="stylesheet"], style')].map((x) => x.outerHTML).join('\n');
   return `<!doctype html><html lang="tr" class="yan-kapali"><head><meta charset="utf-8"><base href="${location.origin}/">${stiller}</head><body>${govde}</body></html>`;
 }

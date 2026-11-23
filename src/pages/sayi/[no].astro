@@ -1,8 +1,10 @@
 ---
+// Bir sayının sayfası: ana sayfadaki kapağın aynısı (SayiKapak). Bu haftanın sayısı ana sayfayla aynıdır;
+// aramalarda ana sayfa gösterilsin diye asıl adresi (canonical) "/" olur. Eski sayılarda "arşiv" yazar.
 import App from '../../layouts/App.astro';
-import IssueChat from '../../components/IssueChat.astro';
-import { sayilar, pad, guncelUrl, kisaMetin, type Sayi } from '../../lib/site';
-import { sayiChips } from '../../lib/chips';
+import AnaUst from '../../components/AnaUst.astro';
+import SayiKapak from '../../components/SayiKapak.astro';
+import { sayilar, pad, kisaMetin, type Sayi } from '../../lib/site';
 
 export async function getStaticPaths() {
   const liste = await sayilar();
@@ -11,16 +13,15 @@ export async function getStaticPaths() {
 
 const { sayi, guncel } = Astro.props as { sayi: Sayi; guncel: boolean };
 const s = sayi.data;
-const buHafta = await guncelUrl();
-const disari = !!(s.oneriler && Object.keys(s.oneriler).length) || !!s.etkinlikler?.length;
 ---
 <App
   title={`Sayı ${pad(s.sayi)}: ${s.baslik}`}
   description={kisaMetin((sayi.body ?? '').trim().split(/\n\s*\n/)[0] ?? '') || `Sayı ${pad(s.sayi)}: ${s.baslik}`}
-  sayfa={`sayi-${s.sayi}`}
-  aktif={`sayi-${s.sayi}`}
-  bar={{ baslik: `Sayı ${pad(s.sayi)}`, alt: guncel ? `${s.baslik} · bu hafta` : s.baslik, geri: '/' }}
-  chips={sayiChips({ disari, guncelUrl: guncel ? undefined : buHafta })}
+  kanonik={guncel ? '/' : undefined}
+  composer={false}
+  ana
+  bar={{ baslik: '(parantez)', kok: true }}
 >
-  <IssueChat sayi={sayi} arsiv={!guncel} />
+  <AnaUst />
+  <SayiKapak sayi={sayi} guncel={guncel} />
 </App>

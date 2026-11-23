@@ -42,11 +42,6 @@ export async function arastirmalar(): Promise<Arastirma[]> {
   return all.sort((a, b) => b.data.no - a.data.no);
 }
 
-export async function guncelUrl(): Promise<string> {
-  const [g] = await sayilar();
-  return g ? sayiUrl(g.data.sayi) : '/';
-}
-
 export const pad = (n: number) => String(n).padStart(2, '0');
 
 const AYLAR = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];

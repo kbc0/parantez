@@ -2,14 +2,14 @@
 // Abonelikten çıkış. E-postadaki bağlantı /api/abone/cik?t=… adresine gelir; Worker bu sayfayı
 // formdaki anahtarı doldurarak gösterir (worker/abonelik.js). Çıkış formla (POST) olur, böylece
 // e-posta güvenlik tarayıcılarının bağlantıyı açması okuru listeden çıkarmaz.
-import App from '../../layouts/App.astro';
+import Sayfa from '../../layouts/Sayfa.astro';
 import Grp from '../../components/Grp.astro';
-import { PARANTEZ, guncelUrl } from '../../lib/site';
-import { genelChips } from '../../lib/chips';
-const buHafta = await guncelUrl();
+import { PARANTEZ } from '../../lib/site';
 ---
-<App title="Abonelikten çık" gizli bar={{ baslik: '(parantez)', alt: 'abonelik', geri: '/' }} chips={genelChips(buHafta).filter((c) => c.ac !== 'abone')}>
+<Sayfa title="Abonelikten çık" gizli>
+<main id="icerik" class="msgs hk">
   <div class="day">abonelik</div>
+  <h1 class="sr">Abonelikten çık</h1>
   <Grp k={PARANTEZ}>
     <p class="b">abonelikten çıkmak istiyorsun, anladım.</p>
     <p class="b">bir dokunuşla listeden çıkarırım; pazar e-postaları bir daha gelmez. site her zaman burada.</p>
@@ -18,4 +18,6 @@ const buHafta = await guncelUrl();
     <input type="hidden" name="t" value="">
     <button class="b" type="submit">evet, listeden çıkar</button>
   </form>
-</App>
+</main>
+<script>import '../../scripts/ortak';</script>
+</Sayfa>

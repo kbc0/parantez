@@ -1,13 +1,16 @@
 ---
-import App from '../layouts/App.astro';
+import Sayfa from '../layouts/Sayfa.astro';
 import Grp from '../components/Grp.astro';
-import { PARANTEZ, guncelUrl } from '../lib/site';
-const buHafta = await guncelUrl();
-import { genelChips } from '../lib/chips';
+import { PARANTEZ } from '../lib/site';
 ---
-<App title="Bulunamadı" bar={{ baslik: '(parantez)', alt: 'sayfa bulunamadı', geri: '/' }} chips={genelChips(buHafta)}>
+<Sayfa title="Bulunamadı">
+<main id="icerik" class="msgs hk">
+  <div class="day">sayfa bulunamadı</div>
+  <h1 class="sr">Sayfa bulunamadı</h1>
   <Grp k={PARANTEZ}>
     <p class="b">bu sayfa yok gibi. taşınmış ya da hiç olmamış olabilir.</p>
-    <p class="b">şunlardan birine bakalım mı?</p>
+    <p class="b"><a href="/">bu haftanın sayısına</a> dönelim mi? eski sayılar da yukarıdaki menüde.</p>
   </Grp>
-</App>
+</main>
+<script>import '../scripts/ortak';</script>
+</Sayfa>

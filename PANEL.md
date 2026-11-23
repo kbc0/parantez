@@ -123,8 +123,9 @@ Pro plana geçin (ayda 50.000 e-posta). Sınır dolarsa gönderim durmaz, bekler
   yayınlayın ya da **Bülten**'den pazar 09:00'a planlayın. Sayı ve seçili yazıları birlikte yayına çıkar.
   Onaylanmamış yazı varsa panel sorar.
 - **Yayındaki sayıyı düzeltmek:** (ör. selamı veren editörün imzası) sayıyı açın, değiştirin, **Doğrudan yayınla**.
-- Sohbetteki her şey (haftanın cümlesi, editörün notu, kısa kısa, dinle/izle/oku önerileri, etkinlikler) sayı formundadır.
-  Önizleme, sayının sohbet hâlini gösterir.
+- Kapaktaki her şey (haftanın cümlesi, editörün notu, kısa kısa, dinle/izle/oku önerileri, etkinlikler) sayı formundadır.
+  Önizleme, sayının sitedeki kapağını gösterir; sekmelere (Yazılar, Ne oldu?, Haftalık seçki) tıklanabilir.
+  Kapakta editörün notunun yalnızca ilk paragrafı görünür.
 
 ### Bülten (e-posta)
 
@@ -226,7 +227,7 @@ E-posta adresleri kişisel veri; listeyi yalnızca yöneticiler görür. Yazarla
   Bunlardan biri değişirse önizlemedeki karşılığı da güncellenmeli.
 - Sunucu: `worker/panel.js` (giriş, hesaplar, içerik), `worker/inceleme.js` (öneriler, yorumlar, onay)
   ve `worker/github.js` (GitHub REST/GraphQL).
-- Bülten: `worker/bulten.js` (e-posta şablonu; sohbetin e-postadaki hâli, içerik GitHub'dan),
+- Bülten: `worker/bulten.js` (e-posta şablonu; sayının e-postadaki hâli, içerik GitHub'dan),
   `worker/gonderim.js` (plan, zamanlayıcı, panelin `/api/panel/bulten/*` uçları), `worker/eposta.js` (Resend),
   `worker/abonelik.js` (kayıt, onay, çıkış; `/api/abone/*`). Zamanlayıcı her dakika çalışır (`wrangler.jsonc` → `triggers`).
 - Gönderimler D1'de (`gonderimler`): planli → yayinda → gonderiliyor → bitti (ya da iptal).

@@ -17,13 +17,14 @@ interface Props {
   sinif?: string; // body'ye eklenecek sınıf, ör. ar-sayfa
   sayfa?: string; // tepkilerin saklandığı sayfa anahtarı
   meta?: Meta; // paylaşım kartı ve yapısal veri (Bas.astro)
+  gizli?: boolean; // arama motorlarına kapalı
 }
-const { title, description, image, type, aktif, sinif, sayfa, meta } = Astro.props;
+const { title, description, image, type, aktif, sinif, sayfa, meta, gizli } = Astro.props;
 ---
 <!doctype html>
 <html lang="tr">
 <head>
-  <Bas title={title} description={description} image={image} type={type} meta={meta} />
+  <Bas title={title} description={description} image={image} type={type} meta={meta} gizli={gizli} />
   <script is:inline>document.documentElement.classList.add('js');</script>
 </head>
 <body class:list={['ust-sayfa', sinif]} data-sayfa={sayfa}>

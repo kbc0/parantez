@@ -1,27 +1,36 @@
 ---
-import App from '../../layouts/App.astro';
-import Grp from '../../components/Grp.astro';
-import LinkCard from '../../components/LinkCard.astro';
-import { yazilar, sayilar, pad, okumaSuresi, guncelUrl, PARANTEZ, type Yazi, type Sayi } from '../../lib/site';
-import { KONULAR } from '../../lib/konular';
-import { genelChips } from '../../lib/chips';
+// Konu sayfası: o konudaki bütün yazılar, en yeniden eskiye. Ana sayfanın üst menüsüyle sade sayfa.
+import Sayfa from '../../layouts/Sayfa.astro';
+import { yazilar, pad, okumaSuresi, yaziUrl, ilkAd, type Yazi } from '../../lib/site';
+import { KONULAR, konuRenk } from '../../lib/konular';
 
 export async function getStaticPaths() {
-  const [ys, ss] = await Promise.all([yazilar(), sayilar()]);
+  const ys = await yazilar();
   return Object.entries(KONULAR)
-    .map(([k, ad]) => ({ params: { konu: k }, props: { k, ad, liste: ys.filter((y) => y.data.konu === k), sayilar: ss } }))
+    .map(([k, ad]) => ({ params: { konu: k }, props: { k, ad, liste: ys.filter((y) => y.data.konu === k) } }))
     .filter((p) => p.props.liste.length > 0);
 }
 
-const { k, ad, liste } = Astro.props as { k: string; ad: string; liste: Yazi[]; sayilar: Sayi[] };
+const { k, ad, liste } = Astro.props as { k: string; ad: string; liste: Yazi[] };
 const etiket = ad.toLocaleLowerCase('tr');
-const buHafta = await guncelUrl();
 ---
-<App title={ad} description={`(parantez)’te ${etiket} üzerine bütün yazılar.`} aktif={`konu-${k}`}
-  bar={{ baslik: `#${etiket}`, alt: `${liste.length} yazı`, geri: '/' }} chips={genelChips(buHafta)}>
-  <div class="day">#{etiket}</div>
-  <Grp k={PARANTEZ}>
-    <p class="b">{etiket} üzerine {liste.length} yazı, en yeniden eskiye:</p>
-    {liste.map((y) => <LinkCard yazi={y} etiket={`Sayı ${pad(y.data.sayi)} · ${okumaSuresi(y)} dk · ${y.data.yazar}`} />)}
-  </Grp>
-</App>
+<Sayfa title={ad} description={`(parantez)’te ${etiket} üzerine bütün yazılar.`}>
+<main id="icerik" class="sade" style={`--c:${konuRenk(k)}`}>
+  <p class="sade__ust">Konu · {liste.length} yazı</p>
+  <h1 class="sade__baslik">#{etiket}</h1>
+  <ol class="kapak__yazilar sade__liste">
+    {liste.map((y) => (
+      <li>
+        <a href={yaziUrl(y)} style={`--c:${konuRenk(y.data.konu)}`}>
+          <span class="kapak__t">
+            <b>{y.data.baslik}</b>
+            <span class="sade__spot">{y.data.spot}</span>
+            <small>Sayı {pad(y.data.sayi)} · {okumaSuresi(y)} dk · {ilkAd(y.data.yazar)}</small>
+          </span>
+        </a>
+      </li>
+    ))}
+  </ol>
+</main>
+<script>import '../../scripts/ortak';</script>
+</Sayfa>

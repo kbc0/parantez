@@ -2,7 +2,7 @@
 
 Haftalık bülten. Her pazar 09:00: haftanın özeti + 5 yazı. Gündem uzun, biz kısaltıyoruz. Bazen de uzatıyoruz.
 
-Site bir mesajlaşma uygulaması gibi çalışır: her sayı bir sohbet, her yazı bir konuşma. Okur hazır cevaplarla ("Ne oldu?", "Yazılar", "Bu hafta ne yapsam?", "Abone ol") ilerler, mesajlara sabit emojilerle tepki bırakır ve e-postasını mesaj kutusuna yazarak abone olur. Yazılarda "Aa" düğmesi balonları kapatıp düz okuma moduna geçer.
+Her sayı bir kapaktır: editörün selamı, haftanın cümlesi, kısa bir özet ve sekmeler (Yazılar, Ne oldu?, Haftalık seçki). Mesajlaşma havası küçük dokunuşlarla sürer: selam ve not balonları, Hakkında'daki konuşma, yazıların sonundaki emoji tepkileri.
 
 Astro ile üretilen statik sayfalar + Cloudflare Worker:
 - `/api/abone` — e-posta aboneliği, Cloudflare KV'de (`ABONELER`)
@@ -16,8 +16,8 @@ Sayfalar JavaScript olmadan da okunur ve abonelik formu yine çalışır.
 
 | Adres | Ne var |
 | --- | --- |
-| `/` | Ana sayfa: sohbet listesi. Bütün sayılar (en yenisi üstte), konular, abone ol, hakkında |
-| `/sayi/<no>/` | Bir sayının sohbeti: editörün notu, ardından hazır cevaplarla açılan dallar (ne oldu, yazılar, parantez dışı, abone) |
+| `/` | Ana sayfa: bu haftanın kapağı. Bütün sayılar, konular, abone ol ve hakkında üstteki Arşiv / Menü çekmecesinde |
+| `/sayi/<no>/` | Bir sayının kapağı (eski sayılar "arşiv"); `/sayi/<no>/secki/` haftalık seçkinin tam sayfası |
 | `/yazi/<slug>/` | Yazı: her paragraf bir mesaj, `##` ara başlıklar ayraç; düz okuma modu var |
 | `/konu/<konu>/` | Bir konudaki bütün yazılar |
 | `/hakkinda/`, `/abone/` | Sabit sayfalar |
@@ -27,11 +27,11 @@ Sayfalar JavaScript olmadan da okunur ve abonelik formu yine çalışır.
 
 1. `src/content/sayilar/` içine yeni bir dosya ekle (ör. `04.md`). Var olan bir sayıyı kopyalayıp düzenlemek en kolayı:
    - `sayi`, `baslik`, `yayin` (pazar), `baslangic` / `bitis` (haftanın aralığı), `imza`
-   - `kisaKisa`: 3–5 kısa haber (`konu` + `metin`), sohbette "Ne oldu?" mesajları
+   - `kisaKisa`: 3–5 kısa haber (`konu` + `metin`), kapakta "Ne oldu?" sekmesi
    - `oneriler` (isteğe bağlı, "Parantez dışı"): `dinle`, `izle`, `oku`; her biri `baslik`, `kimden`, `tur`, `not` (en fazla 200 karakter), isteğe bağlı `link` + `linkMetni`
    - `etkinlikler` (isteğe bağlı, en fazla 6): `tarih`, `saat` (ör. "20:00"), `ad`, `tur`, `yer`, `sehir`, `ucret` ("Ücretsiz" yazılırsa işaretlenir), isteğe bağlı `link`. Tarihe göre kendiliğinden sıralanır.
    - Dosyanın gövdesi: yayın yönetmeninin kısa notu (markdown)
-2. `src/content/yazilar/` içine 5 yazı ekle. Yazar adı sohbette avatar olur; ekip `src/lib/site.ts` içindeki `KISILER` listesinde. Dosya adı adresi belirler (`faiz-sabit.md` → `/yazi/faiz-sabit/`).
+2. `src/content/yazilar/` içine 5 yazı ekle. Yazar adı yazı sayfasında avatar olur; ekip `src/lib/site.ts` içindeki `KISILER` listesinde. Dosya adı adresi belirler (`faiz-sabit.md` → `/yazi/faiz-sabit/`).
    - `sayi`: hangi sayıya ait, `sira`: 1–5
    - `konu`: `ekonomi`, `sehir`, `teknoloji`, `dunya`, `iklim`, `egitim`, `kultur`, `spor` (liste: `src/lib/konular.ts`)
    - `spot`, `neden` (neden önemli?), `kisaca` (1–4 madde), `gorsel`, `gorselAlt`, `gorselKaynak`
@@ -68,10 +68,10 @@ Repo Cloudflare'e bağlı; `main`'e her push otomatik deploy olur.
 src/content/        içerik (sayılar + yazılar, markdown)
 src/content.config.ts  içerik şeması
 src/pages/          sayfalar
-src/components/     sohbet parçaları: avatar, mesaj grubu, link kartı, mesaj kutusu, sayı sohbeti
-src/layouts/App.astro  uygulama iskeleti (sohbet listesi, üst bar, mesaj kutusu)
+src/components/     parçalar: sayının kapağı (SayiKapak), avatar, mesaj grubu, üst menü, arşiv çekmecesi
+src/layouts/App.astro  ana sayfa, sayı ve yazı iskeleti; Sayfa.astro sade sayfalar
 src/lib/chips.ts    hazır cevaplar
-src/scripts/sohbet.ts  sohbet davranışları (dallar, yazıyor…, tepkiler, abonelik, düz okuma)
+src/scripts/sohbet.ts  balonlu sayfaların davranışları (tepkiler, yerinde abonelik)
 src/styles/         tasarım (tek CSS dosyası, mobil öncelikli)
 worker/index.js     /api/abone ve /api/tepki
 public/             favicon, paylaşım görseli

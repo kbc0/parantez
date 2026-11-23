@@ -1,15 +1,17 @@
 ---
-// Onay bağlantısına dokunan okur buraya gelir (worker/abonelik.js). Kayıt tamam.
-import App from '../../layouts/App.astro';
+// Onay bağlantısına dokunan okur buraya gelir.
+import Sayfa from '../../layouts/Sayfa.astro';
 import Grp from '../../components/Grp.astro';
-import { PARANTEZ, guncelUrl } from '../../lib/site';
-import { genelChips } from '../../lib/chips';
-const buHafta = await guncelUrl();
+import { PARANTEZ } from '../../lib/site';
 ---
-<App title="Tamamdır" gizli bar={{ baslik: '(parantez)', alt: 'abone ol', geri: '/' }} chips={genelChips(buHafta).filter((c) => c.ac !== 'abone')}>
+<Sayfa title="Tamamdır" gizli>
+<main id="icerik" class="msgs hk">
   <div class="day">abone ol</div>
+  <h1 class="sr">Tamamdır</h1>
   <Grp k={PARANTEZ}>
     <p class="b">tamamdır, abonesin. pazar 09:00’da gelen kutundayız.</p>
-    <p class="b">o zamana kadar <a href={buHafta}>bu haftanın sayısına</a> göz atabilirsin.</p>
+    <p class="b">o zamana kadar <a href="/">bu haftanın sayısına</a> göz atabilirsin.</p>
   </Grp>
-</App>
+</main>
+<script>import '../../scripts/ortak';</script>
+</Sayfa>

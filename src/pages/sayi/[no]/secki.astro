@@ -1,0 +1,65 @@
+---
+// Haftalık seçki: sayının dinle/izle/oku önerileri ve gidilecek yerler, tam sayfa ve belirgin kartlarla.
+// Kapaktaki "Haftalık seçki" sekmesinin sonundaki "Seçkiyi incele" buraya getirir.
+import Sayfa from '../../../layouts/Sayfa.astro';
+import Grp from '../../../components/Grp.astro';
+import { sayilar, sayiUrl, pad, tarihUzun, gunAdi, PARANTEZ, type Sayi } from '../../../lib/site';
+
+export async function getStaticPaths() {
+  const liste = await sayilar();
+  return liste
+    .filter((s) => (s.data.oneriler && Object.keys(s.data.oneriler).length) || s.data.etkinlikler?.length)
+    .map((s) => ({ params: { no: String(s.data.sayi) }, props: { sayi: s } }));
+}
+
+const { sayi } = Astro.props as { sayi: Sayi };
+const s = sayi.data;
+const FIIL = { dinle: 'Dinle', izle: 'İzle', oku: 'Oku' } as const;
+const oneriler = (Object.keys(FIIL) as (keyof typeof FIIL)[]).map((k) => ({ k, fiil: FIIL[k], o: s.oneriler?.[k] })).filter((x) => x.o);
+const etkinlikler = [...(s.etkinlikler ?? [])].sort((a, b) => a.tarih.getTime() - b.tarih.getTime());
+const tr = (d: Date) => new Date(d.getTime() + 3 * 3600e3);
+const AYLAR = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
+// (parantez)'in giriş cümlesi: hangi öneriler varsa onlar sayılır
+const ISIM = { dinle: 'dinlediklerimiz', izle: 'izlediklerimiz', oku: 'okuduklarımız' } as const;
+const adlar = oneriler.map((x) => ISIM[x.k]);
+const liste = adlar.length > 1 ? `${adlar.slice(0, -1).join(', ')} ve ${adlar[adlar.length - 1]}` : adlar[0] ?? '';
+const yerler = etkinlikler.length ? `bir de gidilecek ${etkinlikler.length > 1 ? 'birkaç' : 'bir'} yer` : '';
+const giris = ['gündemin dışında kalanlar:', liste && `bu hafta ${liste}.`, yerler && `${liste ? yerler : yerler.replace(/^bir de /, '')}.`].filter(Boolean).join(' ');
+---
+<Sayfa title={`Haftalık seçki · Sayı ${pad(s.sayi)}`} description={`Sayı ${pad(s.sayi)}: ${oneriler.map((x) => x.o!.baslik).join(', ')}`}>
+<main id="icerik" class="secki">
+  <a class="secki__geri" href={sayiUrl(s.sayi)}>← Sayı {pad(s.sayi)}</a>
+  <p class="sade__ust">Sayı {pad(s.sayi)} · {gunAdi(s.yayin)}, {tarihUzun(s.yayin)}</p>
+  <h1 class="sade__baslik">Haftalık seçki</h1>
+  <Grp k={PARANTEZ}>
+    <p class="b">{giris}</p>
+  </Grp>
+
+  {oneriler.length > 0 && (
+    <div class="secki__kartlar">
+      {oneriler.map(({ k, fiil, o }) => (
+        <article class="sc" data-tur={k}>
+          <p class="sc__ust"><span class="sc__etiket">{fiil}</span><span>{o!.tur}</span></p>
+          <h2 class="sc__baslik">{o!.baslik}</h2>
+          <p class="sc__kim">{o!.kimden}</p>
+          <p class="sc__not">{o!.not}</p>
+          {o!.link && <a class="chip sc__git" href={o!.link} target="_blank" rel="noopener">{o!.linkMetni ?? fiil} ↗</a>}
+        </article>
+      ))}
+    </div>
+  )}
+
+  {etkinlikler.map((e) => (
+    <article class="sc sc--yer" data-tur="git">
+      <p class="sc__tarih"><b>{tr(e.tarih).getUTCDate()}</b><span>{AYLAR[tr(e.tarih).getUTCMonth()]}</span><span>{gunAdi(e.tarih)}{e.saat && ` ${e.saat}`}</span></p>
+      <div class="sc__orta">
+        <p class="sc__ust"><span class="sc__etiket">Git</span><span>{e.tur}</span></p>
+        <h2 class="sc__baslik">{e.link ? <a href={e.link} target="_blank" rel="noopener">{e.ad}</a> : e.ad}</h2>
+        <p class="sc__kim">{e.yer} · {e.sehir}</p>
+      </div>
+      <p class:list={['sc__ucret', { 'sc__ucret--bos': /ücretsiz|bedava/i.test(e.ucret) }]}>{e.ucret}</p>
+    </article>
+  ))}
+</main>
+<script>import '../../../scripts/ortak';</script>
+</Sayfa>

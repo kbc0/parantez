@@ -17,7 +17,7 @@ const SAYFA = /^(sayi-\d{1,4}|yazi-[a-z0-9-]{1,90}|arastirma-[a-z0-9-]{1,90}|hak
 const MESAJ = /^[a-z0-9-]{1,40}$/;
 const KIMLIK = /^[a-z0-9-]{8,64}$/;
 // Tepki alan sayfalar: adresten sayfa anahtarı (sayi-3, yazi-faiz-sabit, hakkinda)
-const TEPKILI = /^\/(sayi\/\d{1,4}|yazi\/[a-z0-9-]{1,90}|hakkinda)\/$/;
+const TEPKILI = /^\/(yazi\/[a-z0-9-]{1,90}|hakkinda)\/$/;
 
 export default {
   async fetch(request, env) {

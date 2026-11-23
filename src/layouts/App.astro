@@ -26,9 +26,10 @@ interface Props {
   okuma?: boolean; // yazı sayfası: balonsuz, rahat okunan düzen
   gizli?: boolean; // arama motorlarına kapalı
   meta?: Meta; // paylaşım kartı ve yapısal veri (Bas.astro)
+  kanonik?: string; // aramalarda gösterilecek asıl adres
 }
 
-const { title, description, image, type = 'website', sayfa, aktif, bar, chips, mod, kaynak, composer = true, ana = false, okuma = false, gizli = false, meta } = Astro.props;
+const { title, description, image, type = 'website', sayfa, aktif, bar, chips, mod, kaynak, composer = true, ana = false, okuma = false, gizli = false, meta, kanonik } = Astro.props;
 // Başlığı (parantez) olan barlarda (p) ikonu yok; yazının kendisi logo gibi durur
 const markaBar = bar.baslik === SITE.ad && !bar.kisi;
 const liste = await sayilar();
@@ -37,7 +38,7 @@ const guncel = liste[0]?.data.sayi;
 <!doctype html>
 <html lang="tr">
 <head>
-  <Bas title={title} description={description} image={image} type={type} gizli={gizli} meta={meta} />
+  <Bas title={title} description={description} image={image} type={type} gizli={gizli} meta={meta} kanonik={kanonik} />
   <script is:inline>
     document.documentElement.classList.add('js');
     // Masaüstünde sohbet listesi okur açmadıkça kapalı gelir
@@ -48,13 +49,13 @@ const guncel = liste[0]?.data.sayi;
   <a class="skip" href="#icerik">İçeriğe geç</a>
   <div class:list={['app', { 'app--ana': ana }]}>
 
-    <aside class="side" id="yan" aria-label="Sohbetler">
+    <aside class="side" id="yan" aria-label="Sayılar">
       <a class="brand" href="/"><b>(parantez)</b></a>
       <p class="side__slogan">{SITE.slogan}</p>
-      <h2 class="side__h">Sohbetler</h2>
+      <h2 class="side__h">Sayılar</h2>
       <nav class="clist">
         {liste.map((s) => (
-          <a class:list={['ci', { on: aktif === `sayi-${s.data.sayi}` }]} href={sayiUrl(s.data.sayi)}>
+          <a class:list={['ci', { on: aktif === `sayi-${s.data.sayi}` }]} href={s.data.sayi === guncel ? '/' : sayiUrl(s.data.sayi)}>
             <span class="av av--o" style={`--av:${s.data.sayi === guncel ? '#2a35ff' : '#111'}`} aria-hidden="true">{pad(s.data.sayi)}</span>
             <span class="ci__t"><b>Sayı {pad(s.data.sayi)}</b><span>{s.data.baslik}</span></span>
             <time>{tarihKisa(s.data.yayin)}</time>
@@ -73,7 +74,7 @@ const guncel = liste[0]?.data.sayi;
     <div class="main">
       <header class="bar">
         {!ana && (
-          <button type="button" class="bar__yan" data-yan aria-controls="yan" aria-expanded="true" aria-label="Sohbet listesini kapat" title="Sohbet listesini kapat">
+          <button type="button" class="bar__yan" data-yan aria-controls="yan" aria-expanded="true" aria-label="Sayı listesini kapat" title="Sayı listesini kapat">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path class="bar__yan-dolu" d="M9.5 4.75H7a3.25 3.25 0 0 0-3.25 3.25v8A3.25 3.25 0 0 0 7 19.25h2.5z"/><rect x="3.75" y="4.75" width="16.5" height="14.5" rx="3.25"/><path d="M9.5 4.75v14.5"/></svg>
           </button>
         )}

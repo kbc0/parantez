@@ -1,80 +1,17 @@
 ---
-// Ana sayfa: her ekranda bu haftanın kapağı. Masaüstünde tek ekrana sığar ve kaymaz; telefonda
+// Ana sayfa: bu haftanın kapağı (SayiKapak). Masaüstünde tek ekrana sığar ve kaymaz; telefonda
 // alt alta dizilir. Bütün sayılar ve konular çekmecede (popover): üstteki "Arşiv" / "Menü" açar.
 import App from '../layouts/App.astro';
-import Av from '../components/Av.astro';
 import AnaUst from '../components/AnaUst.astro';
-import { sayilar, sayininYazilari, sayiUrl, yaziUrl, pad, tarihUzun, gunAdi, okumaSuresi, ilkAd, kisi, PARANTEZ } from '../lib/site';
-import { konuAdi, konuRenk } from '../lib/konular';
+import SayiKapak from '../components/SayiKapak.astro';
+import { sayilar } from '../lib/site';
 import { siteLd } from '../lib/yapisal';
 
 const liste = await sayilar();
-
 const g = liste[0];
-const gYazilar = g ? await sayininYazilari(g.data.sayi) : [];
-const gDk = gYazilar.reduce((t, y) => t + okumaSuresi(y), 0);
-// Sayının ilk paragrafı kapakta özet olur
-const ozet = (g?.body ?? '').trim().split(/\n\s*\n/)[0]?.replace(/[*_`#>]/g, '').trim();
-const editor = g ? kisi(g.data.imza.split(',')[0].trim()) : PARANTEZ;
 ---
 <App composer={false} ana meta={{ ld: siteLd(Astro.site!) }}
   bar={{ baslik: '(parantez)', alt: `her pazar 09:00 · ${liste.length} sayı`, kok: true }}>
-
   <AnaUst />
-
-  {g && (
-    <section class="kapak" aria-labelledby="kapak-baslik">
-      <div class="kapak__ic">
-        <div class="kapak__sol">
-          <p class="kapak__ust">Sayı {pad(g.data.sayi)} · {gunAdi(g.data.yayin)}, {tarihUzun(g.data.yayin)} <em class="rozet">bu hafta</em></p>
-          <div class="kapak__selam">
-            <Av k={editor} />
-            <p>günaydın. bu hafta tek cümle:</p>
-          </div>
-          <h1 class="kapak__baslik" id="kapak-baslik"><a href={sayiUrl(g.data.sayi)}>{g.data.baslik}</a></h1>
-          {ozet && <p class="kapak__ozet">{ozet}</p>}
-          <div class="kapak__cta" data-abone-yerine="hizli-abone">
-            <a class="chip chip--dolu" href={sayiUrl(g.data.sayi)}>Sohbeti aç</a>
-            <a class="chip" href="/abone/" data-abone-ac="hizli-abone" data-abone-gizle>Abone ol</a>
-          </div>
-          <div class="yz-abone hizli-abone" id="hizli-abone" data-abone-kutu hidden>
-            <div class="not">
-              <Av k={PARANTEZ} />
-              <div class="not__b"><p>her pazar 09:00’da tek bir e-posta: haftanın özeti ve beş yazı. ücretsiz, istediğin an tek tıkla abonelikten çıkabilirsin. adresin?</p></div>
-            </div>
-            <form class="yz-abone__form" action="/api/abone" method="post">
-              <button type="button" class="kapat" data-kapat aria-label="Vazgeç">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
-              </button>
-              <input type="hidden" name="kaynak" value="ana-sayfa">
-              <input class="hp" type="text" name="web" tabindex="-1" autocomplete="off" aria-hidden="true">
-              <label class="sr" for="hizli-eposta">E-posta adresin</label>
-              <input id="hizli-eposta" name="eposta" type="email" inputmode="email" autocomplete="email" enterkeyhint="send" autocapitalize="off" spellcheck="false" placeholder="e-posta adresin" required>
-              <button class="send" type="submit" aria-label="Abone ol">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
-              </button>
-            </form>
-            <p class="yz-abone__uyari" data-uyari hidden role="status"></p>
-          </div>
-        </div>
-
-        <div class="kapak__sag">
-          <h2 class="kapak__h">Bu sayıda · {gYazilar.length} yazı · {gDk} dk</h2>
-          <ol class="kapak__yazilar">
-            {gYazilar.map((y, i) => (
-              <li>
-                <a href={yaziUrl(y)} data-slug={y.id} style={`--c:${konuRenk(y.data.konu)}`}>
-                  <span class="kapak__no">{pad(i + 1)}</span>
-                  <span class="kapak__t">
-                    <b>{y.data.baslik}</b>
-                    <small><i aria-hidden="true"></i>{konuAdi(y.data.konu)} · {okumaSuresi(y)} dk · {ilkAd(y.data.yazar)}</small>
-                  </span>
-                </a>
-              </li>
-            ))}
-          </ol>
-        </div>
-      </div>
-    </section>
-  )}
+  {g && <SayiKapak sayi={g} guncel />}
 </App>

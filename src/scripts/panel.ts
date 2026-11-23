@@ -645,7 +645,7 @@ function sayiFormu(arg: string, oneriId?: number) {
       <label class="pn-alan"><span>Haftanın cümlesi <small>sohbetteki büyük başlık</small></span><input name="baslik" value="${e(v.baslik)}" maxlength="90" placeholder="Faiz sabit, kira değil."></label>
       <label class="pn-alan"><span>İmza <small>selamı veren editör</small></span><select name="imza">${imzalar.map((i) => `<option${i === v.imza ? ' selected' : ''}>${e(i)}</option>`).join('')}</select></label>
 
-      ${metinAlani(kaynak?.govde ?? '', 'Haftanın özeti', 'Editörün notu: iki kısa paragraf. Sohbette selamdan sonra gelir.')}
+      ${metinAlani(kaynak?.govde ?? '', 'Haftanın özeti', 'Editörün notu: kısa bir paragraf. Kapakta başlığın altında görünür (yalnızca ilk paragraf).')}
 
       <fieldset class="pn-kutu" data-liste="kisaKisa">
         <legend>Kısa kısa <small>“Ne oldu?” · 3–5 madde</small></legend>

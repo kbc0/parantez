@@ -8,17 +8,23 @@ Astro (statik) + Cloudflare Workers. `main`'e push edilen her commit Workers Bui
 Site sahibi bu çizgiyi çok seviyor; yeni işler bu çizgide kalsın:
 **mesajlaşma + haber hibriti.** Ne yoracak kadar mesaj, ne de çok ciddi bir haber sitesi.
 
-- **Sayı sayfaları sohbettir.** Balonlar, hazır cevaplar (chip), "yazıyor…", sadece hazır emojilerle tepki.
-  E-posta da mesaj yoluyla alınır.
-- **Yazı sayfaları balonsuz okunur.** Tek sütun, rahat satır aralığı. Sohbetle bağ küçük dokunuşlarla kurulur:
+- **Sohbet yok; her sayı bir kapaktır.** Site sahibi sohbeti kaldırdı, arayüz sade kalsın.
+  Mesajlaşma havası küçük dokunuşlarla sürer: editörün selam balonu, (parantez)'in not balonları, Hakkında.
+- **Yazı sayfaları balonsuz okunur.** Tek sütun, rahat satır aralığı. Sitenin geri kalanıyla bağ küçük dokunuşlarla kurulur:
   - aynı üst bar ve yazarın avatarı;
   - (parantez)'in "kısaca" ve "neden önemli?" not balonları;
   - sonda tek tepki satırı, sıradaki yazı ve sayfa içi abonelik.
-- **Ana sayfa bu haftanın kapağıdır.** Masaüstünde tek ekranlıktır ve kaymaz; telefonda aynı kapak alt alta dizilir.
-  - Editörün selam balonu, dev başlık, özet, chip düğmeler ve numaralı beş yazı.
+- **Ana sayfa bu haftanın kapağıdır** (`src/components/SayiKapak.astro`). Masaüstünde tek ekranlıktır ve kaymaz;
+  telefonda aynı kapak alt alta dizilir.
+  - Solda editörün selam balonu, dev başlık, özet (editörün notunun ilk paragrafı) ve "Abone ol".
+  - Sağda sekmeler: Yazılar (numaralı beş yazı), Ne oldu? (kısa kısa), Haftalık seçki (dinle/izle/oku ve gidilecek yerler;
+    sonunda "Seçkiyi incele →" tam sayfaya, `/sayi/<no>/secki/`, götürür). Sekmeler radyo düğmeleriyle; JS gerekmez.
+  - Eski sayılar (`/sayi/<no>/`) aynı kapakla açılır; tarihte "arşiv" yazar. Bu haftanın sayısı ana sayfadır:
+    bağlantılar `/`'e gider, `/sayi/<no>/` sayfasının asıl adresi (canonical) `/`'dir.
+  - Sayfalara "Bu haftanın sayısı", "Arşiv" gibi tekrar eden düğmeler konmaz; her şeye üst menüden gidilir.
   - Logo sol üstte durur. Sağ üstte tek düğme var: masaüstünde "Arşiv", telefonda "Menü".
     Tüm sayılar, konular, Araştırma, Abone ol ve Hakkında bu çekmecede (masaüstünde sağdan, telefonda tam ekran).
-    Sohbetlerdeki "Tüm sayılar" çekmeceyi açık getirir (`/#liste`).
+    `/#liste` çekmeceyi açık getirir.
   - "Abone ol" yerinde açılır.
 - **Araştırma (`/arastirma/`) sade ve renksizdir; makale gibi okunur.** Site sahibi kalabalık istemiyor.
   - İskeleti `src/layouts/Arastirma.astro` (Sayfa.astro üstüne), stili `src/styles/arastirma.css`. Üst menü ana sayfanınkinin
@@ -28,11 +34,14 @@ Site sahibi bu çizgiyi çok seviyor; yeni işler bu çizgide kalsın:
   - Yazı sayfası: No., başlık, yazarlar ve tarih; sonra metin. Künye, bulgu kutusu, içindekiler, atıf gibi
     ayrı parçalar eklenmez; gereken her şey metnin içinde (ara başlık, tablo, grafik, dipnot).
   - Görseller gri tonlu.
-- **Hakkında (`/hakkinda/`) sohbet gibi konuşur ama sohbet düzeninde değildir.** Üst menü ana sayfanınki;
-  sol liste, üst bar ve mesaj kutusu yok. Balonlar ve tepkiler aynen kalır; e-posta en altta mesajla alınır.
-- **Sohbet ve yazı sayfalarının barı:** solda geri, ortada başlık, sağda aynı "Menü" düğmesi (masaüstünde "Arşiv");
+- **Sade sayfalar** (`src/layouts/Sayfa.astro`): Hakkında, Araştırma, konu (`/konu/<konu>/`), abonelik sayfaları, seçki ve 404.
+  Üst menü ana sayfanınki; sol liste, üst bar ve mesaj kutusu yok.
+  - Hakkında ve abonelik sayfaları (parantez)'in balonlarıyla konuşur; e-posta balonların altındaki kutuyla alınır.
+    Hakkında'da tepkiler kalır.
+  - Konu sayfası: büyük "#konu" başlığı ve yazıların listesi (başlık, spot, sayı, süre, yazar).
+- **Yazı sayfalarının barı:** solda geri, ortada başlık, sağda aynı "Menü" düğmesi (masaüstünde "Arşiv");
   "i" yok. Sayfa geçişlerinde üst menü yerinde durur, yalnızca içerik değişir (`view-transition-name: ust`).
-- **Geri düğmesi** okuru geldiği yere götürür. Sohbete dönen okur kaldığı yerden devam eder.
+- **Geri düğmesi** okuru geldiği yere götürür (yazıdan bu haftanın sayısına dönüş ana sayfadır).
 
 Kaçınılacaklar:
 - büyük siyah yuvarlaklar ve küçük siyah numara yuvarlakları;
@@ -71,7 +80,7 @@ Yazı tipi: Hanken Grotesk.
   - `ana` prop'u ana sayfa düzenini açar.
 - Betikler (`src/scripts/`):
   - `ortak.ts`: her sayfa; geri düğmesi, sayfa içi abonelik, paylaş.
-  - `sohbet.ts`: sohbet sayfaları.
+  - `sohbet.ts`: balonlu sayfalar (Hakkında, kapak): tepkiler ve yerinde abonelik.
   - `okuma.ts`: yazı sayfası.
 - Yazı paneli: `/admin` (bkz. `PANEL.md`).
   - Arayüz `src/pages/admin/index.astro`, `src/scripts/panel.ts`, `src/scripts/panel-icerik.ts`.
@@ -81,11 +90,11 @@ Yazı tipi: Hanken Grotesk.
   - Yayındaki bir içeriğin küçük düzeltmesi "Doğrudan yayınla" ile incelemesiz commit edilir (`/api/panel/kaydet`).
   - Ekip listesi `src/data/ekip.json`, görseller `public/gorseller/` altında.
   - İçerik şeması değişirse `panel-icerik.ts`'teki denetim de güncellenmeli.
-  - Önizleme `src/scripts/panel-onizleme.ts`: yazı sayfası, araştırma yayını, sohbet ve üst barın kopyası.
+  - Önizleme `src/scripts/panel-onizleme.ts`: yazı sayfası, araştırma yayını, sayının kapağı (`SayiKapak.astro`) ve üst barın kopyası.
     Panel sayfası önizleme için `arastirma.css`'i de yükler.
     Bu şablonlar değişirse önizleme de güncellenmeli.
-- Bülten e-postası (Resend): `worker/bulten.js` şablonu sayının sohbet hâlinin e-posta karşılığıdır;
-  `IssueChat.astro` değişirse o da gözden geçirilmeli. Gönderim `worker/gonderim.js` (her dakika çalışan zamanlayıcı;
+- Bülten e-postası (Resend): `worker/bulten.js` şablonu sayının e-postadaki hâlidir (selam, not, kısa kısa, yazılar,
+  seçki); kapakta sayıya yeni bir parça eklenirse e-posta da gözden geçirilmeli. Gönderim `worker/gonderim.js` (her dakika çalışan zamanlayıcı;
   panelde **Bülten**), e-posta istemcisi `worker/eposta.js`. Sayı onaylanınca gönderimi yayın günü 09:00'a kendiliğinden
   planlanır (`sayiyiPlanla`; `inceleme.js` ve `panel.js` kaydet çağırır).
 - Arama motorları: `Bas.astro` açıklama, paylaşım kartı, ikonlar ve `meta.ld` ile yapısal veri (`src/lib/yapisal.ts`:
@@ -95,7 +104,7 @@ Yazı tipi: Hanken Grotesk.
     Sayfaları `/abone/son-adim/`, `/abone/tamam/`, `/abone/cik/`, `/abone/ayrildin/`, `/abone/gecersiz/`. KV `ABONELER` yalnızca eski kayıtlar için.
     Panelde abone listesi (arama, çıkarma, engelleme, silme, CSV) yalnızca yöneticiye açık (`/api/panel/aboneler/*`).
   - `/api/tepki`: tepkiler; D1 `parantez-tepkiler`. Yeni bir sayfa türü tepki alacaksa `SAYFA` kalıbına eklenmeli.
-  - Tepki alan sayfalar (`/sayi/*`, `/yazi/*`, `/hakkinda/`) önce Worker'dan geçer: sayılar HTML'e baştan yazılır
+  - Tepki alan sayfalar (`/yazi/*`, `/hakkinda/`) önce Worker'dan geçer: sayılar HTML'e baştan yazılır
     (`tepkiliSayfa`, HTMLRewriter), sayfa sonradan kaymaz. Yeni tepkili sayfa türü `TEPKILI` ve `run_worker_first`'e de eklenmeli.
 - Hız: `public/_headers` `/_astro/*` dosyalarını bir yıl önbellekte tutar (adları içerik özetli). Yazı tipi
   `Bas.astro`'da önceden istenir; bağlantıya yönelince sayfa önceden indirilir (speculation rules).

@@ -21,7 +21,8 @@ const yazar = kisi(d.yazar);
 const kardesler = await sayininYazilari(d.sayi);
 const i = kardesler.findIndex((y) => y.id === yazi.id);
 const sonraki = kardesler[i + 1];
-const sayiLink = sayiUrl(d.sayi);
+// Bu haftanın sayısı ana sayfadır; eski sayılar kendi adreslerinde
+const sayiLink = (await sayilar())[0]?.data.sayi === d.sayi ? '/' : sayiUrl(d.sayi);
 const EMOJI = ['❤️', '😂', '😮', '😢', '🔥'];
 // Sohbetteki link kartıyla aynı görsel: önbellekten gelir, kart görsele dönüşür
 const foto = (y: Yazi) => gorsel(y.data.gorsel, 1200, 632);

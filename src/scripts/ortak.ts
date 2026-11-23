@@ -76,7 +76,7 @@ if (yanBtn) {
   const html = document.documentElement;
   const yansit = () => {
     const acik = !html.classList.contains('yan-kapali');
-    const etiket = acik ? 'Sohbet listesini kapat' : 'Sohbet listesini aç';
+    const etiket = acik ? 'Sayı listesini kapat' : 'Sayı listesini aç';
     yanBtn.setAttribute('aria-expanded', String(acik));
     yanBtn.setAttribute('aria-label', etiket);
     yanBtn.title = etiket;

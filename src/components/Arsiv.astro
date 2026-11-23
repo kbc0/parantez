@@ -20,7 +20,7 @@ const [sonArastirma] = await arastirmalar();
   </div>
   <nav class="clist clist--sayfa" aria-label="Sayılar">
     {satirlar.map(({ s, yazi, guncel }) => (
-      <a class="ci" href={sayiUrl(s.data.sayi)}>
+      <a class="ci" href={guncel ? '/' : sayiUrl(s.data.sayi)}>
         <span class="av av--o" style={`--av:${guncel ? '#2a35ff' : '#111'}`} aria-hidden="true">{pad(s.data.sayi)}</span>
         <span class="ci__t"><b>Sayı {pad(s.data.sayi)}{guncel && <em class="rozet">yeni</em>}</b><span>{s.data.baslik} · {yazi} yazı</span><small>{aralik(s.data.baslangic, s.data.bitis)}</small></span>
         <time>{tarihKisa(s.data.yayin)}</time>
