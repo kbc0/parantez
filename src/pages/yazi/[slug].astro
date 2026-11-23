@@ -1,10 +1,11 @@
 ---
-// Yazı sayfası: sohbetten açılan, balonsuz ve rahat okunan sayfa.
-// Sohbetle bağı: aynı üst bar, yazarın avatarı ve (parantez)'in kenara düştüğü notlar.
+// Yazı sayfası: balonsuz ve rahat okunan sayfa. Üstte sitenin ortak menüsü (layouts/Sayfa.astro);
+// sitenin geri kalanıyla bağı yazarın avatarı ve (parantez)'in kenara düştüğü notlar.
+// Paylaş, okur yazıyı bitirdiğinde: sondaki tepkilerin altında.
 import { render } from 'astro:content';
-import App from '../../layouts/App.astro';
+import Sayfa from '../../layouts/Sayfa.astro';
 import Av from '../../components/Av.astro';
-import { yazilar, sayilar, sayininYazilari, okumaSuresi, gorsel, pad, tarihUzun, sayiUrl, yaziUrl, kisi, ilkAd, yayinAni, PARANTEZ, type Yazi, type Sayi } from '../../lib/site';
+import { yazilar, sayilar, sayininYazilari, okumaSuresi, gorsel, pad, tarihUzun, sayiUrl, yaziUrl, kisi, yayinAni, PARANTEZ, type Yazi, type Sayi } from '../../lib/site';
 import { makaleLd } from '../../lib/yapisal';
 import { konuAdi, konuRenk } from '../../lib/konular';
 
@@ -24,7 +25,7 @@ const sonraki = kardesler[i + 1];
 // Bu haftanın sayısı ana sayfadır; eski sayılar kendi adreslerinde
 const sayiLink = (await sayilar())[0]?.data.sayi === d.sayi ? '/' : sayiUrl(d.sayi);
 const EMOJI = ['❤️', '😂', '😮', '😢', '🔥'];
-// Sohbetteki link kartıyla aynı görsel: önbellekten gelir, kart görsele dönüşür
+// Kapaktaki ve sıradaki yazı kartındaki görselle aynı: önbellekten gelir
 const foto = (y: Yazi) => gorsel(y.data.gorsel, 1200, 632);
 const kart = gorsel(d.gorsel, 1200, 630);
 const meta = {
@@ -35,29 +36,14 @@ const meta = {
   }, Astro.site!),
 };
 ---
-<App
-  title={d.baslik}
-  description={d.spot}
-  image={kart}
-  type="article"
-  meta={meta}
-  sayfa={`yazi-${yazi.id}`}
-  aktif={`sayi-${d.sayi}`}
-  bar={{
-    baslik: `Sayı ${pad(d.sayi)}`,
-    alt: `yazı ${i + 1}/${kardesler.length} · ${konuAdi(d.konu).toLocaleLowerCase('tr')}`,
-    geri: sayiLink,
-    ikinci: { kisi: yazar, baslik: d.baslik, alt: `${ilkAd(yazar.ad)} · {kalan}` },
-    paylas: true,
-  }}
-  composer={false}
-  okuma
->
+<Sayfa title={d.baslik} description={d.spot} image={kart} type="article" meta={meta} sayfa={`yazi-${yazi.id}`}>
+<div class="yz-ilerleme" aria-hidden="true"></div>
+<main id="icerik" class="oku">
   <article class="yz" data-dk={dk} style={`--c:${konuRenk(d.konu)}`}>
     <header class="yz__bas">
       <p class="yz__ust">
         <a class="yz__konu" href={`/konu/${d.konu}/`}>{konuAdi(d.konu)}</a>
-        <span>Sayı {pad(d.sayi)} · {i + 1}/{kardesler.length}</span>
+        <a class="yz__sayi" href={sayiLink}>Sayı {pad(d.sayi)} · {i + 1}/{kardesler.length}</a>
       </p>
       <h1 class="yz__baslik">{d.baslik}</h1>
       <p class="yz__spot">{d.spot}</p>
@@ -100,6 +86,14 @@ const meta = {
         <div>{EMOJI.map((e) => <button type="button" data-e={e} aria-pressed="false">{e}<span></span></button>)}</div>
       </div>
 
+      {/* Paylaş: okur yazıyı bitirince. Telefonda paylaşma menüsü, bilgisayarda bağlantıyı kopyalar (ortak.ts). */}
+      <div class="yz-paylas">
+        <p>bir arkadaşına göndermek ister misin?</p>
+        <button type="button" class="chip" data-paylas>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>Paylaş
+        </button>
+      </div>
+
       {sonraki
         ? (
           <a class="sonraki" href={yaziUrl(sonraki)} data-slug={sonraki.id}>
@@ -115,8 +109,8 @@ const meta = {
           <a class="sonraki sonraki--son" href={sayiLink}>
             <span class="sonraki__t">
               <small>Bu sayının son yazısıydı</small>
-              <b>Sayı {pad(d.sayi)} sohbetine dön</b>
-              <span>özet, öneriler ve etkinlikler orada</span>
+              <b>Sayıya dön</b>
+              <span>Sayı {pad(d.sayi)} · ne oldu ve haftalık seçki orada</span>
             </span>
           </a>
         )}
@@ -139,5 +133,11 @@ const meta = {
       </section>
     </footer>
   </article>
-
-</App>
+</main>
+<div class="picker" data-picker hidden role="dialog" aria-label="Tepki seç"></div>
+<div class="toast" data-toast hidden role="status"></div>
+<script>
+  import '../../scripts/ortak';
+  import '../../scripts/okuma';
+</script>
+</Sayfa>

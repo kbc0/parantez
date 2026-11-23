@@ -10,10 +10,12 @@ Site sahibi bu çizgiyi çok seviyor; yeni işler bu çizgide kalsın:
 
 - **Sohbet yok; her sayı bir kapaktır.** Site sahibi sohbeti kaldırdı, arayüz sade kalsın.
   Mesajlaşma havası küçük dokunuşlarla sürer: editörün selam balonu, (parantez)'in not balonları, Hakkında.
-- **Yazı sayfaları balonsuz okunur.** Tek sütun, rahat satır aralığı. Sitenin geri kalanıyla bağ küçük dokunuşlarla kurulur:
-  - aynı üst bar ve yazarın avatarı;
+- **Yazı sayfaları balonsuz okunur.** Tek sütun, rahat satır aralığı. Üstte sitenin ortak menüsü (`Sayfa.astro`),
+  ekranın en üstünde ince bir okuma ilerlemesi çizgisi. Sitenin geri kalanıyla bağ küçük dokunuşlarla kurulur:
+  - yazarın avatarı; başlığın üstündeki "Sayı 01 · 2/5" sayıya götürür;
   - (parantez)'in "kısaca" ve "neden önemli?" not balonları;
-  - sonda tek tepki satırı, sıradaki yazı ve sayfa içi abonelik.
+  - sonda tek tepki satırı, paylaş (telefonda paylaşma menüsü, bilgisayarda bağlantıyı kopyalar), sıradaki yazı
+    ve sayfa içi abonelik.
 - **Ana sayfa bu haftanın kapağıdır** (`src/components/SayiKapak.astro`). Masaüstünde tek ekranlıktır ve kaymaz;
   telefonda aynı kapak alt alta dizilir.
   - Solda editörün selam balonu, dev başlık, özet (editörün notunun ilk paragrafı) ve "Abone ol".
@@ -36,14 +38,14 @@ Site sahibi bu çizgiyi çok seviyor; yeni işler bu çizgide kalsın:
   - Yazı sayfası: No., başlık, yazarlar ve tarih; sonra metin. Künye, bulgu kutusu, içindekiler, atıf gibi
     ayrı parçalar eklenmez; gereken her şey metnin içinde (ara başlık, tablo, grafik, dipnot).
   - Görseller gri tonlu.
-- **Sade sayfalar** (`src/layouts/Sayfa.astro`): Hakkında, Araştırma, konu (`/konu/<konu>/`), abonelik sayfaları, seçki ve 404.
+- **Sade sayfalar** (`src/layouts/Sayfa.astro`): yazılar, Hakkında, Araştırma, konu (`/konu/<konu>/`), abonelik sayfaları,
+  seçki ve 404.
   Üst menü ana sayfanınki; sol liste, üst bar ve mesaj kutusu yok.
   - Hakkında ve abonelik sayfaları (parantez)'in balonlarıyla konuşur; e-posta balonların altındaki kutuyla alınır.
     Hakkında'da tepkiler kalır.
   - Konu sayfası: büyük "#konu" başlığı ve yazıların listesi (başlık, spot, sayı, süre, yazar).
-- **Yazı sayfalarının barı:** solda geri, ortada başlık, sağda aynı "Menü" düğmesi (masaüstünde "Arşiv");
-  "i" yok. Sayfa geçişlerinde üst menü yerinde durur, yalnızca içerik değişir (`view-transition-name: ust`).
-- **Geri düğmesi** okuru geldiği yere götürür (yazıdan bu haftanın sayısına dönüş ana sayfadır).
+- **Üst menü her sayfada aynıdır** (`AnaUst.astro`); sohbet barı kalmadı. Sayfa geçişlerinde üst menü yerinde durur,
+  yalnızca içerik değişir (`view-transition-name: ust`). Bu haftanın sayısına giden bağlantılar ana sayfaya gider.
 
 Kaçınılacaklar:
 - büyük siyah yuvarlaklar ve küçük siyah numara yuvarlakları;
@@ -73,17 +75,15 @@ Yazı tipi: Hanken Grotesk.
 - Markdown: Astro'nun Sätteri işlemcisi (`astro.config.mjs`).
   - ` ```grafik ` blokları çubuk grafiğe dönüşür (`src/lib/grafik.js`; panel önizlemesi de bunu kullanır).
   - `[^1]` dipnotları "Kaynaklar ve notlar" başlığıyla sonda toplanır.
-- Sayfalar: `src/pages/`. Ortak iskelet: `src/layouts/App.astro` (araştırma hariç). `<head>` etiketleri `src/components/Bas.astro`.
-  - Ana sayfanın üst menüsü `src/components/AnaUst.astro`, Arşiv çekmecesi `src/components/Arsiv.astro`.
-    Ana sayfa ve sade sayfalar (`src/layouts/Sayfa.astro`: araştırma, hakkında) ikisini de kullanır;
+- Sayfalar: `src/pages/`. İskeletler: ana sayfa ve sayı kapakları `src/layouts/App.astro` (`ana` prop'u),
+  geri kalan her şey `src/layouts/Sayfa.astro`. `<head>` etiketleri `src/components/Bas.astro`.
+  - Üst menü `src/components/AnaUst.astro`, Arşiv çekmecesi `src/components/Arsiv.astro`; ikisi her sayfada aynı,
     üst menü değişirse hepsinde değişir.
-  - `.on` sınıfı basılı tepki ve seçili öğeler içindir; tek başına stil vermeyin (öneri kartı `.onr`).
-  - `okuma` prop'u yazı düzenini açar.
-  - `ana` prop'u ana sayfa düzenini açar.
+  - `.on` sınıfı basılı tepki ve seçili öğeler içindir; tek başına stil vermeyin.
 - Betikler (`src/scripts/`):
-  - `ortak.ts`: her sayfa; geri düğmesi, sayfa içi abonelik, paylaş.
+  - `ortak.ts`: her sayfa; sayfa içi abonelik, paylaş.
   - `sohbet.ts`: balonlu sayfalar (Hakkında, kapak): tepkiler ve yerinde abonelik.
-  - `okuma.ts`: yazı sayfası.
+  - `okuma.ts`: yazı sayfası; okuma ilerlemesi, okundu işareti ve tepkiler.
 - Yazı paneli: `/admin` (bkz. `PANEL.md`).
   - Arayüz `src/pages/admin/index.astro`, `src/scripts/panel.ts`, `src/scripts/panel-icerik.ts`.
   - Sunucu `worker/panel.js`, `worker/inceleme.js` ve `worker/github.js`.

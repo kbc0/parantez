@@ -1,6 +1,6 @@
 // Panel: okurun göreceği hâliyle önizleme ve iki sürüm arasındaki farklar.
 // Şablonlar sitedekilerin aynısı olmalı: src/pages/yazi/[slug].astro, src/pages/arastirma/[slug].astro,
-// src/components/SayiKapak.astro (sayının kapağı) ve src/layouts/App.astro'nun üst barı.
+// src/components/SayiKapak.astro (sayının kapağı) ve src/components/AnaUst.astro (üst menü).
 // Biri değişirse buradaki karşılığı da güncellenmeli.
 import { marked } from 'marked';
 import { KONULAR, KONU_RENK } from '../lib/konular';
@@ -67,23 +67,11 @@ export function okumaSuresi(v: YaziVeri, govde: string): number {
 }
 
 const adOf = (yol: string) => yol.split('/').pop()!.replace(/\.md$/, '');
-const SVG_GERI = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 5.5L8 12l6.5 6.5"/></svg>';
-// Barın sağındaki "Menü" düğmesi (App.astro'daki gibi; masaüstünde "Arşiv")
-const MENU = '<button type="button" class="bar__menu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg><span class="ana-ust__masa">Arşiv</span><span class="ana-ust__tel">Menü</span></button>';
 // Bir sayının listesindeki yazılar, sırasıyla (henüz bulunmayanlar atlanır)
 export const sayininYazilari = (v: SayiVeri, yazilar: Kayit<YaziVeri>[]) =>
   v.yazilar.map((ad) => yazilar.find((y) => adOf(y.yol) === ad)).filter((y): y is Kayit<YaziVeri> => !!y);
 const SVG_PAYLAS = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3M7 8l5-5 5 5M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>';
 const SVG_GONDER = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg>';
-
-function bar(baslik: string, alt: string, sag: string) {
-  return `
-    <header class="bar">
-      <a class="bar__geri" href="#" aria-label="Geri">${SVG_GERI}</a>
-      <div class="bar__kim"><div class="bar__k">${av(PARANTEZ)}<div class="bar__t"><b>${e(baslik)}</b><span>${e(alt)}</span></div></div></div>
-      <div class="bar__act">${sag}${MENU}</div>
-    </header>`;
-}
 
 // ------------------------------------------------------------------ yazı sayfası
 
@@ -103,8 +91,7 @@ export function yaziOnizleme(y: YaziTaslak, b: Baglam, gorselUrl?: string): stri
   const dk = okumaSuresi(v, y.govde);
   const foto = gorselUrl ?? gorsel(v.gorsel, 1200, 632);
 
-  return `<div class="app"><div class="main">
-    ${bar(sayiAdi, `yazı ${i + 1}/${n} · ${konuAdi(v.konu).toLocaleLowerCase('tr')}`, `<button type="button" class="ib" title="Paylaş" aria-label="Paylaş">${SVG_PAYLAS}</button>`)}
+  return `${ANA_UST}
     <main class="oku">
       <article class="yz" style="--c:${konuRenk(v.konu)}">
         <header class="yz__bas">
@@ -127,6 +114,7 @@ export function yaziOnizleme(y: YaziTaslak, b: Baglam, gorselUrl?: string): stri
         <footer class="yz__son">
           <p class="bitti"><span>(son)</span></p>
           <div class="yz-tepki"><p>bu yazı nasıldı?</p><div>${['❤️', '😂', '😮', '😢', '🔥'].map((x) => `<button type="button">${x}<span></span></button>`).join('')}</div></div>
+          <div class="yz-paylas"><p>bir arkadaşına göndermek ister misin?</p><button type="button" class="chip">${SVG_PAYLAS}Paylaş</button></div>
           ${sonraki ? `
             <a class="sonraki" href="#">
               <span class="sonraki__t">
@@ -137,7 +125,7 @@ export function yaziOnizleme(y: YaziTaslak, b: Baglam, gorselUrl?: string): stri
               <span class="sonraki__g"><img src="${e(gorsel(sonraki.veri.gorsel, 1200, 632))}" alt="" width="1200" height="632"></span>
             </a>` : `
             <a class="sonraki sonraki--son" href="#">
-              <span class="sonraki__t"><small>Bu sayının son yazısıydı</small><b>${sayiAdi} sohbetine dön</b><span>özet, öneriler ve etkinlikler orada</span></span>
+              <span class="sonraki__t"><small>Bu sayının son yazısıydı</small><b>Sayıya dön</b><span>${sayiAdi} · ne oldu ve haftalık seçki orada</span></span>
             </a>`}
           <section class="yz-abone" aria-label="Abone ol">
             <div class="not">${av(PARANTEZ)}<div class="not__b"><p>bu yazı her pazar 09:00’da gelen bültenimizden. sana da gelsin mi?</p></div></div>
@@ -145,8 +133,7 @@ export function yaziOnizleme(y: YaziTaslak, b: Baglam, gorselUrl?: string): stri
           </section>
         </footer>
       </article>
-    </main>
-  </div></div>`;
+    </main>`;
 }
 
 // ------------------------------------------------------------------ sayının kapağı (SayiKapak.astro)

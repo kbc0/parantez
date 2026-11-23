@@ -1,39 +1,29 @@
-// (parantez) — yazı sayfası. Sohbetten açılan, rahat okunan sayfa.
-// JavaScript olmadan da eksiksiz okunur; bu dosya ilerleme çubuğu ve tepkileri ekler.
+// (parantez) — yazı sayfası: rahat okunan sayfa.
+// JavaScript olmadan da eksiksiz okunur; bu dosya okuma ilerlemesini, okundu işaretini ve tepkileri ekler.
 // Sayfa içi abonelik ortak.ts'de.
 import { EMOJI, $, $$, toast, kimlik, okunduEkle, okunduIsaretle } from './ortak';
 
 const sayfa = document.body.dataset.sayfa ?? '';
 // Yazılarda okundu işareti yazının adresiyle tutulur; araştırmalarda sayfanın adıyla
 const slug = sayfa.startsWith('yazi-') ? sayfa.slice(5) : sayfa;
-const bar = $('.bar')!;
-const yz = $('.yz')!;
-const baslik = $('.yz__baslik');
 const son = $('[data-son]');
-const kalanEl = $('[data-kalan]');
-const dk = Number(yz.dataset.dk) || 1;
+const ilerleme = $('.yz-ilerleme');
 
-// ---------------------------------------------------------------- üst bar
-// Başlık ekrandan çıkınca bara geçer; altında ince bir okuma ilerlemesi akar.
+// ---------------------------------------------------------------- okuma ilerlemesi
+// Ekranın en üstünde ince bir çizgi: yazının ne kadarı okundu.
 
 let kare = 0;
-let sonKalan = '';
-function barGuncelle() {
+function ilerlemeGuncelle() {
   kare = 0;
-  const barAlt = bar.getBoundingClientRect().bottom;
-  if (baslik) bar.classList.toggle('kaydi', baslik.getBoundingClientRect().bottom < barAlt + 4);
-  if (!son) return;
+  if (!son || !ilerleme) return;
   const bitis = son.getBoundingClientRect().top + scrollY - innerHeight + 60;
   const p = bitis > 0 ? Math.min(1, Math.max(0, scrollY / bitis)) : 1;
-  bar.style.setProperty('--ilerleme', p.toFixed(4));
-  const kalan = p > 0.985 ? 'bitti' : p < 0.03 ? `${dk} dk okuma` : `${Math.max(1, Math.ceil(dk * (1 - p)))} dk kaldı`;
-  if (kalanEl && kalan !== sonKalan) kalanEl.textContent = sonKalan = kalan;
+  ilerleme.style.setProperty('--ilerleme', p.toFixed(4));
 }
-const barIste = () => { if (!kare) kare = requestAnimationFrame(barGuncelle); };
-addEventListener('scroll', barIste, { passive: true });
-addEventListener('resize', barIste);
-bar.classList.add('bar--ilerleme');
-barGuncelle();
+const ilerlemeIste = () => { if (!kare) kare = requestAnimationFrame(ilerlemeGuncelle); };
+addEventListener('scroll', ilerlemeIste, { passive: true });
+addEventListener('resize', ilerlemeIste);
+ilerlemeGuncelle();
 
 // ---------------------------------------------------------------- okundu
 
@@ -48,7 +38,7 @@ if (son && slug) {
 }
 
 // ---------------------------------------------------------------- tepki
-// Yazının tamamına tek tepki. Sohbetteki hazır emojilerin aynısı.
+// Yazının tamamına tek tepki: hazır emojilerden biri.
 
 const tepkiKutu = $('[data-yazi-tepki]');
 const tepki = { sayilar: {} as Record<string, number>, benim: '' };
