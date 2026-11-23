@@ -28,12 +28,16 @@ const giris = ['gündemin dışında kalanlar:', liste && `bu hafta ${liste}.`, 
 ---
 <Sayfa title={`Haftalık seçki · Sayı ${pad(s.sayi)}`} description={`Sayı ${pad(s.sayi)}: ${oneriler.map((x) => x.o!.baslik).join(', ')}`}>
 <main id="icerik" class="secki">
-  <a class="secki__geri" href={sayiUrl(s.sayi)}>← Sayı {pad(s.sayi)}</a>
-  <p class="sade__ust">Sayı {pad(s.sayi)} · {gunAdi(s.yayin)}, {tarihUzun(s.yayin)}</p>
-  <h1 class="sade__baslik">Haftalık seçki</h1>
-  <Grp k={PARANTEZ}>
-    <p class="b">{giris}</p>
-  </Grp>
+  <header class="secki__bas">
+    <div>
+      <a class="secki__geri" href={sayiUrl(s.sayi)}>← Sayı {pad(s.sayi)}</a>
+      <p class="sade__ust">Sayı {pad(s.sayi)} · {gunAdi(s.yayin)}, {tarihUzun(s.yayin)}</p>
+      <h1 class="sade__baslik">Haftalık seçki</h1>
+    </div>
+    <Grp k={PARANTEZ}>
+      <p class="b">{giris}</p>
+    </Grp>
+  </header>
 
   {oneriler.length > 0 && (
     <div class="secki__kartlar">

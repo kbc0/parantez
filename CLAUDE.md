@@ -17,8 +17,10 @@ Site sahibi bu çizgiyi çok seviyor; yeni işler bu çizgide kalsın:
 - **Ana sayfa bu haftanın kapağıdır** (`src/components/SayiKapak.astro`). Masaüstünde tek ekranlıktır ve kaymaz;
   telefonda aynı kapak alt alta dizilir.
   - Solda editörün selam balonu, dev başlık, özet (editörün notunun ilk paragrafı) ve "Abone ol".
-  - Sağda sekmeler: Yazılar (numaralı beş yazı), Ne oldu? (kısa kısa), Haftalık seçki (dinle/izle/oku ve gidilecek yerler;
-    sonunda "Seçkiyi incele →" tam sayfaya, `/sayi/<no>/secki/`, götürür). Sekmeler radyo düğmeleriyle; JS gerekmez.
+  - Sağda sekmeler: Yazılar (numaralı beş yazı), Ne oldu? (kısa kısa; solda konunun renginde şerit) ve Haftalık seçki
+    (dinle/izle/oku ve gidilecek yerler). Seçki sekmesinde dışarı bağlantı yok; sondaki "Seçkiyi incele →" tam sayfaya
+    (`/sayi/<no>/secki/`) götürür, bağlantılar orada. Seçki sayfası da masaüstünde tek ekrana sığar.
+    Sekmeler radyo düğmeleriyle; JS gerekmez.
   - Eski sayılar (`/sayi/<no>/`) aynı kapakla açılır; tarihte "arşiv" yazar. Bu haftanın sayısı ana sayfadır:
     bağlantılar `/`'e gider, `/sayi/<no>/` sayfasının asıl adresi (canonical) `/`'dir.
   - Sayfalara "Bu haftanın sayısı", "Arşiv" gibi tekrar eden düğmeler konmaz; her şeye üst menüden gidilir.

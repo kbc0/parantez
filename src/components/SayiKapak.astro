@@ -85,11 +85,11 @@ const gunAy = (d: Date) => { const t = new Date(d.getTime() + 3 * 3600e3); retur
 
       <div class="sek__p sek__p--ne-oldu">
         <h2 class="sr">Bu hafta ne oldu?</h2>
-        <ol class="kisa">
+        <ul class="kisa">
           {s.kisaKisa.map((k) => (
-            <li style={`--c:${konuRenk(k.konu)}`}><span class="kisa__k"><i aria-hidden="true"></i>{konuAdi(k.konu)}</span><span>{k.metin}</span></li>
+            <li style={`--c:${konuRenk(k.konu)}`}><small>{konuAdi(k.konu)}</small><span>{k.metin}</span></li>
           ))}
-        </ol>
+        </ul>
       </div>
 
       {disari && (
@@ -100,7 +100,7 @@ const gunAy = (d: Date) => { const t = new Date(d.getTime() + 3 * 3600e3); retur
               <li>
                 <span class="yapsam__e">{fiil}</span>
                 <span class="yapsam__t">
-                  <b>{o!.link ? <a href={o!.link} target="_blank" rel="noopener">{o!.baslik}</a> : o!.baslik}</b>
+                  <b>{o!.baslik}</b>
                   <small>{o!.kimden} · {o!.tur}</small>
                   <span class="yapsam__n">{o!.not}</span>
                 </span>
@@ -110,7 +110,7 @@ const gunAy = (d: Date) => { const t = new Date(d.getTime() + 3 * 3600e3); retur
               <li>
                 <span class="yapsam__e">Git</span>
                 <span class="yapsam__t">
-                  <b>{e.link ? <a href={e.link} target="_blank" rel="noopener">{e.ad}</a> : e.ad}</b>
+                  <b>{e.ad}</b>
                   <small>{gunAy(e.tarih)} {gunAdi(e.tarih)}{e.saat && ` ${e.saat}`} · {e.yer}, {e.sehir} · {e.ucret}</small>
                 </span>
               </li>

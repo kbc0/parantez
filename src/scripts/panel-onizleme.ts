@@ -192,14 +192,14 @@ export function sayiOnizleme(v: SayiVeri, govde: string, b: Baglam): string {
           ${liste.map((y, i) => `<li><a href="#" style="--c:${konuRenk(y.veri.konu)}"><span class="kapak__no">${pad(i + 1)}</span>
             <span class="kapak__t"><b>${e(y.veri.baslik)}</b><small><i aria-hidden="true"></i>${e(konuAdi(y.veri.konu))} · ${sureler[i]} dk · ${e(ilkAd(y.veri.yazar))}</small></span></a></li>`).join('')}
         </ol></div>
-        <div class="sek__p sek__p--ne-oldu"><ol class="kisa">
-          ${v.kisaKisa.map((k) => `<li style="--c:${konuRenk(k.konu)}"><span class="kisa__k"><i aria-hidden="true"></i>${e(konuAdi(k.konu))}</span><span>${e(k.metin)}</span></li>`).join('')}
-        </ol></div>
+        <div class="sek__p sek__p--ne-oldu"><ul class="kisa">
+          ${v.kisaKisa.map((k) => `<li style="--c:${konuRenk(k.konu)}"><small>${e(konuAdi(k.konu))}</small><span>${e(k.metin)}</span></li>`).join('')}
+        </ul></div>
         ${disari ? `<div class="sek__p sek__p--ne-yapsam"><ul class="yapsam">
           ${oneriler.map(({ fiil, o }) => `<li><span class="yapsam__e">${fiil}</span><span class="yapsam__t">
-            <b>${o!.link ? `<a href="#">${e(o!.baslik)}</a>` : e(o!.baslik)}</b><small>${e(o!.kimden)} · ${e(o!.tur)}</small><span class="yapsam__n">${e(o!.not)}</span></span></li>`).join('')}
+            <b>${e(o!.baslik)}</b><small>${e(o!.kimden)} · ${e(o!.tur)}</small><span class="yapsam__n">${e(o!.not)}</span></span></li>`).join('')}
           ${etkinlikler.map((x) => `<li><span class="yapsam__e">Git</span><span class="yapsam__t">
-            <b>${x.link ? `<a href="#">${e(x.ad)}</a>` : e(x.ad)}</b>
+            <b>${e(x.ad)}</b>
             <small>${tarih(x.tarih).getUTCDate()} ${AY_KUCUK[tarih(x.tarih).getUTCMonth()]} ${gunAdi(x.tarih)}${x.saat ? ` ${e(x.saat)}` : ''} · ${e(x.yer)}, ${e(x.sehir)} · ${e(x.ucret)}</small></span></li>`).join('')}
         </ul><a class="sek__devam" href="#">Seçkiyi incele →</a></div>` : ''}
       </div>
