@@ -310,16 +310,19 @@ export async function abonePanel(yol, yontem, veri, ben, env, url) {
 
 const YAZI = "'Hanken Grotesk', 'Helvetica Neue', Helvetica, Arial, sans-serif";
 
+// Bildirimde ve gelen kutusunda görünen önizleme cümlesi (e-postada gizli). Olmasa istemci e-postanın
+// ilk metnini gösterir; avatardaki (p) ve "(parantez)" yazıları peş peşe dizilirdi.
+const ONIZLEME = 'bir dokunuşla onaylar mısın? sonra her pazar 09:00’da haftanın özeti ve beş yazı gelir.';
+
 export function onayEpostasi(env, anahtar) {
   const site = siteAdresi(env);
   const baglanti = `${site}/api/abone/onay?t=${anahtar}`;
   const balon = (metin) => `<tr><td style="padding:0 0 4px 44px"><div style="display:inline-block;max-width:460px;padding:10px 14px;border-radius:20px;background:#f1f1ed;color:#111111;font-size:17px;line-height:1.5">${metin}</div></td></tr>`;
   const html = `<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="color-scheme" content="light only"><title>Aboneliğini onaylar mısın?</title></head>
 <body style="margin:0;padding:0;background:#ffffff">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;mso-hide:all">${ONIZLEME}${'&#8199;&#65279;&#847; '.repeat(40)}</div>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff"><tr><td align="center" style="padding:28px 16px">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;font-family:${YAZI};color:#111111">
-<tr><td style="padding:0 0 22px;font-size:22px;font-weight:800;letter-spacing:-0.02em">(parantez)</td></tr>
-<tr><td style="padding:0 0 4px 44px;font-size:12px;font-weight:600;color:#84847f">(parantez)</td></tr>
 <tr><td style="padding:0"><table role="presentation" cellpadding="0" cellspacing="0"><tr><td valign="top" style="padding:0 8px 0 0"><div style="width:36px;height:36px;border-radius:50%;background:#111111;color:#ffffff;font-size:12px;font-weight:800;line-height:36px;text-align:center">(p)</div></td>
 <td><div style="display:inline-block;max-width:460px;padding:10px 14px;border-radius:20px;background:#f1f1ed;font-size:17px;line-height:1.5">selam! bu adresi (parantez)’e abone olmak için yazdın.</div></td></tr></table></td></tr>
 ${balon('bir dokunuşla onaylar mısın? sonra her pazar 09:00’da haftanın özeti ve beş yazı gelir.')}
