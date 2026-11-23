@@ -1,5 +1,6 @@
-// (parantez) — haftalık e-posta. Sayının sohbet hâlinin e-postadaki karşılığı:
-// editörün selamı ve haftanın cümlesi, özet, beş yazı, kısa kısa, parantez dışı.
+// (parantez) — haftalık e-posta. Sayının e-postadaki hâli, mesajlaşır gibi:
+// editörün selamı ve haftanın cümlesi, özet, beş yazı, kısa kısa, haftalık seçki.
+// "(parantez)" adı e-postada az geçsin: gönderen adında var; başlık ve (p) balonlarının üstünde isim yok.
 // İçerik GitHub'dan okunur (gizli sayı da önizlenebilsin diye); şablon burada.
 // Sohbetin düzeni (src/components/IssueChat.astro) değişirse burası da gözden geçirilmeli.
 //
@@ -86,7 +87,7 @@ function avatar(k) {
 const ARA = '<div style="height:4px;line-height:4px;font-size:4px">&nbsp;</div>';
 const balon = (ic, ek = '') => `<div style="display:inline-block;max-width:520px;padding:10px 14px;border-radius:20px;background:#f1f1ed;color:#111111;font-size:17px;line-height:1.5;${ek}">${ic}</div>`;
 
-function grup(k, parcalar, isim = true) {
+function grup(k, parcalar, isim = k.kisa !== '(p)') {
   const rol = k.kisa !== '(p)' && k.rol ? ` · ${h(k.rol)}` : '';
   return `<tr><td style="padding:16px 0 0">
 ${isim ? `<div style="margin:0 0 4px 44px;font-size:12px;font-weight:600;color:#84847f">${h(k.ad)}${rol}</div>` : ''}
@@ -149,10 +150,7 @@ export function bultenHtml(env, { sayi, yazilar, ekip }) {
   const onYazi = duzMetin(ozet[0] ?? '').split(/(?<=[.!?…])\s/)[0].slice(0, 140);
 
   const satirlar = [
-    `<tr><td style="padding:0"><table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
-<td style="font-size:22px;font-weight:800;letter-spacing:-0.02em"><a href="${h(site)}/" style="color:#111111;text-decoration:none">(parantez)</a></td>
-<td align="right" style="font-size:13px;font-weight:600;color:#84847f">Sayı ${pad(v.sayi)}</td></tr></table></td></tr>`,
-    `<tr><td align="center" style="padding:22px 0 0;font-size:12px;font-weight:700;letter-spacing:.05em;color:#84847f">${h(buyuk(`Sayı ${pad(v.sayi)} · ${gunAdi(v.yayin)}, ${tarihUzun(v.yayin)} · 09:00`))}</td></tr>`,
+    `<tr><td align="center" style="padding:0;font-size:12px;font-weight:700;letter-spacing:.05em;color:#84847f">${h(buyuk(`Sayı ${pad(v.sayi)} · ${gunAdi(v.yayin)}, ${tarihUzun(v.yayin)} · 09:00`))}</td></tr>`,
     grup(editor, [
       balon('günaydın. bu hafta tek cümle:'),
       balon(h(v.baslik), 'font-size:27px;font-weight:800;line-height:1.08;letter-spacing:-0.03em;padding:13px 16px'),
@@ -181,9 +179,9 @@ export function bultenHtml(env, { sayi, yazilar, ekip }) {
       ...(etkinlikler.length ? [balon('bir de bu hafta gidilecek yerler:'), ...etkinlikler.map(etkinlikSatiri)] : []),
     ]));
   }
-  satirlar.push(`<tr><td style="padding:22px 0 0 44px"><a href="${h(sayiAdresi)}" style="display:inline-block;padding:11px 18px;border:1.5px solid #2a35ff;border-radius:999px;color:#2a35ff;font-size:15px;font-weight:700;text-decoration:none">sohbette aç →</a></td></tr>`);
+  satirlar.push(`<tr><td style="padding:22px 0 0 44px"><a href="${h(sayiAdresi)}" style="display:inline-block;padding:11px 18px;border:1.5px solid #2a35ff;border-radius:999px;color:#2a35ff;font-size:15px;font-weight:700;text-decoration:none">sitede aç →</a></td></tr>`);
   satirlar.push(`<tr><td style="padding:36px 0 0"><div style="border-top:1px solid #e7e7e2;padding-top:16px;font-size:13px;line-height:1.6;color:#84847f">
-(parantez) · her pazar 09:00’da haftanın özeti ve beş yazı.<br>
+her pazar 09:00’da haftanın özeti ve beş yazı.<br>
 bu e-postayı <a href="${h(site)}/" style="color:#84847f">parantezbulten.com</a>’a abone olduğun için aldın.
 <a href="${CIK}" style="color:#84847f">abonelikten çık</a> · <a href="${h(sayiAdresi)}" style="color:#84847f">tarayıcıda aç</a></div></td></tr>`);
 
@@ -213,7 +211,7 @@ ${satirlar.join('\n')}
     t.push('');
   }
   if (oneriler.length) {
-    t.push('PARANTEZ DIŞI', '');
+    t.push('HAFTALIK SEÇKİ', '');
     for (const [k, o] of oneriler) t.push(`${FIIL[k]} · ${o.tur}: ${o.baslik} — ${o.kimden}`, o.not, ...(o.link ? [o.link] : []), '');
   }
   if (etkinlikler.length) {
@@ -221,7 +219,7 @@ ${satirlar.join('\n')}
     for (const e of etkinlikler) t.push(`${tarihUzun(e.tarih)} ${gunAdi(e.tarih)}${e.saat ? ` ${e.saat}` : ''} · ${e.ad} · ${e.yer}, ${e.sehir} · ${e.ucret}`);
     t.push('');
   }
-  t.push(`sohbette aç: ${sayiAdresi}`, '', `abonelikten çık: ${CIK}`);
+  t.push(`sitede aç: ${sayiAdresi}`, '', `abonelikten çık: ${CIK}`);
 
   return { konu, html, text: t.join('\n'), onYazi };
 }

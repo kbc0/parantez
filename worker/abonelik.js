@@ -311,7 +311,7 @@ export async function abonePanel(yol, yontem, veri, ben, env, url) {
 const YAZI = "'Hanken Grotesk', 'Helvetica Neue', Helvetica, Arial, sans-serif";
 
 // Bildirimde ve gelen kutusunda görünen önizleme cümlesi (e-postada gizli). Olmasa istemci e-postanın
-// ilk metnini gösterir; avatardaki (p) ve "(parantez)" yazıları peş peşe dizilirdi.
+// ilk metnini gösterir; avatardaki (p) gibi yazılar öne geçerdi.
 const ONIZLEME = 'bir dokunuşla onaylar mısın? sonra her pazar 09:00’da haftanın özeti ve beş yazı gelir.';
 
 export function onayEpostasi(env, anahtar) {
@@ -324,11 +324,11 @@ export function onayEpostasi(env, anahtar) {
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff"><tr><td align="center" style="padding:28px 16px">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;font-family:${YAZI};color:#111111">
 <tr><td style="padding:0"><table role="presentation" cellpadding="0" cellspacing="0"><tr><td valign="top" style="padding:0 8px 0 0"><div style="width:36px;height:36px;border-radius:50%;background:#111111;color:#ffffff;font-size:12px;font-weight:800;line-height:36px;text-align:center">(p)</div></td>
-<td><div style="display:inline-block;max-width:460px;padding:10px 14px;border-radius:20px;background:#f1f1ed;font-size:17px;line-height:1.5">selam! bu adresi (parantez)’e abone olmak için yazdın.</div></td></tr></table></td></tr>
+<td><div style="display:inline-block;max-width:460px;padding:10px 14px;border-radius:20px;background:#f1f1ed;font-size:17px;line-height:1.5">selam! bu adresi bültenimize abone olmak için yazdın.</div></td></tr></table></td></tr>
 ${balon('bir dokunuşla onaylar mısın? sonra her pazar 09:00’da haftanın özeti ve beş yazı gelir.')}
 <tr><td style="padding:14px 0 0 44px"><a href="${h(baglanti)}" style="display:inline-block;padding:12px 20px;border-radius:999px;background:#2a35ff;color:#ffffff;font-size:16px;font-weight:700;text-decoration:none">aboneliğimi onayla →</a></td></tr>
 <tr><td style="padding:28px 0 0 44px;font-size:13px;line-height:1.5;color:#84847f">bunu sen yazmadıysan e-postayı görmezden gel; başka bir şey gelmez.<br><a href="${h(site)}" style="color:#84847f">parantezbulten.com</a></td></tr>
 </table></td></tr></table></body></html>`;
-  const text = `selam! bu adresi (parantez)'e abone olmak için yazdın.\n\nonaylamak için: ${baglanti}\n\nsonra her pazar 09:00'da haftanın özeti ve beş yazı gelir. bunu sen yazmadıysan e-postayı görmezden gel; başka bir şey gelmez.`;
+  const text = `selam! bu adresi bültenimize abone olmak için yazdın.\n\nonaylamak için: ${baglanti}\n\nsonra her pazar 09:00'da haftanın özeti ve beş yazı gelir. bunu sen yazmadıysan e-postayı görmezden gel; başka bir şey gelmez.`;
   return { subject: 'aboneliğini onaylar mısın?', html, text };
 }
