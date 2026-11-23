@@ -10,9 +10,11 @@ export type Arastirma = CollectionEntry<'arastirmalar'>;
 export const SITE = {
   ad: '(parantez)',
   slogan: 'Gündem uzun. Biz kısaltıyoruz. Bazen de uzatıyoruz.',
-  aciklama: 'Gençler için haftalık bülten. Her pazar 09:00’da gelen kutuna: haftanın özeti ve beş yazı. Gündem uzun, biz kısaltıyoruz.',
+  aciklama: 'Haftalık bülten. Her pazar 09:00’da gelen kutuna: haftanın özeti ve beş yazı. Gündem uzun, biz kısaltıyoruz.',
   // Aramalarda markanın öbür yazılışları (yapısal veri)
   digerAdlar: ['Parantez', 'Parantez Bülten'],
+  // Resmî hesaplar (yapısal veride sameAs)
+  hesaplar: ['https://www.instagram.com/parantezbulten/'],
   eposta: 'baris@parantezbulten.com',
 };
 

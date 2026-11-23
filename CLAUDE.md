@@ -1,6 +1,6 @@
 # (parantez)
 
-Gençler için haftalık bülten. Her pazar 09:00: haftanın özeti ve beş yazı.
+Haftalık bülten. Her pazar 09:00: haftanın özeti ve beş yazı.
 Astro (statik) + Cloudflare Workers. `main`'e push edilen her commit Workers Builds ile yayına çıkar.
 
 ## Tasarım yönü
@@ -41,7 +41,8 @@ Kaçınılacaklar:
 - ekran kenarlarında gri boşluklar;
 - kalabalık sayfa sonları;
 - karanlık mod;
-- klasik haber sitesi görünümü ve "AI slop".
+- klasik haber sitesi görünümü ve "AI slop";
+- "gençler için" diye tanıtmak (ekip genç ama yalnızca gençlere yazmıyor).
 
 Renkler (`src/styles/global.css` :root):
 - mürekkep #111, kâğıt #fff;

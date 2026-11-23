@@ -1,6 +1,6 @@
 # (parantez)
 
-Genç okurlar için haftalık bülten. Her pazar 09:00: haftanın özeti + 5 yazı. Gündem uzun, biz kısaltıyoruz. Bazen de uzatıyoruz.
+Haftalık bülten. Her pazar 09:00: haftanın özeti + 5 yazı. Gündem uzun, biz kısaltıyoruz. Bazen de uzatıyoruz.
 
 Site bir mesajlaşma uygulaması gibi çalışır: her sayı bir sohbet, her yazı bir konuşma. Okur hazır cevaplarla ("Ne oldu?", "Yazılar", "Bu hafta ne yapsam?", "Abone ol") ilerler, mesajlara sabit emojilerle tepki bırakır ve e-postasını mesaj kutusuna yazarak abone olur. Yazılarda "Aa" düğmesi balonları kapatıp düz okuma moduna geçer.
 

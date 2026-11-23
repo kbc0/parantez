@@ -13,6 +13,7 @@ function kurum(site: URL) {
     alternateName: SITE.digerAdlar,
     url: adres('/', site),
     logo: { '@type': 'ImageObject', url: adres('/icon-512.png', site), width: 512, height: 512 },
+    sameAs: SITE.hesaplar,
   };
 }
 
