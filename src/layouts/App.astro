@@ -67,7 +67,7 @@ const guncel = liste[0]?.data.sayi;
         {Object.entries(KONULAR).map(([k, ad]) => <a class:list={['tag', { on: aktif === `konu-${k}` }]} href={`/konu/${k}/`}>#{ad.toLocaleLowerCase('tr')}</a>)}
       </nav>
       <nav class="side__foot">
-        <a href="/arastirma/">Araştırma</a><a href="/hakkinda/">Hakkında</a><a href="/abone/">Abone ol</a><a href="/">Tüm sayılar</a><a href="/rss.xml">RSS</a>
+        <a href="/arastirma/">Araştırma</a><a href="/hakkinda/">Hakkında</a><a href="/abone/">Abone ol</a><a href="/">Tüm sayılar</a><a href="/rss.xml" data-indirme="yok">RSS</a>
       </nav>
     </aside>
 

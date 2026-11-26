@@ -39,8 +39,10 @@ const ld = meta.ld ? JSON.stringify(meta.ld).replace(/</g, '\\u003c') : '';
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="/icon-192.png" type="image/png" sizes="192x192">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-{/* Okur bir bağlantıya yönelince (üstüne gelince ya da dokununca) sayfa önceden indirilir; tıklayınca hazır açılır */}
-<script type="speculationrules" is:inline>{"prefetch":[{"where":{"and":[{"href_matches":"/*"},{"not":{"href_matches":["/api/*","/admin/*","/rss.xml"]}}]},"eagerness":"moderate"}]}</script>
+{/* Okur bir bağlantıya yönelince (üstüne gelince ya da dokununca) sayfa önceden indirilir; tıklayınca hazır açılır.
+    Kural adres kalıbı yerine seçiciyle yazılı: Google, "/api/*" gibi kalıpları adres sanıp tarıyordu (Search Console'da 404).
+    Önceden indirilmesin istenen bağlantıya data-indirme eklenir (ör. RSS). */}
+<script type="speculationrules" is:inline>{"prefetch":[{"where":{"selector_matches":"a[href^='/']:not([data-indirme])"},"eagerness":"moderate"}]}</script>
 <link rel="alternate" type="application/rss+xml" title={SITE.ad} href="/rss.xml">
 <meta name="theme-color" content="#ffffff">
 <meta property="og:type" content={type}>
